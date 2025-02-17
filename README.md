@@ -91,5 +91,7 @@ As CVitaePRO evolves, additional features will be introduced:
 - **Premium templates & styling options**: Expanding document customization.
 
 #### **Conclusion**
-By continuously refining its AI capabilities and user experience, CVitaePRO aims to be the **go-to solution for job seekers** looking to enhance their professional documentation effortlessly. The **integration of ATS testing**, **UI/UX improvements**, and **enhanced personalization** will ensure CVitaePRO remains competitive in the job-seeking market while providing **unparalleled resume optimization features**.
+By continuously refining its AI capabilities and user experience, CVitaePRO aims to be the **go-to solution for job-seekers** looking to enhance their professional documentation effortlessly. The **integration of ATS testing**, **UI/UX improvements**, and **enhanced personalization** will ensure CVitaePRO remains competitive in the job-seeking market while providing **unparalleled resume optimization features**.
 
+## License
+CVitaePRO is not licensed and therefore falls under Copyright Law as stipulated by the Berne Convention, which grants the author exclusive rights to their work upon creation, without the need for formal registration. Unauthorized use, reproduction, or distribution of this software without explicit permission is prohibited.
