@@ -5,6 +5,7 @@ import rateLimit from 'express-rate-limit';
 import { connectDatabase } from './config/database.js';
 import logger  from './register/logger.js';
 import authRoutes from './routes/authRoutes.js';
+import { rateLimiter } from "./middleware/rateLimiter.js";
 
 dotenv.config();
 
@@ -18,8 +19,8 @@ app.use(helmet()); // Security headers
 // Rate limiter to prevent abuse
 const limiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 minute
-  limit: 100, // Limit each IP to 100 requests per window
-  message: 'Too many requests, please try again later.',
+  limit: 2, // Limit each IP to 2 requests per window
+  message: '❌ Too many requests, please try again later.',
 });
 
 app.use(limiter);
@@ -33,6 +34,7 @@ connectDatabase().then(() => {
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/resume', rateLimiter);
 
 // Default route
 app.get('/', (_req, res) => {
@@ -41,5 +43,5 @@ app.get('/', (_req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-  logger.info(`Server is running on port ${PORT}`);
+  logger.info(`✅ Server is running on port ${PORT}`);
 });

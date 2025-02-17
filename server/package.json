@@ -6,7 +6,7 @@
   "scripts": {
     "build": "npx tsc",
     "start": "node dist/server.js --ignore client",
-    "dev": "npx nodemon --watch src --ext ts,json,js --exec 'npx tsc && node dist/server.js'",
+    "dev": "concurrently --kill-others-on-fail \"redis-server\" \"npx nodemon --watch src --ext ts,json,js --exec 'npx tsc && node dist/server.js'\"",
     "test": "echo \"Error: no test specified\" && exit 1",
     "seed": "node dist/seeds/index.js"
   },
@@ -43,9 +43,11 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/express": "^5.0.0",
     "@types/helmet": "^0.0.48",
+    "@types/ioredis": "^4.28.10",
     "@types/jsonwebtoken": "^9.0.8",
     "@types/sequelize": "^4.28.20",
     "@types/winston": "^2.4.4",
+    "concurrently": "^9.1.2",
     "nodemon": "^3.1.9",
     "sequelize-cli": "^6.6.2",
     "ts-node": "^10.9.2",
