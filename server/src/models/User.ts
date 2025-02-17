@@ -1,62 +1,22 @@
-import { DataTypes, Model, Optional } from "sequelize";
-import sequelize from "../config/database";
+import { DataTypes, Model } from 'sequelize';
+import { sequelize } from '../config/database.js';
 
-interface IUserAttributes {
-  id: number;
-  name: string;
-  email: string;
-  passwordHash: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-interface IUserCreationAttributes extends Optional<IUserAttributes, "id" | "createdAt" | "updatedAt"> {}
-
-class User extends Model<IUserAttributes, IUserCreationAttributes> implements IUserAttributes {
-  public id!: number;
-  public name!: string;
+export class User extends Model {
+  public id!: string;
+  public username!: string;
   public email!: string;
-  public passwordHash!: string;
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
+  public password!: string;
 }
 
 User.init(
   {
-    id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      primaryKey: true,
-    },
-    name: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    email: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
-    },
-    passwordHash: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    createdAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW,
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW,
-    },
+    id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+    username: { type: DataTypes.STRING, allowNull: false },
+    email: { type: DataTypes.STRING, allowNull: false, unique: true },
+    password: { type: DataTypes.STRING, allowNull: false },
   },
   {
     sequelize,
-    tableName: "Users",
-    timestamps: true,
+    tableName: 'users',
   }
 );
-
-export default User;
