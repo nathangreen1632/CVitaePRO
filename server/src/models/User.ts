@@ -4,7 +4,6 @@ import sequelize from "../config/database";
 interface IUserAttributes {
   id: number;
   name: string;
-  email: string;
   passwordHash: string;
   createdAt: Date;
   updatedAt: Date;
@@ -15,7 +14,6 @@ interface IUserCreationAttributes extends Optional<IUserAttributes, "id" | "crea
 class User extends Model<IUserAttributes, IUserCreationAttributes> implements IUserAttributes {
   public id!: number;
   public name!: string;
-  public email!: string;
   public passwordHash!: string;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
@@ -31,11 +29,6 @@ User.init(
     name: {
       type: DataTypes.STRING,
       allowNull: false,
-    },
-    email: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
     },
     passwordHash: {
       type: DataTypes.STRING,

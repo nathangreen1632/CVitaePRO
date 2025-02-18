@@ -299,6 +299,6 @@ fabric.properties
 *.sw?
 
 # Redis
-.rdb/
+dump.rdb
 
 # End of https://www.toptal.com/developers/gitignore/api/react,node,webstorm,visualstudiocode

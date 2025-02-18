@@ -1,4 +1,4 @@
-import User from "../models/User";
+import { User } from "../models/User";
 import logger from "../register/logger";
 
 export async function getUserById(userId: string): Promise<User> {
