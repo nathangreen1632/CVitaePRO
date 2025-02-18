@@ -1,23 +1,19 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET: string = process.env.JWT_SECRET ?? 'default_secret';
+export const authenticateUser = (req: Request, res: Response, next: NextFunction): void => {
+  const authHeader = req.headers.authorization;
 
-interface AuthRequest extends Request {
-  user?: string;
-}
-
-export const authenticateUser = (req: AuthRequest, res: Response, next: NextFunction): void => {
-  const token = req.header('Authorization')?.split(' ')[1];
-
-  if (!token) {
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
     res.status(401).json({ message: 'Unauthorized: No token provided' });
     return;
   }
 
+  const token = authHeader.split(' ')[1];
+
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    req.user = (decoded as { id: string }).id;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
+    req.user = typeof decoded === 'string' ? decoded : JSON.stringify(decoded);
     next();
   } catch (error) {
     res.status(401).json({ message: 'Unauthorized: Invalid token' });
