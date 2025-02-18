@@ -9,8 +9,8 @@ export async function getUserById(userId: string): Promise<User> {
 
     return new User({
       id: -1,
-      name: "Guest User",
-      passwordHash: "",
+      username: 'Admin',
+      passwordHash: '',
       createdAt: new Date(),
       updatedAt: new Date(),
     });

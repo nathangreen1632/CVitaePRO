@@ -3,7 +3,7 @@ import { sequelize } from "../config/database.js";
 
 interface IUserAttributes {
   id: number;
-  name: string;
+  username: string;
   passwordHash: string;
   createdAt: Date;
   updatedAt: Date;
@@ -13,7 +13,7 @@ interface IUserCreationAttributes extends Optional<IUserAttributes, "id" | "crea
 
 class User extends Model<IUserAttributes, IUserCreationAttributes> implements IUserAttributes {
   public id!: number;
-  public name!: string;
+  public username!: string;
   public passwordHash!: string;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
@@ -26,7 +26,7 @@ User.init(
       autoIncrement: true,
       primaryKey: true,
     },
-    name: {
+    username: {
       type: DataTypes.STRING,
       allowNull: false,
     },
