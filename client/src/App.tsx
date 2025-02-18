@@ -1,35 +1,44 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from "../public/vite.svg"
-import './App.css'
+import React from "react";
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import Spline from "@splinetool/react-spline"; // ✅ Direct import
+import Register from "./pages/Register";
+import Login from "./pages/Login";
+// import Dashboard from "./pages/Dashboard";
+// import NotFound from "./pages/NotFound"; // Handles unknown routes
+import { AuthProvider } from "./context/authProvider.js"; // ✅ AuthProvider should NOT include another Router
 
-function App() {
-  const [count, setCount] = useState(0)
-
+const App = (): React.JSX.Element => {
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <Router> {/* ✅ The only BrowserRouter in the entire app */}
+      <AuthProvider>
+        <Routes>
+          {/* ✅ Landing Page with Spline */}
+          <Route
+            path="/"
+            element={
+              <div className="relative w-full h-screen bg-black">
+                <Spline
+                  scene="https://prod.spline.design/ebUc8RxpXDIysAET/scene.splinecode"
+                  onLoad={() => console.log("Spline loaded successfully")}
+                  onError={(error) => console.error("Spline failed to load:", error)}
+                />
+                <div className="absolute top-4 left-4">
+                  <Link to="/register" className="text-white text-lg font-bold hover:underline">
+                    Get Started
+                  </Link>
+                </div>
+              </div>
+            }
+          />
+          {/* ✅ Other Pages */}
+          <Route path="/register" element={<Register />} />
+          <Route path="/login" element={<Login />} />
+          {/*<Route path="/dashboard" element={<Dashboard />} />*/}
+          {/*<Route path="*" element={<NotFound />} />*/}
+        </Routes>
+      </AuthProvider>
+    </Router>
+  );
+};
 
-export default App
+export default App;
