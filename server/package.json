@@ -6,7 +6,7 @@
   "scripts": {
     "build": "npx tsc",
     "start": "node dist/server.js --ignore client",
-    "dev": "concurrently --kill-others-on-fail \"redis-server\" \"npx nodemon --watch src --ext ts,json,js --exec 'npx tsc && node dist/server.js'\"",
+    "dev": "npx nodemon --watch src --ext ts,json,js --exec 'npx tsc && node dist/server.js'",
     "test": "jest --coverage",
     "seed": "node dist/seeds/index.js"
   },
