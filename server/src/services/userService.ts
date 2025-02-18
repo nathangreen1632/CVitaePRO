@@ -1,4 +1,4 @@
-import { User } from "../models/User";
+import User from "../models/User";
 import logger from "../register/logger";
 
 export async function getUserById(userId: string): Promise<User> {
@@ -10,7 +10,6 @@ export async function getUserById(userId: string): Promise<User> {
     return new User({
       id: -1,
       name: "Guest User",
-      email: "guest@cvitaepro.com",
       passwordHash: "",
       createdAt: new Date(),
       updatedAt: new Date(),
