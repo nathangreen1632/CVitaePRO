@@ -1,5 +1,5 @@
 {
-  "name": "career-gist",
+  "name": "cvitaepro",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -11,14 +11,18 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@splinetool/react-spline": "^4.0.0",
     "jwt-decode": "^4.0.0",
+    "mammoth": "^1.9.0",
+    "pdf-parse": "^1.1.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^7.1.4"
+    "react-router-dom": "^7.1.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
     "@types/jwt-decode": "^2.2.1",
+    "@types/pdf-parse": "^1.1.4",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@types/react-router-dom": "^5.3.3",
