@@ -1,15 +1,14 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-import Spline from "@splinetool/react-spline"; // ✅ Direct import
+import Spline from "@splinetool/react-spline";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
-// import Dashboard from "./pages/Dashboard";
-// import NotFound from "./pages/NotFound"; // Handles unknown routes
-import { AuthProvider } from "./context/authProvider.js"; // ✅ AuthProvider should NOT include another Router
+import ResumeEditor from "./pages/ResumeEditor"; // ✅ Added ResumeEditor import
+import { AuthProvider } from "./context/authProvider.js";
 
 const App = (): React.JSX.Element => {
   return (
-    <Router> {/* ✅ The only BrowserRouter in the entire app */}
+    <Router>
       <AuthProvider>
         <Routes>
           {/* ✅ Landing Page with Spline */}
@@ -33,8 +32,7 @@ const App = (): React.JSX.Element => {
           {/* ✅ Other Pages */}
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
-          {/*<Route path="/dashboard" element={<Dashboard />} />*/}
-          {/*<Route path="*" element={<NotFound />} />*/}
+          <Route path="/resume-editor" element={<ResumeEditor />} /> {/* ✅ Added ResumeEditor Route */}
         </Routes>
       </AuthProvider>
     </Router>
