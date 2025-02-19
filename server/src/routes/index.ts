@@ -1,16 +1,15 @@
-import { Router } from 'express';
-import authRoutes from './authRoutes.js';
-import resumeRoutes from './resumeRoutes.js';
-// import { authenticateUser } from '../middleware/authMiddleware.js';
-import { rateLimiter } from '../middleware/rateLimiter.js';
+import { Router } from "express";
+import authRoutes from "./authRoutes.js";
+import resumeRoutes from "./resumeRoutes.js";
+import openAIRoutes from "./openAIRoutes.js"; // Assuming OpenAI service
+import atsRoutes from "./atsRoutes.js"; // Assuming ATS scoring service
 
 const router: Router = Router();
 
-// Apply rate limiting to all API routes
-router.use(rateLimiter);
-
-// Authentication middleware (only applied where needed)
-router.use('/auth', authRoutes);
-router.use('/resume', resumeRoutes);
+// API Routes
+router.use("/auth", authRoutes);
+router.use("/resume", resumeRoutes);
+router.use("/openai", openAIRoutes);
+router.use("/ats", atsRoutes);
 
 export default router;
