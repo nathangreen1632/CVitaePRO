@@ -1,33 +1,34 @@
-import express, { Application, Request, Response } from 'express';
-import dotenv from 'dotenv';
-import { connectDatabase } from './config/database.js';
-import Logger from './register/logger.js';
-import routes from './routes/index.js';
-import { applyMiddleware } from './middleware/index.js';
+import express, { Application } from "express";
+import dotenv from "dotenv";
+import Logger from "./register/logger.js";
+import { applyMiddleware } from "./middleware/index.js";
+import routes from "./routes/index.js";
+import { connectDatabase } from "./config/database.js";
 
 dotenv.config();
 
 const app: Application = express();
-const PORT: number = Number(process.env.PORT) || 3000;
+const PORT  = process.env.PORT ?? 3001;
 
-// Apply all middleware (helmet, JSON, rate limiter)
+// ✅ Apply all middleware
 applyMiddleware(app);
+
 app.use(express.json());
+app.use("/api", routes);
+app.use(express.static("../client/dist"));
 
-// Connect Database
-connectDatabase()
-  .then(() => Logger.info('✅ Database connected successfully.'))
-  .catch((err) => Logger.error('❌ Database connection failed:', err));
+// ✅ Start Server
+const startServer = async () => {
+  try {
+    await connectDatabase();
+    Logger.info("✅ Database connected successfully.");
+    app.listen(PORT, () => Logger.info(`✅ Server is running on port ${PORT}`));
+  } catch (error) {
+    Logger.error("❌ Database connection failed:", error);
+    process.exit(1); // Stop execution on fatal error
+  }
+};
 
-// API Routes
-app.use('/api', routes);
-
-// Default Route
-app.get('/', (_req: Request, res: Response) => {
-  res.json({message: 'CVitaePRO API is running 🚀'});
-});
-
-// Start Server
-app.listen(PORT, () => Logger.info(`✅ Server is running on port ${PORT}`));
+startServer();
 
 export default app;
