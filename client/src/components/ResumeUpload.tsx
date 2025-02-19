@@ -1,8 +1,5 @@
-// File: client/src/components/ResumeUpload.tsx
-
 import React, { useState } from "react";
 import mammoth from "mammoth";
-import pdfParse from "pdf-parse";
 
 const ResumeUpload: React.FC<{ onParse: (text: string) => void }> = ({ onParse }) => {
   const [error, setError] = useState<string | null>(null);
@@ -11,26 +8,44 @@ const ResumeUpload: React.FC<{ onParse: (text: string) => void }> = ({ onParse }
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      try {
-        if (file.type === "application/pdf") {
-          const arrayBuffer = await file.arrayBuffer();
-          const buffer = Buffer.from(arrayBuffer);
-          const pdfData = await pdfParse(buffer);
-          onParse(pdfData.text);
-        } else if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+    if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+      // ✅ Parse DOCX in the browser
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
           const arrayBuffer = e.target?.result as ArrayBuffer;
           const docxData = await mammoth.extractRawText({ arrayBuffer });
           onParse(docxData.value);
-        } else {
-          setError("Unsupported file format. Please upload a PDF or DOCX.");
+        } catch {
+          setError("Failed to parse DOCX. Please try again.");
         }
-      } catch {
-        setError("Failed to parse the document. Please try again.");
-      }
-    };
-    reader.readAsArrayBuffer(file);
+      };
+      reader.readAsArrayBuffer(file);
+    } else if (file.type === "application/pdf") {
+      // ✅ Send PDFs to the backend instead
+      await uploadToBackend(file);
+    } else {
+      setError("Unsupported file format. Please upload a PDF or DOCX.");
+    }
+  };
+
+  const uploadToBackend = async (file: File) => {
+    const formData = new FormData();
+    formData.append("resume", file);
+
+    try {
+      const response = await fetch("http://localhost:3000/api/resume/parse-pdf", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) throw new Error("Backend parsing failed");
+
+      const data = await response.json();
+      onParse(data.text);
+    } catch {
+      setError("Error parsing document. Please try again.");
+    }
   };
 
   return (
