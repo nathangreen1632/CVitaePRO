@@ -1,7 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
+
+interface CustomRequest extends Request {
+  user?: string; // Extend the Request type with the optional user property
+}
 import jwt from 'jsonwebtoken';
 
-export const authenticateUser = (req: Request, res: Response, next: NextFunction): void => {
+export const authenticateUser = (req: CustomRequest, res: Response, next: NextFunction): void => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
