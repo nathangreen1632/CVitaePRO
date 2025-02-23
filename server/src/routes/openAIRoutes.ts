@@ -1,5 +1,6 @@
 import { Router } from "express";
-import { generateCoverLetter, enhanceResume } from "../controllers/openAIController.js";
+import {  generateResume } from "../controllers/openAIController.js";
+import { generateCoverLetter } from "../controllers/coverLetterController.js";
 
 const router: Router = Router();
 
@@ -7,6 +8,6 @@ const router: Router = Router();
 router.post("/generate-cover-letter", generateCoverLetter);
 
 // Route to enhance a resume using OpenAI
-router.post("/enhance-resume", enhanceResume);
+router.post("/enhance-resume", generateResume);
 
 export default router;
