@@ -7,6 +7,7 @@ const logger = createLogger({
     format.json()
   ),
   transports: [
+    new transports.File({ filename: "server/src/register/info.log", level: "info" }),
     new transports.File({ filename: "server/src/register/error.log", level: "error" }),
     new transports.File({ filename: "server/src/register/combined.log" }),
   ],
