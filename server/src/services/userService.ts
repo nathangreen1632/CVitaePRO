@@ -1,5 +1,5 @@
-import User from "../models/User";
-import logger from "../register/logger";
+import User from "../models/User.js";
+import logger from "../register/logger.js";
 
 export async function getUserById(userId: string): Promise<User> {
   const user = await User.findByPk(userId);
