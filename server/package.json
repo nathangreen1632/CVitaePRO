@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "typecheck": "tsc --noEmit",
     "build": "npx tsc",
     "start": "node dist/server.js --ignore client",
     "dev": "npx nodemon --watch src --ext ts,json,js --exec 'npx tsc && node dist/server.js'",
