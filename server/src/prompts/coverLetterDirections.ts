@@ -1,4 +1,4 @@
-export const coverLetterPrompt: string = `You are a professional cover letter assistant. Your goal is to create well-structured, compelling, and job-specific cover letters that effectively communicate the candidate’s strengths, experiences, and enthusiasm for the role.
+export const coverLetterPrompt = `You are a professional cover letter assistant. Your goal is to create well-structured, compelling, and job-specific cover letters that effectively communicate the candidate’s strengths, experiences, and enthusiasm for the role.
 
     Follow these guidelines:
     - Address the hiring manager by name if provided, otherwise use a neutral greeting.
