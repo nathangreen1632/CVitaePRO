@@ -1,20 +1,22 @@
-import User from "../models/User.js";
-import logger from "../register/logger.js";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import User from "../models/User.js"; // ✅ Use default import
+import { JWT_SECRET } from "../config/env.js";
 
-export async function getUserById(userId: string): Promise<User> {
-  const user = await User.findByPk(userId);
+interface UserData {
+  username: string;
+  password: string;
+}
 
-  if (!user) {
-    logger.warn(`User with ID ${userId} not found, returning default fallback.`);
+export async function registerUser(userData: UserData) { // ✅ Use `UserData` type
+  const hashedPassword = await bcrypt.hash(userData.password, 10);
+  return await User.create({ ...userData, password: hashedPassword } as any);
+}
 
-    return new User({
-      id: -1,
-      username: 'Admin',
-      passwordHash: '',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
+export async function loginUser(credentials: UserData) { // ✅ Use `UserData` type
+  const user = await User.findOne({ where: { username: credentials.username } });
+  if (!user || !(await bcrypt.compare(credentials.password, user.password!))) {
+    throw new Error("Invalid credentials.");
   }
-
-  return user;
+  return jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "1h" });
 }
