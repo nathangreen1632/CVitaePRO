@@ -1,25 +1,30 @@
 import { Request, Response, NextFunction } from 'express';
-
-interface CustomRequest extends Request {
-  user?: string; // Extend the Request type with the optional user property
-}
 import jwt from 'jsonwebtoken';
 
-export const authenticateUser = (req: CustomRequest, res: Response, next: NextFunction): void => {
+const authMiddleware = (req: Request, res: Response, next: NextFunction): void => {
   const authHeader = req.headers.authorization;
-
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    res.status(401).json({ message: 'Unauthorized: No token provided' });
+  if (!authHeader?.startsWith('Bearer ')) {
+    res.status(401).json({ error: 'Unauthorized: No token provided' });
     return;
   }
 
   const token = authHeader.split(' ')[1];
+  const secret = process.env.JWT_SECRET;
 
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
-    req.user = typeof decoded === 'string' ? decoded : JSON.stringify(decoded);
-    next();
-  } catch (error) {
-    res.status(401).json({ message: 'Unauthorized: Invalid token' });
+  if (!secret) {
+    res.status(500).json({ error: 'Server error: JWT secret not found' });
+    return;
   }
+
+  jwt.verify(token, secret, (err, decoded) => {
+    if (err) {
+      res.status(401).json({ error: err.name === 'TokenExpiredError' ? 'Unauthorized: Token expired' : 'Unauthorized: Invalid token' });
+      return;
+    }
+
+    req.user = decoded as jwt.JwtPayload; // Ensure TypeScript knows `req.user` exists
+    next(); // ✅ Calls `next()` correctly
+  });
 };
+
+export default authMiddleware;
