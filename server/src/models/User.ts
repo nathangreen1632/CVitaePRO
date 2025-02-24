@@ -5,8 +5,10 @@ interface IUserAttributes {
   id: number;
   username: string;
   passwordHash: string;
+  password?: string;
   createdAt: Date;
   updatedAt: Date;
+
 }
 
 interface IUserCreationAttributes extends Optional<IUserAttributes, "id" | "createdAt" | "updatedAt"> {}
@@ -15,6 +17,7 @@ class User extends Model<IUserAttributes, IUserCreationAttributes> implements IU
   public id!: number;
   public username!: string;
   public passwordHash!: string;
+  public password?: string;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }
@@ -31,6 +34,10 @@ User.init(
       allowNull: false,
     },
     passwordHash: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    password: {
       type: DataTypes.STRING,
       allowNull: false,
     },
