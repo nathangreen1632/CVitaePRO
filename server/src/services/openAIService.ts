@@ -1,6 +1,6 @@
 import fetch, { Response } from "node-fetch";
 import dotenv from "dotenv";
-import { resumePrompt, userResumeDirections } from "../prompts/resumeDirections";
+import { resumePrompt, userResumeDirections } from "../prompts/resumeDirections.js";
 // Ensure environment variables are loaded
 dotenv.config();
 
