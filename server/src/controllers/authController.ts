@@ -1,45 +1,26 @@
-import { Request, Response } from 'express';
-import bcrypt from 'bcryptjs';
-import { generateToken } from '../utils/jwtUtils.js';
-import User from '../models/User.js';
+import { Request, Response } from "express";
+import { loginUser, registerUser } from "../services/userService.js";
 
-export const registerUser = async (req: Request, res: Response): Promise<void> => {
+/**
+ * Registers a new user.
+ */
+export async function register(req: Request, res: Response) {
   try {
-    const { username, password } = req.body;
-
-    const existingUser = await User.findOne({ where: { username } as any });
-    if (existingUser) {
-      res.status(400).json({ message: 'User already exists' });
-      return;
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = await User.create({ username, password: hashedPassword } as any);
-
-    res.status(201).json({ token: generateToken(newUser.id.toString()), user: newUser });
+    const user = await registerUser(req.body);
+    res.status(201).json(user);
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    res.status(400).json({ error: (error instanceof Error ? error.message : "Unknown error") });
   }
-};
+}
 
-export const loginUser = async (req: Request, res: Response): Promise<void> => {
+/**
+ * Logs in a user.
+ */
+export async function login(req: Request, res: Response) {
   try {
-    const { username, password } = req.body;
-
-    const user = await User.findOne({ where: { username } as any });
-    if (!user) {
-      res.status(400).json({ message: 'Invalid credentials' });
-      return;
-    }
-
-    const isMatch = await bcrypt.compare(password, (user as any).password);
-    if (!isMatch) {
-      res.status(400).json({ message: 'Invalid credentials' });
-      return;
-    }
-
-    res.json({ token: generateToken(user.id.toString()), user });
+    const token = await loginUser(req.body);
+    res.status(200).json({ token });
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    res.status(401).json({ error: error instanceof Error ? error.message : "Unknown error" });
   }
-};
+}
