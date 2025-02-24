@@ -1,12 +1,12 @@
-import { ResumeData } from "../types/resumeTypes";
+import { ResumeData } from "../types/resumeTypes.js";
 
 /**
- * Normalizes resume data to a structured format.
- * @param {string} rawText - Raw text extracted from a resume.
+ * Converts raw text into a structured resume format.
+ * @param {string} rawText - Extracted text from a resume file.
  * @returns {ResumeData} - Structured resume object.
  */
 export function normalizeResume(rawText: string): ResumeData {
-  const lines = rawText.split("\n").map(line => line.trim()).filter(Boolean);
+  const lines = rawText.split("\n").map((line) => line.trim()).filter(Boolean);
 
   const resume: ResumeData = {
     name: "",
@@ -18,7 +18,7 @@ export function normalizeResume(rawText: string): ResumeData {
 
   let currentSection = "";
 
-  lines.forEach(line => {
+  lines.forEach((line) => {
     if (line.toLowerCase().includes("experience")) {
       currentSection = "experience";
     } else if (line.toLowerCase().includes("education")) {
