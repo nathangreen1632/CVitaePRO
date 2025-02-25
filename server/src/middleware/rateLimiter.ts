@@ -1,20 +1,22 @@
 import { Request, Response, NextFunction } from 'express';
 import redis from '../cache/redisCache.js';
 
-const WINDOW_SIZE = 60; // 60 seconds
-const MAX_REQUESTS = 10; // Allow 10 requests per minute during development
+const RATE_LIMITS = {
+  adobe_upload: { window: 60, max: 1 }, // 1 upload per minute
+  adobe_fetch: { window: 3600, max: 10 }, // 10 fetches per hour
+};
 
-export const rateLimiter = async (req: Request, res: Response, next: NextFunction) => {
-  const userIP: string = req.ip ?? '';
-  const key = `rate_limit:${userIP}`;
+export const rateLimiter = (type: keyof typeof RATE_LIMITS) => async (req: Request, res: Response, next: NextFunction) => {
+  const userId: string = req.user?.id || req.ip || '';
+  const key = `rate_limit:${type}:${userId}`;
 
   const currentRequests = await redis.incr(key);
 
   if (currentRequests === 1) {
-    await redis.expire(key, WINDOW_SIZE);
+    await redis.expire(key, RATE_LIMITS[type].window);
   }
 
-  if (currentRequests > MAX_REQUESTS) {
+  if (currentRequests > RATE_LIMITS[type].max) {
     res.status(429).json({ message: 'Too many requests, please try again later.' });
     return;
   }
