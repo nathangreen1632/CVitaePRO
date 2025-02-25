@@ -3,7 +3,19 @@ import { register, login } from "../controllers/authController.js"; // ✅ Ensur
 
 const router: Router = Router();
 
-router.post("/register", register);
-router.post("/login", login);
+router.post("/register", async (req, res, next) => {
+  try {
+    await register(req, res);
+  } catch (error) {
+    next(error);
+  }
+});
+router.post("/login", async (req, res, next) => {
+  try {
+    await login(req, res);
+  } catch (error) {
+    next(error);
+  }
+});
 
 export default router;

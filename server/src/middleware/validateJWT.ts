@@ -1,19 +1,28 @@
-import { RequestHandler } from "express";
-import jwt, { JwtPayload } from "jsonwebtoken";
-import { JWT_SECRET } from "../config/env.js";
+import { Request, Response, NextFunction } from 'express';
+import jwt from 'jsonwebtoken';
 
-export const validateToken: RequestHandler = (req, res, next) => { // ✅ Use RequestHandler
-  const token = req.headers.authorization?.split(" ")[1];
+const JWT_SECRET = process.env.JWT_SECRET as string;
 
-  if (!token) {
-    res.status(401).json({ error: "Unauthorized" });
+// ✅ Extend Request type to recognize `user`
+interface AuthenticatedRequest extends Request {
+  user?: { id: string };
+}
+
+export const validateToken = (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader?.startsWith('Bearer ')) {
+    res.status(401).json({ error: 'Unauthorized - No token provided' });
     return;
   }
 
+  const token = authHeader.split(' ')[1];
+
   try {
-    req.user = jwt.verify(token, JWT_SECRET) as JwtPayload; // ✅ Ensure `req.user` exists
-    next(); // ✅ Pass control to next middleware
+    const decoded = jwt.verify(token, JWT_SECRET) as { id: string };
+    req.user = { id: decoded.id }; // ✅ Now TypeScript recognizes this
+    next();
   } catch (error) {
-    res.status(403).json({ error: "Invalid token" });
+    res.status(401).json({ error: 'Unauthorized - Invalid token' });
   }
 };
