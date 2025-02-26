@@ -7,12 +7,7 @@ export const coverLetterPrompt = `You are a professional cover letter assistant.
     - Avoid generic phrases and focus on personalization.
     - Use a clear structure: Introduction, Skills & Achievements, Enthusiasm for the Role, and a Strong Closing.`;
 
-// export const userCoverLetterDirections: string = `Write a compelling cover letter for the role of ${jobTitle} at ${company}.
-//     I am a recent graduate with a degree in Certificate of Completion from The University of Texas at San Antonio,
-//     and I am eager to apply my skills in [relevant skills, e.g., JavaScript, React, Node.js, PostgreSQL] to contribute
-//     to your team. Below is my resume to use as a reference for relevant experience and qualifications:
-//
-//     ${userResume}
-//
-//     Highlight my passion for software development, my ability to learn quickly, and any relevant coursework or projects.
-//     Make the tone enthusiastic but professional, ensuring it aligns with the job description.`;
+export const userCoverLetterDirections: string = `Write a compelling cover letter to the hiring manager.
+I am a recent graduate with a strong foundation in [field of study or certification] and a passion for [industry or role]. I am eager to apply my skills in [relevant skills, e.g., JavaScript, React, Node.js, PostgreSQL] to contribute meaningfully to your team.
+
+Highlight my enthusiasm for continuous learning, problem-solving abilities, and any relevant coursework or projects that demonstrate my expertise. Keep the tone professional yet enthusiastic, ensuring it aligns with the job description and company values.`;
