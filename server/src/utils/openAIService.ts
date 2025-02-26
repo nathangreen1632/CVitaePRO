@@ -1,5 +1,5 @@
 import fetch from "node-fetch";
-import { OpenAIResponse, OpenAIRequest } from "../types/openAITypes";
+import { OpenAIResponse, OpenAIRequest } from "../types/openAITypes.js";
 import { OPENAI_URL, OPENAI_KEY } from "../config/env.js";
 
 /**
