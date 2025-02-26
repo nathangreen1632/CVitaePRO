@@ -12,4 +12,5 @@ Follow these best practices:
 
 `;
 
-export const userResumeDirections: string = `Write a compelling, ATS-friendly resume tailored for the role of [insert role]. The resume should highlight the candidate's most relevant skills, experiences, and achievements related to this position. Use a professional, structured format with the following sections: Summary, Key Skills, Work Experience, Education, and Certifications (if applicable). The tone should be formal yet engaging. Ensure that the resume aligns with industry best practices and is optimized for Applicant Tracking Systems (ATS).`;
+export const userResumeDirections: string = `Write a compelling, ATS-friendly resume. The resume should highlight the candidate's most relevant skills, experiences, and achievements related to this position. Use a professional, structured format with the following sections: Summary, Key Skills, Work Experience, Education, and Certifications (if applicable). The tone should be formal yet engaging. Ensure that the resume aligns with industry best practices and is optimized for Applicant Tracking Systems (ATS).`;
+
