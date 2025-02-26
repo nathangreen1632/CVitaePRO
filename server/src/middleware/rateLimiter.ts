@@ -1,9 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
-import redis from '../cache/redisCache.js';
+import redis from '../services/cacheService.js';
 
 const RATE_LIMITS = {
   adobe_upload: { window: 60, max: 1 }, // 1 upload per minute
   adobe_fetch: { window: 3600, max: 10 }, // 10 fetches per hour
+  openai: { window: 43200, max: 100 } // 100 requests per 12 hours during development
 };
 
 export const rateLimiter = (type: keyof typeof RATE_LIMITS) => async (req: Request, res: Response, next: NextFunction) => {
