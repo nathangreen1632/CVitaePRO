@@ -1,7 +1,7 @@
 import { Router } from "express";
 import authRoutes from "./authRoutes.js";
 import resumeRoutes from "./resumeRoutes.js";
-import openAIRoutes from "./openAIRoutes.js";
+import openAIRoutes from "./openaiRoutes.js";
 import atsRoutes from "./atsRoutes.js";
 // import authMiddleware from "../middleware/authMiddleware.js";
 
