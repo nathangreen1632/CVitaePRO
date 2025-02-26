@@ -1,5 +1,24 @@
-import { RequestHandler } from "express";
+import { Request, Response, RequestHandler } from "express";
 import { parseResumeFromPDF } from "../services/pdfResumeParser.js";
+import { generateFromOpenAI } from "../services/openaiService.js";
+
+/**
+ * Handles resume generation requests.
+ */
+export const generateResume = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { resumeData } = req.body;
+    if (!resumeData) {
+      res.status(400).json({ error: "Resume data is required" });
+      return;
+    }
+
+    const markdownResume = await generateFromOpenAI("resume", resumeData);
+    res.json({ markdownResume });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to generate resume" });
+  }
+};
 
 /**
  * Handles resume file upload and processing.
