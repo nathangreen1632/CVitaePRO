@@ -51,24 +51,40 @@ const parseExperienceSection = (content: string[], inputExperience: any[]): any[
   content.forEach((line) => {
     if (line.startsWith("### ")) {
       if (currentJob) experiences.push(currentJob);
-      currentJob = { company: "", role: "", start_date: "", end_date: "", responsibilities: [] };
+      currentJob = { company: "", role: "", dates: "", responsibilities: [] };
       currentJob.company = line.replace("### ", "").trim();
     }
-    else if (!currentJob?.role) {
+    else if (currentJob && !currentJob.role) {
       currentJob.role = line.trim();
     }
-    else if (!currentJob?.start_date) {
-      const dates = line.split(" - ");
-      currentJob.start_date = formatDate(dates[0]);
+    else if (currentJob && !currentJob.dates) {
+      const dates = line.split(" - ").map(d => d.trim());
+      const startDate = formatDate(dates[0]);
 
-      // ✅ Fixing "Present" vs. actual end dates
-      if (dates.length > 1) {
-        currentJob.end_date = dates[1].toLowerCase().includes("present") ? "" : formatDate(dates[1]);
+      let endDate = dates.length > 1 ? dates[1] : "";
+
+      // ✅ Only add "Present" if there's NO end date
+      if (!endDate || endDate.toLowerCase() === "present") {
+        currentJob.dates = `${startDate} – Present`;
       } else {
-        currentJob.end_date = "";
+        currentJob.dates = `${startDate} – ${formatDate(endDate)}`;
       }
+
+      // ✅ Ensure "Present" isn't mistakenly appended when an end date exists
+      if (!endDate.toLowerCase().includes("present") && currentJob.dates.includes("– Present")) {
+        currentJob.dates = currentJob.dates.replace("– Present", "");
+      }
+
+      // ✅ Remove duplicate "Present"
+      currentJob.dates = currentJob.dates.replace(/– Present\s*–\s*Present$/, "– Present");
+
+      // ✅ Fix missing separator issue (e.g., "June 2019 Present – Present")
+      currentJob.dates = currentJob.dates.replace(/(\d{4}) Present/, "$1 – Present");
+
+      // ✅ Remove extra spaces
+      currentJob.dates = currentJob.dates.replace(/\s{2,}/g, " ").trim();
     }
-    else {
+    else if (currentJob) {
       currentJob.responsibilities.push(fixHyphenSpacing(line.trim()));
     }
   });
