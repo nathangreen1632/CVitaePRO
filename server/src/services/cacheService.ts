@@ -1,15 +1,22 @@
 import { createClient } from "redis";
+import logger from "../register/logger.js";
 
 const redisClient = createClient({
   socket: {
     host: process.env.REDIS_HOST!,
-    port: Number(process.env.REDIS_PORT)
+    port: Number(process.env.REDIS_PORT),
+    reconnectStrategy: retries => (retries > 3 ? false : Math.min(retries * 50, 500)) // wait up to 500ms before retrying for up to 3 times
   },
   password: process.env.REDIS_PASSWORD!,
   username: process.env.REDIS_USERNAME! // ✅ Include Redis Cloud username
 });
 
-redisClient.connect().catch(console.error); // ✅ Ensure Redis connects properly
+redisClient.on("error", (err) => logger.error("❌ Redis Client Error", err));
+redisClient.on("connect", () => logger.info("✅ Redis Client Connected"));
+redisClient.on("reconnecting", () => logger.warn("♻️ Redis Client Reconnecting"));
+redisClient.on("end", () => logger.info("🔌 Redis Client Disconnected"));
+
+redisClient.connect().catch(logger.error); // ✅ Ensure Redis connects properly
 
 export async function getCachedResponse(cacheKey: string): Promise<any | null> {
   if (!cacheKey) return null;
