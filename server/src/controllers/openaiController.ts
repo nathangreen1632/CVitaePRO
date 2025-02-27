@@ -1,55 +1,64 @@
 import { Request, Response } from "express";
 import { generateFromOpenAI } from "../services/openaiService.js";
-import { generateCoverLetter } from "./coverLetterController.js";
 import redisClient from "../services/cacheService.js";
+import { parseResumeMarkdown } from "../utils/parseResumeMarkdown.js"; // ✅ Correct Import
 
-export const generateResume = async (req: Request, res: Response): Promise<void> => { // ✅ Explicitly return void
+/**
+ * Handles resume generation via OpenAI.
+ * Ensures responses are parsed into JSON before caching.
+ */
+export const generateResume = async (req: Request, res: Response): Promise<void> => {
   try {
     const { resumeData } = req.body;
 
     if (!resumeData) {
       res.status(400).json({ error: "Missing resume data" });
-      return; // ✅ Ensure function stops execution here
+      return;
     }
 
     const cacheKey = `resume:${Buffer.from(JSON.stringify(resumeData)).toString("base64")}`;
     console.log("🔍 Checking Redis for cache:", cacheKey);
 
-    // Check Redis Cache
+    // ✅ Check Redis Cache
     const cachedResume = await redisClient.get(cacheKey);
     if (cachedResume) {
-      console.log("✅ Cache hit! Returning cached resume.");
+      console.log("✅ Cache hit! Returning parsed cached resume.");
       res.status(200).json({ resume: JSON.parse(cachedResume) });
-      return; // ✅ Prevents multiple res.json() calls
+      return;
     }
 
     console.log("⚠️ Cache miss! Generating new resume via OpenAI...");
-    const enhancedResume = await generateFromOpenAI("resume", resumeData);
+    const openAiResponse = await generateFromOpenAI("resume", resumeData);
 
-    // Store in Redis
-    await redisClient.set(cacheKey, JSON.stringify(enhancedResume), { EX: 86400 });
+    // ✅ Convert Markdown to JSON before caching
+    const formattedResume = parseResumeMarkdown(openAiResponse, req.body.resumeData);
+
+    console.log("✅ Parsed Resume JSON:", formattedResume);
+
+    // ✅ Store structured JSON in Redis
+    await redisClient.set(cacheKey, JSON.stringify(formattedResume), { EX: 86400 });
     console.log("📝 Resume stored in Redis for future use.");
 
-    res.status(200).json({ resume: enhancedResume });
+    res.status(200).json({ resume: formattedResume });
   } catch (error) {
     console.error("❌ Error generating resume:", error);
-
-    if (!res.headersSent) { // ✅ Prevents duplicate response errors
+    if (!res.headersSent) {
       res.status(500).json({ error: "Failed to generate resume." });
     }
   }
 };
 
-
-
-/** Controller to handle cover letter generation requests. */
-export const generateCoverLetterController = async (req: Request, res: Response): Promise<void> => {
+/**
+ * Handles cover letter generation via OpenAI.
+ * Returns raw markdown (no JSON conversion needed).
+ */
+export const generateCoverLetter = async (req: Request, res: Response): Promise<void> => {
   try {
     const { userInput } = req.body;
 
     if (!userInput) {
       res.status(400).json({ error: "Missing input for cover letter." });
-      return; // ✅ Stops execution
+      return;
     }
 
     const cacheKey = `coverLetter:${Buffer.from(JSON.stringify(userInput)).toString("base64")}`;
@@ -60,11 +69,11 @@ export const generateCoverLetterController = async (req: Request, res: Response)
     if (cachedCoverLetter) {
       console.log("✅ Cache hit! Returning cached cover letter.");
       res.status(200).json({ coverLetter: JSON.parse(cachedCoverLetter) });
-      return; // ✅ Prevents multiple res.json() calls
+      return;
     }
 
     console.log("⚠️ Cache miss! Generating new cover letter via OpenAI...");
-    const coverLetter: string = await generateCoverLetter();
+    const coverLetter: string = await generateFromOpenAI("coverLetter", userInput);
 
     // ✅ Step 2: Store in Redis
     await redisClient.set(cacheKey, JSON.stringify(coverLetter), { EX: 86400 });
@@ -73,10 +82,8 @@ export const generateCoverLetterController = async (req: Request, res: Response)
     res.status(200).json({ coverLetter });
   } catch (error) {
     console.error("❌ Error generating cover letter:", error);
-
-    if (!res.headersSent) { // ✅ Prevents duplicate response errors
+    if (!res.headersSent) {
       res.status(500).json({ error: "Failed to generate cover letter." });
     }
   }
 };
-
