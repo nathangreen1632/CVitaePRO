@@ -6,29 +6,118 @@ import { coverLetterPrompt, userCoverLetterDirections } from "../prompts/coverLe
 /**
  * Calls OpenAI to generate Cover Letters or Resumes.
  * @param {string} type - "coverLetter" or "resume"
- * @param {string | object} content - Text for cover letter OR JSON for resume
- * @returns {Promise<string>} - Generated response from OpenAI
+ * @param {string | object} content - JSON for resume OR structured input for cover letter
+ * @returns {Promise<{ success: boolean; message: string }>} - Generated response from OpenAI
  */
 export const generateFromOpenAI = async (
   type: "coverLetter" | "resume",
-  content: string | object
-): Promise<string> => {
+  content: any
+): Promise<{ success: boolean; message: string }> => {
   try {
+    console.log("🟡 Received request for OpenAI:", { type, content });
+
+    // ✅ Ensure content is correctly formatted
+    if (!content || typeof content !== "object") {
+      console.error("❌ Invalid content sent to OpenAI:", content);
+      return { success: false, message: "Invalid request. Content must be a valid object." };
+    }
+
+    // ✅ Extract required properties for cover letter
+    let userInput, applicantDetails, resumeSummary;
+    if (type === "coverLetter") {
+      userInput = content?.userInput;
+      applicantDetails = content?.applicantDetails;
+      resumeSummary = content?.resumeSummary;
+
+      console.log("🟢 Extracted userInput:", JSON.stringify(userInput, null, 2));
+
+      if (!userInput?.jobTitle || !userInput?.companyName) {
+        console.error("❌ Missing jobTitle or companyName in userInput:", userInput);
+        return { success: false, message: "Job title and company name are required for cover letter generation." };
+      }
+
+      if (!applicantDetails?.name) {
+        console.error("❌ Missing applicant name in applicantDetails:", applicantDetails);
+        return { success: false, message: "Applicant name is required for cover letter generation." };
+      }
+
+      if (!resumeSummary?.summary) {
+        console.error("❌ Missing resume summary in resumeSummary:", resumeSummary);
+        return { success: false, message: "Resume summary is required for cover letter generation." };
+      }
+    }
+
+    // ✅ Structuring the prompt to **force OpenAI to replace placeholders**
+    const userMessage = type === "resume"
+      ? `${userResumeDirections}\n\n${JSON.stringify(content)}`
+      : `
+        ${userCoverLetterDirections}
+
+        **Applicant Details (Insert at the Top & Bottom of the Cover Letter)**  
+        - Applicant Name: ${applicantDetails.name}  
+        - Email: ${applicantDetails.email}  
+        - Phone: ${applicantDetails.phone}  
+        - Address: ${applicantDetails.yourAddress}  
+        - LinkedIn: ${applicantDetails.linkedin}  
+        - Portfolio: ${applicantDetails.portfolio}  
+
+        **Date Formatting Requirement:**  
+        - If possible, insert the current date at the **top of the cover letter**.
+        - If OpenAI cannot determine the actual date, leave it out entirely. Do **not** insert placeholders like "[Date]".
+
+        **Recipient & Job Details (Used in Salutation & Body):**  
+        - Hiring Manager Name: ${userInput.hiringManagerName}  
+        - Company Name: ${userInput.companyName}  
+        - Company Address: ${userInput.companyAddress}  
+        - Job Title: ${userInput.jobTitle}  
+        - Job Description: ${userInput.jobDescription}  
+
+        **Resume Summary:**  
+        ${resumeSummary.summary}  
+
+        **Work Experience:**  
+        ${resumeSummary.experience.map((exp: { role: string; company: string; start_date: string; end_date: string }) => `- ${exp.role} at ${exp.company} (${exp.start_date} - ${exp.end_date})`).join("\n")}
+
+        **Education:**  
+        ${resumeSummary.education.map((edu: { degree: string; institution: string; graduation_year: string }) => `- ${edu.degree} from ${edu.institution} (${edu.graduation_year})`).join("\n")}
+
+        **Skills:**  
+        ${resumeSummary.skills.join(", ")}  
+
+        **Certifications:**  
+        ${resumeSummary.certifications.map((cert: { name: string; year: number }) => `- ${cert.name} (${cert.year})`).join("\n")}  
+
+        **Customization Preferences:**  
+        - Tone: ${content.customizationPreferences.tone}  
+        - Length: ${content.customizationPreferences.length}  
+        - Focus Areas: ${content.customizationPreferences.focusAreas.join(", ")}  
+
+        **Important Instructions:**  
+        1️⃣ **The applicant details must be included at the top of the cover letter in this format:**  
+        - Applicant Name: ${applicantDetails.name}  
+        - Email: ${applicantDetails.email}  
+        - Phone: ${applicantDetails.phone}  
+        - Address: ${applicantDetails.yourAddress}  
+        - LinkedIn: ${applicantDetails.linkedin}  
+        - Portfolio: ${applicantDetails.portfolio}   
+
+        2️⃣ **The date should appear right below the applicant's details ONLY if OpenAI can generate an accurate one.**  
+        3️⃣ **The closing statement must include the applicant details in the same format.**  
+        4️⃣ **DO NOT insert placeholders like "[Your Name]" or "[Date]". Always use real values.**  
+      `;
+
     const requestBody = {
       model: "gpt-4o",
       messages: [
-        type === "resume"
-          ? { role: "system", content: resumePrompt }
-          : { role: "system", content: coverLetterPrompt },
-        type === "resume"
-          ? { role: "user", content: `${userResumeDirections}\n\n${JSON.stringify(content)}` }
-          : { role: "user", content: `${userCoverLetterDirections}\n\n${content as string}` },
+        { role: "system", content: type === "resume" ? resumePrompt : coverLetterPrompt },
+        { role: "user", content: userMessage },
       ],
     };
 
-    console.log(`Sending ${type} request to OpenAI:`, JSON.stringify(requestBody, null, 2));
+    console.log("🟢 RequestBody Ready:", JSON.stringify(requestBody, null, 2));
 
-    const response = await fetch(OPENAI_URL, {
+    // ✅ Send request to OpenAI API
+    const openAiResponse = await fetch(OPENAI_URL, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${OPENAI_KEY}`,
@@ -37,62 +126,17 @@ export const generateFromOpenAI = async (
       body: JSON.stringify(requestBody),
     });
 
-    const data = await response.json();
-    console.log(`Received ${type} response from OpenAI:`, JSON.stringify(data, null, 2));
+    const jsonResponse = await openAiResponse.json();
+    console.log("🔵 OpenAI Response:", JSON.stringify(jsonResponse, null, 2));
 
-    if (!data.choices[0].message || !data.choices[0] || !data.choices) {
-      throw new Error(`Invalid OpenAI response for ${type}`);
+    if (!openAiResponse.ok) {
+      console.error("❌ OpenAI API Error:", jsonResponse);
+      return { success: false, message: `OpenAI API Error: ${openAiResponse.status} ${JSON.stringify(jsonResponse)}` };
     }
 
-    return data.choices[0].message.content;
+    return { success: true, message: jsonResponse.choices?.[0]?.message?.content || "Error: No valid response from OpenAI" };
   } catch (error) {
-    console.error(`Error generating ${type}:`, error);
-    throw new Error(`Failed to generate ${type}`);
+    console.error("❌ Unexpected Error in generateFromOpenAI:", error);
+    return { success: false, message: "Failed to generate cover letter due to an internal error." };
   }
 };
-
-
-
-
-
-
-
-
-
-// /**
-//  * Generates a personalized cover letter based on the user's resume and job description.
-//  * @param coverLetterData - The structured JSON object containing resume details and job description.
-//  * @returns The AI-generated cover letter.
-//  */
-// export const generateCoverLetter = async (coverLetterData: any): Promise<string> => {
-//   const { jobDescription, applicantDetails, resumeSummary, customizationPreferences } = coverLetterData;
-//
-//   const formattedCoverLetterInput = `
-//     Job Title: ${jobDescription.jobTitle}
-//     Company: ${jobDescription.companyName}
-//     Job Description: ${jobDescription.jobDescription}
-//
-//     Applicant Name: ${applicantDetails.name}
-//     Contact Email: ${applicantDetails.email}
-//     LinkedIn: ${applicantDetails.linkedin}
-//     Portfolio: ${applicantDetails.portfolio}
-//
-//     Resume Summary: ${resumeSummary.summary}
-//     Experience:
-//     ${resumeSummary.experience.map((exp: { role: string; company: string; start_date: string; end_date: string; }) => `- ${exp.role} at ${exp.company} (${exp.start_date} - ${exp.end_date})`).join("\n")}
-//
-//     Skills: ${resumeSummary.skills.join(", ")}
-//
-//     Preferences:
-//     - Tone: ${customizationPreferences.tone}
-//     - Length: ${customizationPreferences.length}
-//     - Focus Areas: ${customizationPreferences.focusAreas.join(", ")}
-//   `;
-//
-//   const messages = [
-//     { role: "system", content: "You are an AI that generates professional cover letters based on user input." },
-//     { role: "user", content: `Generate a cover letter based on the following details:\n${formattedCoverLetterInput}` },
-//   ];
-//
-//   return sendToOpenAI(messages);
-// };
