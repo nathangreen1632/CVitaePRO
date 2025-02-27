@@ -1,22 +1,42 @@
-import { Request, Response } from "express";
-import { calculateATSScore, matchKeywords } from "../services/atsService.js";
+import { RequestHandler } from "express";
+import { parseResume, matchKeywords, calculateATSScore } from "../services/atsService.js";
 
-export const scoreResume = async (req: Request, res: Response) => {
+export const getATSScore: RequestHandler = async (req, res): Promise<void> => {
   try {
-    const { resumeText, jobDescription, formattingErrors } = req.body;
+    const { htmlResume, jobDescription } = req.body;
 
-    if (!resumeText || !jobDescription || !Array.isArray(formattingErrors)) {
-      res.status(400).json({
-        success: false,
-        message: "Missing required fields: resumeText, jobDescription, or formattingErrors",
-      });
+    if (!htmlResume || !jobDescription) {
+      res.status(400).json({ success: false, message: "Resume (HTML) and job description are required" });
+      return;
     }
 
-    const keywordMatch = matchKeywords(resumeText, jobDescription);
-    const score = calculateATSScore(keywordMatch, formattingErrors);
+    // Step 1: Parse the resume
+    const parsedResume = parseResume(htmlResume);
 
-    res.status(200).json({ success: true, score });
+    // Step 2: Identify formatting errors (missing contact details)
+    const formattingErrors: string[] = [];
+    if (!parsedResume.name || parsedResume.name.trim() === "") formattingErrors.push("Missing name.");
+    if (!parsedResume.email || parsedResume.email.trim() === "") formattingErrors.push("Missing email.");
+    if (!parsedResume.phone || parsedResume.phone.trim() === "") formattingErrors.push("Missing phone number.");
+    if (!parsedResume.experience || parsedResume.experience.trim() === "") formattingErrors.push("Missing experience section.");
+    if (!parsedResume.education || parsedResume.education.trim() === "") formattingErrors.push("Missing education section.");
+    if (!parsedResume.skills || parsedResume.skills.trim() === "") formattingErrors.push("Missing skills section.");
+
+    console.log("Parsed Resume:", parsedResume);
+    console.log("Formatting Errors Detected:", formattingErrors);
+
+    // Step 3: Match keywords, soft skills, and industry terms
+    const { keywordMatch, softSkillsMatch, industryTermsMatch } = matchKeywords(
+      `${parsedResume.experience} ${parsedResume.education} ${parsedResume.skills}`,
+      jobDescription
+    );
+
+    // Step 4: Calculate ATS score
+    const atsScore = calculateATSScore(keywordMatch, formattingErrors, softSkillsMatch, industryTermsMatch);
+
+    res.status(200).json({ success: true, atsScore, keywordMatch, softSkillsMatch, industryTermsMatch, formattingErrors, parsedResume });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Error scoring resume", error });
+    console.error("Error calculating ATS Score:", error);
+    res.status(500).json({ success: false, message: "Failed to calculate ATS Score" });
   }
 };
