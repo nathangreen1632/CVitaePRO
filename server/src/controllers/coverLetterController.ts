@@ -1,7 +1,7 @@
 import { callOpenAI } from "../utils/openAIService.js";
 import { coverLetterPrompt } from "../prompts/coverLetterDirections.js";
 
-export const generateCoverLetter = async (): Promise<string> => {
+export const generateCoverLetter = async (): Promise<{ success: boolean; message: string }> => {
   try {
     const aiResponse = await callOpenAI({
       model: "gpt-4o",
