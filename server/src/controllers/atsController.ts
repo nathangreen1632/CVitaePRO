@@ -22,14 +22,23 @@ export const getATSScore: RequestHandler = async (req, res): Promise<void> => {
     if (!parsedResume.education || parsedResume.education.trim() === "") formattingErrors.push("Missing education section.");
     if (!parsedResume.skills || parsedResume.skills.trim() === "") formattingErrors.push("Missing skills section.");
 
-    console.log("Parsed Resume:", parsedResume);
-    console.log("Formatting Errors Detected:", formattingErrors);
+    console.log("🔍 RAW Parsed Resume Text:\n", `${parsedResume.experience} ${parsedResume.education} ${parsedResume.skills}`);
+    console.log("🔍 RAW Job Description Text:\n", jobDescription);
+
 
     // Step 3: Match keywords, soft skills, and industry terms
     const { keywordMatch, softSkillsMatch, industryTermsMatch } = matchKeywords(
       `${parsedResume.experience} ${parsedResume.education} ${parsedResume.skills}`,
       jobDescription
     );
+
+    // 🛠 **Debugging Logs for Keyword Matching**
+    console.log("🔍 Job Description Keywords:\n", jobDescription.toLowerCase().match(/\b\w+\b/g) || []);
+    console.log("🔍 Resume Keywords Found:\n", (`${parsedResume.experience} ${parsedResume.education} ${parsedResume.skills}`)
+      .toLowerCase()
+      .match(/\b\w+\b/g)
+      ?.filter(word => jobDescription.toLowerCase().includes(word)) || []);
+    console.log("🔍 Total Keyword Count Matched:", keywordMatch);
 
     // Step 4: Calculate ATS score
     const atsScore = calculateATSScore(keywordMatch, formattingErrors, softSkillsMatch, industryTermsMatch);
