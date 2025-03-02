@@ -1,9 +1,32 @@
+import { Request, Response } from "express";
 import { callOpenAI } from "../utils/openaiUtil.js";
 import { coverLetterPrompt, userCoverLetterDirections } from "../prompts/coverLetterDirections.js";
+import logger from "../register/logger.js"; // ✅ Use structured logging
 
-export const generateCoverLetter = async (userData: any): Promise<{ success: boolean; message: string }> => {
+export const generateCoverLetter = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { userInput, applicantDetails, resumeSummary, customizationPreferences } = userData;
+    const { userInput, applicantDetails, resumeSummary, customizationPreferences } = req.body;
+
+    // ✅ Validate required fields before proceeding
+    if (!userInput?.jobTitle || !userInput?.companyName) {
+      logger.warn("⚠️ Missing required job details:", userInput);
+      res.status(400).json({ error: "Job title and company name are required." });
+      return;
+    }
+
+    if (!applicantDetails?.name) {
+      logger.warn("⚠️ Missing applicant name:", applicantDetails);
+      res.status(400).json({ error: "Applicant name is required." });
+      return;
+    }
+
+    if (!resumeSummary?.summary) {
+      logger.warn("⚠️ Missing resume summary:", resumeSummary);
+      res.status(400).json({ error: "Resume summary is required." });
+      return;
+    }
+
+    logger.info("✅ All required fields validated. Proceeding with OpenAI request.");
 
     const messages = [
       { role: "system", content: coverLetterPrompt },
@@ -13,7 +36,7 @@ export const generateCoverLetter = async (userData: any): Promise<{ success: boo
         
         - Job Title: ${userInput.jobTitle}
         - Company: ${userInput.companyName}
-        
+
         - Applicant Name: ${applicantDetails.name}
         - Contact Info: Email - ${applicantDetails.email}, Phone - ${applicantDetails.phone}, LinkedIn - ${applicantDetails.linkedin}, Portfolio - ${applicantDetails.portfolio}
 
@@ -34,12 +57,15 @@ export const generateCoverLetter = async (userData: any): Promise<{ success: boo
     });
 
     if (!aiResponse) {
-      throw new Error("Failed to generate cover letter");
+      logger.error("❌ Failed to generate cover letter.");
+      res.status(500).json({ error: "Failed to generate cover letter." });
+      return;
     }
 
-    return aiResponse;
+    logger.info("✅ Successfully generated cover letter.");
+    res.status(200).json(aiResponse);
   } catch (error) {
-    console.error("Cover Letter Generation Error:", error);
-    throw new Error("Internal server error");
+    logger.error(`❌ Cover Letter Generation Error: ${error instanceof Error ? error.message : "Unknown error"}`);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
