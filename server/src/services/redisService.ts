@@ -15,3 +15,7 @@ export const deleteExtractedText = async (userId: string, fileHash: string) => {
   const key = `resume:${userId}:${fileHash}`;
   await redis.del(key);
 };
+
+export const flushAllExtractedText = async () => {
+  await redis.flushAll();
+}
