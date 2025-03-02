@@ -2,6 +2,7 @@ import * as cheerio from "cheerio";
 import natural from "natural";
 
 // ✅ Enhanced parseResume() Function
+// ✅ Enhanced parseResume() Function
 export function parseResume(htmlResume: string) {
   const $ = cheerio.load(htmlResume);
 
@@ -139,6 +140,7 @@ const softSkills: string[] = [
 
 
 const industryTerms: string[] = [
+  // Core DevOps & Cloud Terms
   "CI/CD", "microservices", "Kubernetes", "AWS", "GCP", "cloud computing",
   "DevOps", "agile development", "serverless", "containerization",
   "infrastructure as code", "Terraform", "Ansible", "Jenkins", "GitHub Actions",
@@ -170,8 +172,29 @@ const industryTerms: string[] = [
   "static code analysis", "runtime security", "data lakes", "data pipelines",
   "ETL", "ELT", "graph databases", "sharding", "replication", "container registry",
   "Kubernetes namespaces", "policy as code", "progressive delivery",
-  "shadow deployments", "traffic mirroring", "chaos testing", "observability pipeline"
+  "shadow deployments", "traffic mirroring", "chaos testing", "observability pipeline",
+
+  // 🚀 Principal Engineer Specific Additions (Enterprise-Level & Leadership)
+  "Enterprise Architecture", "Scalability Planning", "Technical Debt Management",
+  "IT Governance", "Enterprise Cloud Strategy", "Cost Optimization Strategies",
+  "Software Engineering Best Practices", "Technical Roadmap Planning",
+  "Cloud-Native Strategy", "Technology Risk Assessment", "High-Performance Computing",
+  "Distributed Computing", "Data Mesh", "Parallel Processing",
+  "Cloud-Native Governance", "Systems Thinking", "Hybrid Cloud Strategy",
+  "Data Residency Compliance", "Federated Services Architecture",
+
+  // 📊 Business & Strategic Thinking
+  "Digital Transformation", "Business Continuity Planning",
+  "IT Compliance & Regulations", "Vendor Management", "Technology Budgeting",
+  "Cross-Team Collaboration", "Customer Experience Optimization",
+  "Tech-Driven Business Growth", "Cloud Cost Management (FinOps)",
+
+  // 🧠 AI, Emerging Technologies, and Automation
+  "AI-Powered DevOps", "LLM (Large Language Models) Integration",
+  "Self-Healing Infrastructure", "AI-Driven Security", "Autonomous Cloud Systems",
+  "Generative AI in Software Engineering", "Edge AI & Distributed Machine Learning"
 ];
+
 
 
 
@@ -229,7 +252,7 @@ export function matchKeywords(resumeText: string, jobDescription: string): {
   }, 0);
 
   const keywordMatch = (keywordCount / jobKeywords.length) * 100;
-  const softSkillsMatch = Math.min((softSkillsCount / softSkills.length) * 100, 25); // Cap at 25%
+  const softSkillsMatch = Math.min((softSkillsCount / softSkills.length) * 100, 20); // Cap at 25%
   const industryTermsMatch = Math.min((industryTermsCount / industryTerms.length) * 100, 25); // Cap at 25%
 
   return { keywordMatch, softSkillsMatch, industryTermsMatch };
@@ -248,9 +271,9 @@ export function calculateATSScore(
 
   let keywordScore = keywordMatch * 0.35;  // 🔽 Lowered from 0.38
   let formattingPenalty = (majorErrors.length * 2.0) + (minorErrors.length * 0.6);
-  let formattingScore = Math.max(0, 2.5 - formattingPenalty);  // 🔽 Reduced from 3.5
-  let softSkillsScore = softSkillsMatch * 1.65;  // 🔼 Increased from 1.47
-  let industryScore = industryTermsMatch * 1.65; // 🔼 Increased from 1.47
+  let formattingScore = Math.max(0, 5 - formattingPenalty);  // 🔽 Reduced from 3.5
+  let softSkillsScore = softSkillsMatch * 1.4;  // 🔼 Increased from 1.47
+  let industryScore = industryTermsMatch * 1.7; // 🔼 Increased from 1.47
 
   let score = keywordScore + formattingScore + softSkillsScore + industryScore;
   return Math.max(0, Math.min(score, 80)); // 🔽 Capped at 80 max
