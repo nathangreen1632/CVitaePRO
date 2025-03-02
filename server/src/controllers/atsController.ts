@@ -1,5 +1,7 @@
 import { RequestHandler } from "express";
 import { parseResume, matchKeywords, calculateATSScore } from "../services/atsService.js";
+import { getCachedResponse, setCachedResponse } from "../services/cacheService.js";
+import logger from "../register/logger.js"; // ✅ Use structured logging
 
 export const getATSScore: RequestHandler = async (req, res): Promise<void> => {
   try {
@@ -10,20 +12,51 @@ export const getATSScore: RequestHandler = async (req, res): Promise<void> => {
       return;
     }
 
+    // ✅ Generate a unique cache key based on resume and job description
+    const cacheKey = `atsScore:${Buffer.from(htmlResume + jobDescription).toString("base64")}`;
+
+    // ✅ Check Redis cache first
+    const cachedATSScore = await getCachedResponse(cacheKey);
+    if (cachedATSScore) {
+      logger.info("✅ Returning ATS score from cache");
+      res.status(200).json(cachedATSScore);
+      return;
+    }
+
     // Step 1: Parse the resume
     const parsedResume = parseResume(htmlResume);
 
-    // Step 2: Identify formatting errors (missing contact details)
-    const formattingErrors: string[] = [];
-    if (!parsedResume.name || parsedResume.name.trim() === "") formattingErrors.push("Missing name.");
-    if (!parsedResume.email || parsedResume.email.trim() === "") formattingErrors.push("Missing email.");
-    if (!parsedResume.phone || parsedResume.phone.trim() === "") formattingErrors.push("Missing phone number.");
-    if (!parsedResume.experience || parsedResume.experience.trim() === "") formattingErrors.push("Missing experience section.");
-    if (!parsedResume.education || parsedResume.education.trim() === "") formattingErrors.push("Missing education section.");
-    if (!parsedResume.skills || parsedResume.skills.trim() === "") formattingErrors.push("Missing skills section.");
+// ✅ Fix: Check for missing name before using it
+    if (!parsedResume.name || parsedResume.name.trim() === "") {
+      logger.warn("⚠️ Name was not detected. Using fallback processing...");
 
-    console.log("🔍 RAW Parsed Resume Text:\n", `${parsedResume.experience} ${parsedResume.education} ${parsedResume.skills}`);
-    console.log("🔍 RAW Job Description Text:\n", jobDescription);
+      // ✅ Attempt to extract name manually
+      const nameMatch = htmlResume.match(/Name:\s*([A-Za-z\s-]+)/i);
+      parsedResume.name = nameMatch ? nameMatch[1].trim() : "Unknown Candidate";
+
+      logger.warn(`⚠️ Fallback name assigned: ${parsedResume.name}`);
+    }
+
+
+// Continue with Redis caching and ATS scoring as usual...
+
+
+    // 🔍 Debug Log: Print Extracted Name Before Scoring
+    logger.info(`🔍 Extracted Name from Resume: '${parsedResume.name}'`);
+
+    // 🔍 If Name is Missing, Log Raw Resume Data for Debugging
+    if (!parsedResume.name || parsedResume.name.trim() === "") {
+      logger.warn("⚠️ No name extracted. Logging raw resume text for debugging.");
+      logger.warn(htmlResume);
+    }
+
+    // Step 2: Identify formatting errors
+    const formattingErrors: string[] = [];
+    if (!parsedResume.name || parsedResume.name.trim().toLowerCase() === "unknown candidate") {
+      formattingErrors.push("Missing name.");
+    }
+    if (!parsedResume.email) formattingErrors.push("Missing email.");
+    if (!parsedResume.phone) formattingErrors.push("Missing phone number.");
 
 
     // Step 3: Match keywords, soft skills, and industry terms
@@ -32,20 +65,15 @@ export const getATSScore: RequestHandler = async (req, res): Promise<void> => {
       jobDescription
     );
 
-    // 🛠 **Debugging Logs for Keyword Matching**
-    console.log("🔍 Job Description Keywords:\n", jobDescription.toLowerCase().match(/\b\w+\b/g) || []);
-    console.log("🔍 Resume Keywords Found:\n", (`${parsedResume.experience} ${parsedResume.education} ${parsedResume.skills}`)
-      .toLowerCase()
-      .match(/\b\w+\b/g)
-      ?.filter(word => jobDescription.toLowerCase().includes(word)) || []);
-    console.log("🔍 Total Keyword Count Matched:", keywordMatch);
-
     // Step 4: Calculate ATS score
     const atsScore = calculateATSScore(keywordMatch, formattingErrors, softSkillsMatch, industryTermsMatch);
 
-    res.status(200).json({ success: true, atsScore, keywordMatch, softSkillsMatch, industryTermsMatch, formattingErrors, parsedResume });
+    // ✅ Store the ATS score in Redis for 24 hours
+    await setCachedResponse(cacheKey, { atsScore, keywordMatch, softSkillsMatch, industryTermsMatch, formattingErrors }, 86400);
+
+    res.status(200).json({ atsScore, keywordMatch, softSkillsMatch, industryTermsMatch, formattingErrors });
   } catch (error) {
-    console.error("Error calculating ATS Score:", error);
+    logger.error("❌ Error calculating ATS Score:", error);
     res.status(500).json({ success: false, message: "Failed to calculate ATS Score" });
   }
 };
