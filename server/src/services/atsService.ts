@@ -12,32 +12,32 @@ export function parseResume(htmlResume: string) {
   // 🔎 Improved regex for name extraction (now allows lowercase letters)
   const nameRegex = /Name:\s*([A-Za-z\s-]+)/i;
 
-  let name =
-    extractText("p:has(strong:contains('Name'))") ||
-    extractText("div:has(strong:contains('Name'))") ||
-    extractText("span:has(strong:contains('Name'))") ||
-    extractText("p:contains('Name:')").replace(/Name:\s?/i, "").trim() ||
-    extractText("div:contains('Name:')").replace(/Name:\s?/i, "").trim() ||
-    nameRegex.exec($("body").text())?.[1]?.trim() ||
+  let name: string | null =
+    extractText("p:has(strong:contains('Name'))") ??
+    extractText("div:has(strong:contains('Name'))") ??
+    extractText("span:has(strong:contains('Name'))") ??
+    extractText("p:contains('Name:')").replace(/Name:\s?/i, "").trim() ??
+    extractText("div:contains('Name:')").replace(/Name:\s?/i, "").trim() ??
+    nameRegex.exec($("body").text())?.[1]?.trim() ??
     null; // ✅ Fallback to `null` instead of an empty string
 
   // ✅ Final cleanup to ensure it's a valid name
   if (name) {
     name = name.replace(/(^|\s)Name:\s?/gi, "").trim();
     if (!/^[A-Za-z\s-]+$/.test(name)) {
-      name = null; // ✅ Ensure invalid names are not used
+      name = null; // ✅ Ensure invalid names are not used (no change needed here)
     }
   }
 
   // ✅ Extract other fields
   const email =
-    $('a[href^="mailto:"]').attr("href")?.replace("mailto:", "").trim() ||
-    $("p:contains('@')").text().replace(/Email:\s?/i, "").trim() ||
+    $('a[href^="mailto:"]').attr("href")?.replace("mailto:", "").trim() ??
+    $("p:contains('@')").text().replace(/Email:\s?/i, "").trim() ??
     null;
 
   const phone =
-    $('a[href^="tel:"]').attr("href")?.replace("tel:", "").trim() ||
-    $("p:contains('-')").first().text().replace(/Phone:\s?/i, "").trim() ||
+    $('a[href^="tel:"]').attr("href")?.replace("tel:", "").trim() ??
+    $("p:contains('-')").first().text().replace(/Phone:\s?/i, "").trim() ??
     null;
 
   const experience = extractText("section#experience, div.experience");
