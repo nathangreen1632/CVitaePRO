@@ -1,4 +1,6 @@
-import { Pool } from 'pg';
+import pkg from 'pg';
+
+const { Pool } = pkg;
 
 const pool = new Pool({
   connectionString: process.env.DB_URL,
@@ -6,7 +8,7 @@ const pool = new Pool({
 
 export const saveToPostgreSQL = async (fileHash: string, extractedText: string, userId: string) => {
   await pool.query(
-    'INSERT INTO resumes (file_hash, extracted_text, user_id) VALUES ($1, $2, $3) ON CONFLICT (file_hash) DO UPDATE SET extracted_text = $2',
+    'INSERT INTO resumes (file_hash, extracted_text, user_id, updated_at) VALUES ($1, $2, $3, NOW()) ON CONFLICT (file_hash) DO UPDATE SET extracted_text = $2, updated_at = NOW()',
     [fileHash, extractedText, userId]
   );
 };
