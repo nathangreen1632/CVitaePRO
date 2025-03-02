@@ -1,8 +1,8 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useAuth } from "../hooks/useAuth.tsx";
 import { useNavigate } from "react-router-dom";
 
-const Register = (): JSX.Element => {
+const Register = (): React.JSX.Element => {
   const { register } = useAuth();
   const navigate = useNavigate();
 
