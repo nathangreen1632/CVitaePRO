@@ -32,8 +32,13 @@ export async function getCachedResponse(cacheKey: string): Promise<any | null> {
   }
 }
 
-export async function setCachedResponse(cacheKey: string, value: any, ttl: number = 43200) {
+export async function setCachedResponse(cacheKey: string, value: any, ttl: number = 7200) {
   await redisClient.setEx(cacheKey, ttl, JSON.stringify(value));
 }
+
+export async function deleteCachedResponse(cacheKey: string) {
+  await redisClient.del(cacheKey);
+}
+
 
 export default redisClient;
