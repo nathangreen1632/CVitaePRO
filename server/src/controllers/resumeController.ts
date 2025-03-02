@@ -1,7 +1,8 @@
 import { RequestHandler } from "express";
 import { parseResumeFromPDF } from "../services/pdfResumeParser.js";
-import { getCachedResponse, setCachedResponse } from "../services/cacheService.js"; // ✅ Import Redis
+import { getCachedResponse, setCachedResponse, deleteCachedResponse } from "../services/cacheService.js"; // ✅ Import Redis delete function
 import logger from "../register/logger.js"; // ✅ Use structured logging
+import { generateFromOpenAI } from "../services/openaiService.js"; // ✅ Import OpenAI processing
 
 export const uploadResume: RequestHandler = async (req, res) => {
   try {
@@ -47,6 +48,40 @@ export const uploadResume: RequestHandler = async (req, res) => {
   } catch (error) {
     logger.error(`❌ Error processing uploaded resume: ${error instanceof Error ? error.message : "Unknown error"}`);
     res.status(500).json({ error: "Error processing resume file." });
+  }
+};
+
+/**
+ * Handles enhancing an existing resume using OpenAI.
+ */
+export const enhanceResume: RequestHandler = async (req, res): Promise<void> => {
+  try {
+    const { userId, resumeText } = req.body;
+
+    if (!userId || !resumeText) {
+      res.status(400).json({ success: false, message: "Missing userId or resumeText" });
+      return;
+    }
+
+    logger.info(`🟡 Enhancing resume for user: ${userId}`);
+
+    // ✅ Fix: Change "enhanceResume" to "resume" (TS2345 Fix)
+    const enhancedResume = await generateFromOpenAI(userId, "resume", resumeText);
+
+    if (!enhancedResume.success) {
+      res.status(500).json({ success: false, message: enhancedResume.message });
+      return;
+    }
+
+    // ✅ Fix: Ensure raw resume is removed from Redis
+    const rawCacheKey = `resumeText:${userId}`;
+    await deleteCachedResponse(rawCacheKey);
+    logger.info(`🗑️ Deleted raw resume from Redis cache: ${rawCacheKey}`);
+
+    res.status(200).json({ success: true, message: "Resume enhanced successfully", enhancedResume });
+  } catch (error) {
+    logger.error("❌ Error enhancing resume:", error);
+    res.status(500).json({ success: false, message: "Failed to enhance resume." });
   }
 };
 
