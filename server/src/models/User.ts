@@ -4,7 +4,8 @@ import { sequelize } from "../config/database.js";
 interface IUserAttributes {
   id: number;
   username: string;
-  passwordHash: string; // ✅ Store only hashed password
+  passwordHash: string;
+  role: "admin" | "user";  // ✅ Added role field
   createdAt: Date;
   updatedAt: Date;
 }
@@ -14,7 +15,8 @@ interface IUserCreationAttributes extends Optional<IUserAttributes, "id" | "crea
 class User extends Model<IUserAttributes, IUserCreationAttributes> implements IUserAttributes {
   public id!: number;
   public username!: string;
-  public passwordHash!: string; // ✅ Keep only passwordHash
+  public passwordHash!: string;
+  public role!: "admin" | "user";  // ✅ Ensure role exists
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }
@@ -31,9 +33,14 @@ User.init(
       allowNull: false,
       unique: true,
     },
-    passwordHash: {  // ✅ Ensure this column exists in PostgreSQL
+    passwordHash: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    role: {  // ✅ Added new role column
+      type: DataTypes.ENUM("admin", "user"),
+      allowNull: false,
+      defaultValue: "user",
     },
     createdAt: {
       type: DataTypes.DATE,
@@ -48,10 +55,9 @@ User.init(
   },
   {
     sequelize,
-    tableName: "users", // ✅ Ensure lowercase table name
+    tableName: "users",
     timestamps: true,
   }
 );
-
 
 export default User;
