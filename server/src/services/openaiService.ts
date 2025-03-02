@@ -1,8 +1,10 @@
 import fetch from "node-fetch";
+import crypto from "crypto";
 import { OPENAI_KEY, OPENAI_URL } from "../config/env.js";
 import { resumePrompt, userResumeDirections } from "../prompts/resumeDirections.js";
 import { userCoverLetterDirections } from "../prompts/coverLetterDirections.js";
 import { getFromPostgreSQL, saveToPostgreSQL } from "./postgreSQLService.js";
+import { getCachedResponse, setCachedResponse} from "./cacheService.js";
 import logger from "../register/logger.js"; // ✅ Use centralized logger
 
 // ✅ Define strict types for OpenAI content
@@ -29,8 +31,21 @@ export const generateFromOpenAI = async (
   try {
     logger.info("🟡 Checking for cached OpenAI response...");
 
+    // ✅ Create a hash of the resume data to track changes
+    const contentHash = crypto.createHash("sha256").update(JSON.stringify(content)).digest("hex");
+
+    // ✅ Generate a unique cache key based on userId + resumeHash
+    const cacheKey = `resume:${userId}:${contentHash}`;
+
+    // ✅ Check if the enhanced resume is already cached
+    const cachedEnhanced = await getCachedResponse(cacheKey);
+    if (cachedEnhanced) {
+      logger.info("✅ Returning cached enhanced resume from Redis.");
+      return { success: true, message: cachedEnhanced };
+    }
+
     // ✅ Check the database for a cached response
-    const cachedResponse = await getFromPostgreSQL(userId);
+    const cachedResponse = await getFromPostgreSQL(cacheKey);
     if (cachedResponse) {
       logger.info("✅ Returning cached OpenAI response.");
       return { success: true, message: cachedResponse };
@@ -71,7 +86,7 @@ export const generateFromOpenAI = async (
 
     const requestBody = {
       model: "gpt-4o",
-      response_format: {type: "text"}, // ✅ Return plain text response
+      response_format: { type: "text" }, // ✅ Return plain text response
       max_tokens: 4000, // ✅ Ensures enough space for complete resume
       temperature: 0.7, // ✅ Keeps responses structured and consistent
       messages: [
@@ -108,8 +123,10 @@ export const generateFromOpenAI = async (
 
     const aiMessage = jsonResponse.choices?.[0]?.message?.content || "Error: No valid response from OpenAI";
 
-    // ✅ Store the OpenAI response in PostgreSQL
-    await saveToPostgreSQL(userId, type, aiMessage);
+    // ✅ Store the OpenAI response in PostgreSQL with the unique cache key
+    await saveToPostgreSQL(cacheKey, type, aiMessage);
+
+    await setCachedResponse(cacheKey, aiMessage, 7200); // ✅ Cache response for 2 hours
 
     return { success: true, message: aiMessage };
   } catch (error) {
