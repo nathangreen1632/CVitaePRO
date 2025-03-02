@@ -1,15 +1,18 @@
-import { Router } from "express";
+import express, {Router} from "express";
 import authRoutes from "./authRoutes.js";
-import resumeRoutes from "./resumeRoutes.js";
-import openAIRoutes from "./openaiRoutes.js";
 import atsRoutes from "./atsRoutes.js";
-// import authMiddleware from "../middleware/authMiddleware.js";
+import openaiRoutes from "./openaiRoutes.js";
+import adobeRoutes from "./adobeRoutes.js";
+import coverLetterRoutes from "./coverLetterRoutes.js";
+import resumeRoutes from "./resumeRoutes.js";
 
-const router: Router = Router();
+const router: Router = express.Router();
 
 router.use("/auth", authRoutes);
-router.use("/resume", resumeRoutes);
-router.use("/openai", openAIRoutes);
 router.use("/ats", atsRoutes);
+router.use("/openai", openaiRoutes);
+router.use("/adobe", adobeRoutes);
+router.use("/cover-letter", coverLetterRoutes);
+router.use("/resume", resumeRoutes);
 
 export default router;
