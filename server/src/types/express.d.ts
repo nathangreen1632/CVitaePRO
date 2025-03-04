@@ -1,9 +1,7 @@
-import { JwtPayload } from "jsonwebtoken";
-import { File } from "multer";
+import { Request } from "express";
 
 declare module "express" {
-  interface Request {
-    user?: JwtPayload; // Fix `req.user` error
-    file?: File; // Fix `req.file` error
+  export interface Request {
+    user?: { userId: string; role?: string; iat: number; exp: number };
   }
 }
