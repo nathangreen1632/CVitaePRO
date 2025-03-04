@@ -28,7 +28,7 @@ export const generateResume = async (req: Request, res: Response): Promise<void>
     }
 
     console.log("⚠️ Nothing in cache! Generating new resume via OpenAI...");
-    const aiResponse = await generateFromOpenAI(req.user?.id || "guest", "resume", resumeData);
+    const aiResponse = await generateFromOpenAI(req.user?.id ?? "guest", "resume", resumeData);
 
 
     if (!aiResponse.success) {
