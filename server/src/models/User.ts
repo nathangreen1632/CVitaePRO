@@ -1,63 +1,57 @@
-import { DataTypes, Model, Optional } from "sequelize";
+import { DataTypes, Model } from "sequelize";
 import { sequelize } from "../config/database.js";
+import Resume from "./Resume.js"; // ✅ Import Resume model
 
-interface IUserAttributes {
-  id: number;
+export interface IUser extends Model {
+  id: string; // ✅ UUID instead of integer
   username: string;
-  passwordHash: string;
-  role: "admin" | "user";  // ✅ Added role field
-  createdAt: Date;
-  updatedAt: Date;
+  passwordhash: string;
+  created_at?: Date;
+  updated_at?: Date;
+  role: string;
 }
 
-interface IUserCreationAttributes extends Optional<IUserAttributes, "id" | "createdAt" | "updatedAt"> {}
-
-class User extends Model<IUserAttributes, IUserCreationAttributes> implements IUserAttributes {
-  public id!: number;
-  public username!: string;
-  public passwordHash!: string;
-  public role!: "admin" | "user";  // ✅ Ensure role exists
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
-}
-
-User.init(
+const User = sequelize.define<IUser>(
+  "User",
   {
     id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
+      type: DataTypes.UUID, // ✅ Use UUID now
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
     username: {
-      type: DataTypes.STRING,
-      allowNull: false,
+      type: DataTypes.STRING(255),
+      allowNull: true,  // ‼️ Allow null values for username during development
       unique: true,
     },
-    passwordHash: {
-      type: DataTypes.STRING,
-      allowNull: false,
+    passwordhash: {
+      type: DataTypes.STRING(255),
+      allowNull: true,  // ‼️ Allow null values for passwordhash during development
     },
-    role: {  // ✅ Added new role column
-      type: DataTypes.ENUM("admin", "user"),
-      allowNull: false,
+    role: {
+      type: DataTypes.ENUM("admin", "user"), // ✅ Restrict to valid roles
+      allowNull: true,  // ‼️ Allow null values for role during development
       defaultValue: "user",
     },
-    createdAt: {
+    created_at: {
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: DataTypes.NOW,
     },
-    updatedAt: {
+    updated_at: {
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: DataTypes.NOW,
     },
   },
   {
-    sequelize,
-    tableName: "users",
+    tableName: "users", // ✅ Removed `sequelize` and kept only table name
     timestamps: true,
+    underscored: true, // ✅ Use snake_case for column names
   }
 );
+
+// ✅ Define Association
+User.hasMany(Resume, { foreignKey: "user_id", onDelete: "CASCADE" });
 
 export default User;
