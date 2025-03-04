@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 import { loginUser, registerUser } from "../services/userService.js"; // ✅ Included registerUser
-import { hashPassword, comparePassword } from "../utils/hash.js"; // ✅ Included hashPassword
-import User from "../models/User.js";
-import logger from "../register/logger.js";  // ✅ Ensure logger is used
+import { validateUserCredentials } from "../services/authService.js"; // ✅ Included validateUserCredentials
+import { hashPassword } from "../utils/hash.js"; // ✅ Included hashPassword
+import logger from "../register/logger.js";
 
 export async function register(req: Request, res: Response): Promise<void> {
   try {
@@ -15,7 +15,8 @@ export async function register(req: Request, res: Response): Promise<void> {
 
     const userRole = role === "admin" ? "admin" : "user";
     const hashedPassword = await hashPassword(password); // ✅ Use hashPassword
-    const newUser: User | null = await registerUser({ username, password: hashedPassword, role: userRole });
+    const { user: newUser } = await registerUser({ username, password: hashedPassword, role: userRole }) || { user: null, token: null };
+
 
     if (!newUser) {
       logger.error(`❌ Registration failed for '${username}'. User object is null.`);
@@ -24,7 +25,10 @@ export async function register(req: Request, res: Response): Promise<void> {
     }
 
     logger.info(`✅ New user registered: '${username}' with role '${userRole}'`);
-    res.status(201).json({ message: "User registered successfully", userId: newUser.id });
+    res.status(201).json({
+      message: "User registered successfully",
+      userId: newUser?.getDataValue("id")
+    });
 
   } catch (error) {
     logger.error(`❌ Registration Error: ${error instanceof Error ? error.message : "Unknown error"}`);
@@ -35,31 +39,29 @@ export async function register(req: Request, res: Response): Promise<void> {
 export async function login(req: Request, res: Response): Promise<void> {
   try {
     const { username, password } = req.body;
-    const user: User | null = await User.findOne({ where: { username } });
 
-    if (!user) {
-      logger.warn(`⚠️ Login failed: User '${username}' not found.`);
-      res.status(401).json({ error: "Invalid credentials." });
+    // ✅ You can still call loginUser if needed
+    const token = await loginUser({ username, password });
+
+    if (!token) {
+      // ✅ If loginUser fails, we attempt the password validation process via validateUserCredentials
+      const result = await validateUserCredentials(username, password);
+      if (result.error) {
+        res.status(401).json({ error: result.error });
+        return;
+      }
+      // ✅ Send token from validateUserCredentials if validation is successful
+      res.status(200).json({ token: result.token });
       return;
     }
 
-    const isMatch: boolean = await comparePassword(password, user.passwordHash); // ✅ Ensure password is compared correctly
-
-    if (!isMatch) {
-      logger.warn(`⚠️ Login failed: Incorrect password for user '${username}'.`);
-      res.status(401).json({ error: "Invalid credentials." });
-      return;
-    }
-
-    const token = await loginUser({ username, password }); // ✅ Ensure loginUser is called correctly
-
-    logger.info(`✅ User '${username}' logged in successfully.`);
-    res.status(200).json({ token });
+    res.status(200).json({ token }); // ✅ Send token directly if loginUser works fine
+    return;
   } catch (error) {
-    logger.error(`❌ Login Error: ${error instanceof Error ? error.message : "Unknown error"}`);
-    res.status(500).json({
-      error: "Internal server error",
-      details: process.env.NODE_ENV === "development" && error instanceof Error ? error.message : undefined,  // ✅ Only show error details in development mode when error is an instance of Error
-    });
+    console.error("Login Error:", error);
+    res.status(500).json({ error: "Internal server error" });
+    return;
   }
 }
+
+
