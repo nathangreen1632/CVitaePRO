@@ -1,11 +1,26 @@
-import jwt from 'jsonwebtoken';
+import jwt from "jsonwebtoken";
+import { JWT_SECRET } from "../config/env.js";
 
-const JWT_SECRET: string = process.env.JWT_SECRET ?? 'default_secret';
+interface JwtPayloadStructure {
+  userId: string;
+  id?: string;
+  role?: string;
+  iat: number;
+  exp: number;
+}
 
-export const generateToken = (_p: { userId: string }, userId: string): string => {
-  return jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: '7d' });
+export const generateToken = (userId: string, role?: string): string => {
+  return jwt.sign(
+    { userId, role },
+    JWT_SECRET,
+    { expiresIn: "7d", issuer: "CVitaePRO", audience: "cvitaepro_users" }
+  );
 };
 
-export const verifyToken = (token: string): string | object => {
-  return jwt.verify(token, JWT_SECRET);
+export const verifyToken = (token: string): JwtPayloadStructure | null => {
+  try {
+    return jwt.verify(token, JWT_SECRET) as JwtPayloadStructure;
+  } catch (error) {
+    return null;
+  }
 };
