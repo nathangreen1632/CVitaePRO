@@ -5,7 +5,7 @@ import { processAdobePDF } from '../services/adobeService.js';
 import { storeExtractedText, getExtractedText } from '../services/redisService.js';
 import { saveToPostgreSQL, getFromPostgreSQL } from '../services/postgreSQLService.js';
 import { rateLimiter } from '../middleware/rateLimiter.js';
-import { authenticateUser } from '../middleware/authMiddleware.js';
+import { authenticateUser } from '../services/authService.js';
 import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs';
 
@@ -20,7 +20,7 @@ interface AuthenticatedRequest extends Request {
 }
 
 // ✅ **Upload & Process PDF**
-router.post('/upload', authenticateUser, rateLimiter('adobe_upload'), upload.single('pdf'), (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+router.post('/upload', authenticateUser, authenticateUser, rateLimiter('adobe_upload'), upload.single('pdf'), (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   (async () => {
     try {
       if (!req.file) {
