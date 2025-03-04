@@ -35,7 +35,8 @@ export const generateFromOpenAI = async (
     const contentHash = crypto.createHash("sha256").update(JSON.stringify(content)).digest("hex");
 
     // ✅ Generate a unique cache key based on userId + resumeHash
-    const cacheKey = `resume:${userId}:${contentHash}`;
+    const cacheKey = `resume:${contentHash}`; // ❌ Remove userId from cache key
+
 
     // ✅ Check if the enhanced resume is already cached
     const cachedEnhanced = await getCachedResponse(cacheKey);
@@ -123,8 +124,22 @@ export const generateFromOpenAI = async (
 
     const aiMessage = jsonResponse.choices?.[0]?.message?.content || "Error: No valid response from OpenAI";
 
+    // ❌ Assign a test user ID in development mode only❌
+    if (process.env.NODE_ENV !== "production") {
+      console.warn("⚠️ Development mode: Using a valid test user ID.");
+      userId = "a6127972-0e36-4e91-b4b8-eccdcfc0c757"; // ❌ Remove this line in production
+    }
+
+    // ‼️ Include this block in production only ‼️
+    // const userId = req.user?.id; // ✅ Use the real user ID from authentication
+    // if (!userId) {
+    //   return res.status(401).json({ error: "Unauthorized: Missing valid user session." });
+    // }
+
+
+
     // ✅ Store the OpenAI response in PostgreSQL with the unique cache key
-    await saveToPostgreSQL(cacheKey, type, aiMessage);
+    await saveToPostgreSQL(contentHash, aiMessage, userId); // ✅ Correct order
 
     await setCachedResponse(cacheKey, aiMessage, 7200); // ✅ Cache response for 2 hours
 
