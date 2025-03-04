@@ -1,4 +1,11 @@
-import { RequestHandler } from "express";
+import { RequestHandler, Request } from "express";
+
+declare module "express" {
+  interface Request {
+    user?: { id: string }; // Augmenting Express's Request type to include 'user'
+  }
+}
+import pool from "../db/pgClient.js"; // ✅ Import PostgreSQL client
 import { parseResumeFromPDF } from "../services/pdfResumeParser.js";
 import { getCachedResponse, setCachedResponse, deleteCachedResponse } from "../services/cacheService.js"; // ✅ Import Redis delete function
 import logger from "../register/logger.js"; // ✅ Use structured logging
@@ -120,5 +127,42 @@ export const processResume: RequestHandler = async (req, res) => {
   } catch (error) {
     logger.error(`❌ Error processing resume data: ${error instanceof Error ? error.message : "Unknown error"}`);
     res.status(500).json({ error: "Error processing resume data." });
+  }
+};
+
+/**
+ * Retrieves a specific resume by ID.
+ */
+export const getResumeById: RequestHandler = async (req, res): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    const userId = (req as Request & { user?: { id: string } }).user?.id; // ✅ Extract user ID from JWT token (ensure auth middleware is in place)
+
+    if (!id) {
+      res.status(400).json({ success: false, message: "Resume ID is required." });
+      return;
+    }
+
+    logger.info(`🔍 Fetching resume with ID: ${id} for user: ${userId}`);
+
+    // ✅ Query PostgreSQL for the resume
+    const queryResult = await pool.query(
+      `SELECT * FROM public.resumes WHERE file_hash = $1 AND user_id::text = $2`,
+      [id, userId]
+    );
+
+
+    if (queryResult.rows.length === 0) {
+      res.status(404).json({ success: false, message: "Resume not found or unauthorized." });
+      return;
+    }
+
+    logger.info(`✅ Resume found and returned for user: ${userId}`);
+
+    res.status(200).json({ success: true, resume: queryResult.rows[0] });
+  } catch (error) {
+    logger.error(`❌ Error fetching resume: ${error instanceof Error ? error.message : "Unknown error"}`);
+    res.status(500).json({ success: false, message: "Failed to retrieve resume." });
   }
 };
