@@ -1,45 +1,67 @@
 import { Request, Response, NextFunction } from "express";
-import { JwtPayload } from "jsonwebtoken";
-import { generateToken, verifyToken } from "../utils/jwtUtils";
+import bcrypt from "bcrypt";
+import { generateToken, verifyToken } from "../utils/jwtUtils.js";  // ✅ Import from jwtUtils
+import User from "../models/User.js";
+import logger from "../register/logger.js";
 
-const TOKEN_EXPIRATION_TIME = "3h";
-const TOKEN_WARNING_TIME = 30 * 60 * 1000; // 30 minutes in milliseconds
+// Standardized JWT payload structure
+export interface CustomJwtPayload {
+  userId: string;
+  role?: string;
+  iat: number;
+  exp: number;
+}
 
-export const authenticateUser = (req: Request, res: Response, next: NextFunction) => {
+export const authenticateUser = (req: Request, res: Response, next: NextFunction): void => {
   const token = req.headers.authorization?.split(" ")[1];
+
   if (!token) {
-    return res.status(401).json({ message: "Unauthorized: No token provided" });
+    logger.warn("Unauthorized access attempt: No token provided.");
+    res.status(401).json({ message: "Unauthorized: No token provided" });
+    return;
   }
 
+  const decoded: CustomJwtPayload | null = verifyToken(token);
+  if (!decoded) {
+    logger.warn("Invalid token detected.");
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+
+
+  req.user = { id: decoded.userId };
+  next();
+};
+
+export const generateUserToken = (userId: string, role?: string): string => {
   try {
-    const decoded = verifyToken(token);
-    if (!decoded || typeof decoded === "string") {
-      return res.status(403).json({ message: "Invalid token" });
-    }
-
-    req.user = decoded as JwtPayload;
-
-    // Check if token is about to expire and send a warning
-    const exp = (decoded as JwtPayload).exp;
-    if (exp && Date.now() >= exp * 1000 - TOKEN_WARNING_TIME) {
-      res.setHeader("X-Token-Expiration-Warning", "true");
-    }
-
-    return next();
+    return generateToken(userId, role);
   } catch (error) {
-    return res.status(403).json({ message: "Invalid token" });
+    logger.error("Token generation failed:", error);
+    throw new Error("Failed to generate authentication token.");
   }
 };
 
-export const generateUserToken = (userId: string) => {
-  return generateToken({ userId }, TOKEN_EXPIRATION_TIME);
-};
+// ✅ Validate User Credentials (Handles Password Check & Token Issuance)
+export async function validateUserCredentials(username: string, password: string): Promise<{ token?: string; error?: string }> {
+  const user = await User.findOne({ where: { username } });
 
-export const protectRoutes = (req: Request, res: Response, next: NextFunction) => {
-  authenticateUser(req, res, (err?: any) => {
-    if (err) {
-      return res.status(401).json({ message: "Unauthorized access" });
-    }
-    return next();
-  });
-};
+  if (!user) {
+    return { error: "Invalid credentials." };
+  }
+
+  // ✅ Compare the entered password with the stored hash
+  const isMatch = await bcrypt.compare(password, user.passwordhash);
+
+  console.log("Entered Password:", password);
+  console.log("Stored Hash:", user.passwordhash);
+  console.log("Password Match Result:", isMatch);
+
+  if (!isMatch) {
+    return { error: "Invalid credentials." };
+  }
+
+  // ✅ Generate JWT if credentials are correct
+  const token = generateToken(user.id, user.role);
+  return { token };
+}
