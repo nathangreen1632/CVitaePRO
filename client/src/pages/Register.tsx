@@ -45,7 +45,7 @@ const Register = (): React.JSX.Element => {
           onChange={(e) => setUsername(e.target.value)}
           required
           autoComplete={"username"}
-          className="w-full p-2 mb-4 border border-gray-300 rounded"
+          className="w-full p-2 mb-4 border text-black border-black rounded"
         />
 
         <input
@@ -55,7 +55,7 @@ const Register = (): React.JSX.Element => {
           onChange={(e) => setPassword(e.target.value)}
           required
           autoComplete={"new-password"}
-          className="w-full p-2 mb-4 border border-gray-300 rounded"
+          className="w-full p-2 mb-4 border text-black border-black rounded"
         />
 
         <input
@@ -65,7 +65,7 @@ const Register = (): React.JSX.Element => {
           onChange={(e) => setConfirmPassword(e.target.value)}
           required
           autoComplete={"new-password"}
-          className="w-full p-2 mb-4 border border-gray-300 rounded"
+          className="w-full p-2 mb-4 border text-black border-black rounded"
         />
 
         <button type="submit" className="w-full bg-green-500 text-white p-2 rounded">
