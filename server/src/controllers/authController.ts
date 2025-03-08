@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { loginUser, registerUser } from "../services/userService.js"; // ✅ Included registerUser
 import { validateUserCredentials } from "../services/authService.js"; // ✅ Included validateUserCredentials
-import { hashPassword } from "../utils/hash.js"; // ✅ Included hashPassword
 import logger from "../register/logger.js";
 
 export async function register(req: Request, res: Response): Promise<void> {
@@ -14,8 +13,12 @@ export async function register(req: Request, res: Response): Promise<void> {
     }
 
     const userRole = role === "admin" ? "admin" : "user";
-    const hashedPassword = await hashPassword(password); // ✅ Use hashPassword
-    const { user: newUser } = await registerUser({ username, password: hashedPassword, role: userRole }) || { user: null, token: null };
+    const { user: newUser } = await registerUser({
+      username,
+      password,  // Pass plain text password
+      role: userRole
+    }) || { user: null, token: null };
+
 
 
     if (!newUser) {
