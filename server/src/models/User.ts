@@ -21,16 +21,16 @@ const User = sequelize.define<IUser>(
     },
     username: {
       type: DataTypes.STRING(255),
-      allowNull: true,  // ‼️ Allow null values for username during development
+      allowNull: false,  // ‼️ Allow null values for username during development
       unique: true,
     },
     passwordhash: {
       type: DataTypes.STRING(255),
-      allowNull: true,  // ‼️ Allow null values for passwordhash during development
+      allowNull: false,  // ‼️ Allow null values for passwordhash during development
     },
     role: {
-      type: DataTypes.ENUM("admin", "user"), // ✅ Restrict to valid roles
-      allowNull: true,  // ‼️ Allow null values for role during development
+      type: DataTypes.STRING(50), // ✅ Restrict to valid roles
+      allowNull: false,  // ‼️ Allow null values for role during development
       defaultValue: "user",
     },
     created_at: {
