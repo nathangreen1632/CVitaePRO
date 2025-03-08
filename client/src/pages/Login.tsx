@@ -16,7 +16,7 @@ const Login = (): React.JSX.Element => {
     setError("");
 
     try {
-      const success = await login(username, password);
+      const success: boolean = await login(username, password);
       if (success) {
         navigate("/dashboard");
       } else {
@@ -39,7 +39,7 @@ const Login = (): React.JSX.Element => {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           required
-          className="w-full p-2 mb-4 border border-gray-300 rounded"
+          className="w-full p-2 mb-4 border border-black rounded"
         />
 
         <input
@@ -48,10 +48,10 @@ const Login = (): React.JSX.Element => {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          className="w-full p-2 mb-4 border border-gray-300 rounded"
+          className="w-full p-2 mb-4 border border-black rounded"
         />
 
-        <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded">
+        <button type="submit" className="w-full bg-blue-500 text-black p-2 rounded">
           Login
         </button>
       </form>
