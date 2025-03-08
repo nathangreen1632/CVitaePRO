@@ -64,13 +64,13 @@ export async function loginUser(credentials: UserData): Promise<string | null> {
     const user = await User.findOne({ where: { username: credentials.username } });
 
     if (!user) {
-      logger.warn(`⚠️ Login failed: User '${credentials.username}' not found.`);
+      console.warn(`⚠️ Login failed: User '${credentials.username}' not found.`);
       return null;
     }
 
     // ✅ Add debug logs before checking password
-    logger.info(`🔍 Stored hash for '${credentials.username}': ${user.passwordhash}`);
-    logger.info(`🔍 Password entered: ${credentials.password}`);
+    console.log(`🔍 Stored hash for '${credentials.username}': ${user.passwordhash}`);
+    console.log(`🔍 Password entered: ${credentials.password}`);
 
     const isMatch = await comparePassword(credentials.password, user.passwordhash);
 
@@ -83,10 +83,10 @@ export async function loginUser(credentials: UserData): Promise<string | null> {
     }
 
     const token = generateAccessToken(user);
-    logger.info(`✅ User '${credentials.username}' logged in successfully.`);
+    console.log(`✅ User '${credentials.username}' logged in successfully.`);
     return token;
   } catch (error) {
-    logger.error(`❌ Error logging in user: ${error instanceof Error ? error.message : "Unknown error"}`);
+    console.log(`❌ Error logging in user: ${error instanceof Error ? error.message : "Unknown error"}`);
     return null;
   }
 }
