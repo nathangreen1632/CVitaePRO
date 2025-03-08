@@ -1,15 +1,15 @@
 import { RequestHandler, Request } from "express";
+import pool from "../db/pgClient.js"; // ✅ Import PostgreSQL client
+import { parseResumeFromPDF } from "../services/pdfResumeParser.js";
+import { getCachedResponse, setCachedResponse, deleteCachedResponse } from "../services/cacheService.js"; // ✅ Import Redis delete function
+import logger from "../register/logger.js"; // ✅ Use structured logging
+import { generateFromOpenAI } from "../services/openaiService.js"; // ✅ Import OpenAI processing
 
 declare module "express" {
   interface Request {
     user?: { id: string }; // Augmenting Express's Request type to include 'user'
   }
 }
-import pool from "../db/pgClient.js"; // ✅ Import PostgreSQL client
-import { parseResumeFromPDF } from "../services/pdfResumeParser.js";
-import { getCachedResponse, setCachedResponse, deleteCachedResponse } from "../services/cacheService.js"; // ✅ Import Redis delete function
-import logger from "../register/logger.js"; // ✅ Use structured logging
-import { generateFromOpenAI } from "../services/openaiService.js"; // ✅ Import OpenAI processing
 
 export const uploadResume: RequestHandler = async (req, res) => {
   try {
@@ -130,14 +130,44 @@ export const processResume: RequestHandler = async (req, res) => {
   }
 };
 
-/**
- * Retrieves a specific resume by ID.
- */
-export const getResumeById: RequestHandler = async (req, res): Promise<void> => {
+export const listResumes: RequestHandler = async (req, res) => {
+  try {
+    const userId = (req as Request & { user?: { id: string } }).user?.id;
+
+    if (!userId) {
+      res.status(400).json({ success: false, message: "User ID is required." });
+      return;
+    }
+
+    logger.info(`🔍 Fetching resumes for user: ${userId}`);
+
+    // ✅ FIXED: Changed "Resumes" to "resumes"
+    const queryResult = await pool.query(
+      `SELECT * FROM public."Resumes" WHERE user_id = $1`,
+      [userId]
+    );
+
+
+    if (queryResult.rowCount === 0) {
+      logger.info(`❌ No resumes found for user: ${userId}`);
+      res.status(404).json({ success: false, message: "No resumes found for this user." });
+      return;
+    }
+
+    logger.info(`✅ ${queryResult.rowCount} resumes found and returned for user: ${userId}`);
+
+    res.status(200).json({ success: true, Resumes: queryResult.rows });
+  } catch (error) {
+    logger.error(`❌ Error fetching resumes: ${error instanceof Error ? error.message : "Unknown error"}`);
+    res.status(500).json({ success: false, message: "Internal server error while retrieving resumes." });
+  }
+};
+
+
+export const getResumeById: RequestHandler = async (req, res) => {
   try {
     const { id } = req.params;
-
-    const userId = (req as Request & { user?: { id: string } }).user?.id; // ✅ Extract user ID from JWT token (ensure auth middleware is in place)
+    const userId = (req as Request & { user?: { id: string } }).user?.id;
 
     if (!id) {
       res.status(400).json({ success: false, message: "Resume ID is required." });
@@ -146,14 +176,15 @@ export const getResumeById: RequestHandler = async (req, res): Promise<void> => 
 
     logger.info(`🔍 Fetching resume with ID: ${id} for user: ${userId}`);
 
-    // ✅ Query PostgreSQL for the resume
+    // ✅ FIXED: Changed "public.Resumes" to "public.resumes"
     const queryResult = await pool.query(
-      `SELECT * FROM public.resumes WHERE file_hash = $1 AND user_id::text = $2`,
+      `SELECT * FROM public."Resumes" WHERE id = $1 AND user_id = $2`,
       [id, userId]
     );
 
 
-    if (queryResult.rows.length === 0) {
+    if (queryResult.rowCount === 0) {
+      logger.info(`❌ Resume not found for user: ${userId}`);
       res.status(404).json({ success: false, message: "Resume not found or unauthorized." });
       return;
     }
@@ -163,6 +194,6 @@ export const getResumeById: RequestHandler = async (req, res): Promise<void> => 
     res.status(200).json({ success: true, resume: queryResult.rows[0] });
   } catch (error) {
     logger.error(`❌ Error fetching resume: ${error instanceof Error ? error.message : "Unknown error"}`);
-    res.status(500).json({ success: false, message: "Failed to retrieve resume." });
+    res.status(500).json({ success: false, message: "Internal server error while retrieving the resume." });
   }
 };
