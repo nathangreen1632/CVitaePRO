@@ -6,7 +6,7 @@ const Navbar: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
 
   // List of all available pages
-  const pages = ["Home", "Register", "Login", "Features", "Resume"];
+  const pages = ["Home", "Login", "Register", "Features", "Resume"];
 
   // Filter out the current page
   const visiblePages = pages.filter(
