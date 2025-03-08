@@ -13,30 +13,36 @@ const pool = new Pool({
 
 
 
-export const saveToPostgreSQL = async (fileHash: string, extractedText: string, userId: string) => {
-  console.log("Debug: userId received in saveToPostgreSQL:", userId);  // ✅ Now userId is available within function scope
-
-  if (!userId) {
-    throw new Error("Invalid userId: Cannot save resume without a valid user ID.");
-  }
+export const saveToPostgreSQL = async (fileHash: string, extractedText: string, userId: string): Promise<{ success: boolean; message: string }> => {
+  console.log("Debug: userId received in saveToPostgreSQL:", userId);
 
   if (!userId || !uuidValidate(userId)) {
-    throw new Error(`Invalid UUID for user_id: ${userId}`);
+    return { success: false, message: `Invalid UUID for user_id: ${userId}` };
   }
-  // ❌ remove this query during production
-  const resumeContent = extractedText || (process.env.NODE_ENV !== "production" ? "Placeholder resume content" : null);
 
-  // ‼️ Include this block in production only ‼️
-  // if (!extractedText) {
-  //   throw new Error("Resume content is missing"); // ✅ Ensure content is always provided
-  // }
+  try {
+    // ✅ Step 1: Check if user exists in `users` table
+    const userCheckResult = await pool.query('SELECT id FROM "users" WHERE id = $1', [userId]);
+    if (userCheckResult.rowCount === 0) {
+      return { success: false, message: `User with ID ${userId} does not exist in 'users' table.` };
+    }
 
+    // ✅ Step 2: Ensure resume content is valid
+    const resumeContent = extractedText || (process.env.NODE_ENV !== "production" ? "Placeholder resume content" : null);
 
-  await pool.query(
-    'INSERT INTO "Resumes" (id, file_hash, extracted_text, user_id, content, updated_at) VALUES ($1, $2, $3, $4, $5, NOW())',
-    [uuidv4(), fileHash, extractedText, userId, resumeContent]
-  );
+    // ✅ Step 3: Insert into `Resumes`
+    await pool.query(
+      'INSERT INTO "Resumes" (id, file_hash, extracted_text, user_id, content, updated_at) VALUES ($1, $2, $3, $4, $5, NOW())',
+      [uuidv4(), fileHash, extractedText, userId, resumeContent]
+    );
 
+    console.log("✅ Resume saved successfully in Resumes table.");
+    return { success: true, message: "Resume saved successfully." };
+
+  } catch (error) {
+    console.error("❌ Database error in saveToPostgreSQL:", error);
+    return { success: false, message: "An error occurred while saving the resume. Please try again." };
+  }
 };
 
 export const getFromPostgreSQL = async (fileHash: string): Promise<string | null> => {
