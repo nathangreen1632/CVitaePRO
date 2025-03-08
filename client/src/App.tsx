@@ -9,6 +9,7 @@ import Home from "./pages/Home"; // ✅ Home page
 import Features from "./pages/Features"; // ✅ Features page
 import Resume from "./pages/Resume"; // ✅ Resume page
 import { AuthProvider } from "./context/AuthContext"; // 🔥 ✅ Auth Context
+import Dashboard from "./pages/Dashboard";
 
 const App = (): React.JSX.Element => {
   return (
@@ -27,6 +28,7 @@ const App = (): React.JSX.Element => {
           <Route path="/features" element={<Features />} />
           <Route path="/resume" element={<Resume />} />
           <Route path="/resume-editor" element={<ResumeEditor />} />
+          <Route path="/dashboard" element={<Dashboard />} />
 
           {/* ✅ 404 Fallback Route */}
           <Route path="*" element={<NotFound />} />
