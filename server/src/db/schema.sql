@@ -20,7 +20,7 @@ CREATE TABLE users (
 );
 
 -- ✅ Create the resumes table linked to users.id
-CREATE TABLE resumes (
+CREATE TABLE Resumes (
                          file_hash TEXT PRIMARY KEY,
                          user_id UUID NOT NULL,
                          extracted_text TEXT NOT NULL,
