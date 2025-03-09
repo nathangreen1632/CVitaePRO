@@ -135,24 +135,19 @@ export const processResume: RequestHandler = async (req, res) => {
 };
 
 
-
-
 export const listResumes = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
-    console.log(`🛠 Debug: req.user before extraction:`, req.user);
-
     const userId = req.user?.id;
-
     if (!userId) {
-      console.log(`❌ Invalid user ID received:`, userId);
       res.status(400).json({ success: false, message: "Invalid user ID provided." });
       return;
     }
 
-    console.log(`🔍 Fetching resumes for user: ${userId}`);
-
     const queryResult = await pool.query(
-      `SELECT * FROM public."Resumes" WHERE user_id = $1`,
+      `SELECT id, user_id, title, content, extracted_text, file_hash,
+              experience, education, skills, certifications, created_at, updated_at
+       FROM public."Resumes"
+       WHERE user_id = $1`,
       [userId]
     );
 
@@ -162,17 +157,29 @@ export const listResumes = async (req: AuthenticatedRequest, res: Response): Pro
       return;
     }
 
+// ✅ Format the response to match frontend expectations
+    const formattedResumes = queryResult.rows.map(row => ({
+      id: row.id,
+      name: row.title || "Untitled Resume",
+      resumeSnippet: row.content,
+      summary: row.extracted_text || "No summary available",
+      experience: row.experience || [],
+      education: row.education || [],
+      skills: row.skills || [],
+      certifications: row.certifications || [],
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    }));
+
     console.log(`✅ ${queryResult.rowCount} resumes found and returned for user: ${userId}`);
 
-    res.status(200).json({ success: true, resumes: queryResult.rows });
+    res.status(200).json({ success: true, resumes: formattedResumes });
+
   } catch (error) {
-    console.log(`❌ Error fetching resumes: ${error instanceof Error ? error.message : "Unknown error"}`);
+    console.error(`❌ Error fetching resumes:`, error);
     res.status(500).json({ success: false, message: "Internal server error while retrieving resumes." });
   }
 };
-
-
-
 
 
 export const getResumeById: RequestHandler = async (req, res) => {
