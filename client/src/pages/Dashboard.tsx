@@ -1,9 +1,35 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import ResumeCard from "../pages/ResumeCard.jsx"; // ✅ Ensure correct import
 
+
+
 const Dashboard: React.FC = () => {
-  const [resumes, setResumes] = useState<{ id: string; name: string; jobTitle: string; resumeSnippet: string }[]>([]);
+  const [resumes, setResumes] = useState<{
+    summary: string;
+    id: string;
+    name: string;
+    jobTitle: string;
+    resumeSnippet: string;
+    experience: {
+      company: string;
+      role: string;
+      start_date: string;
+      end_date: string;
+      responsibilities: string[];
+    }[];
+    education: {
+      institution: string;
+      degree: string;
+      graduation_year: string;
+    }[];
+    skills: string[];
+    certifications: {
+      name: string;
+      year: string;
+    }[];
+  }[]>([]);
+
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,25 +50,35 @@ const Dashboard: React.FC = () => {
   };
 
   // ✅ Fetching the list of resumes from the backend with Authorization Header
+  const isTokenExpired = (token: string): boolean => {
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1])); // Decode JWT
+      return payload.exp * 1000 < Date.now(); // Compare expiration time
+    } catch (error) {
+      console.error("❌ Invalid token format:", error);
+      return true;
+    }
+  };
+
+  // ✅ Fetching the list of resumes from the backend with Authorization Header
   const fetchResumes = async (): Promise<void> => {
     setLoading(true);
     setError(null);
 
-    const token = localStorage.getItem("token"); // ✅ Retrieve the token
-
-    if (!token) {
-      console.error("❌ No token found in localStorage.");
-      setError("Unauthorized: No token found.");
+    const token = localStorage.getItem("token");
+    if (!token || isTokenExpired(token)) {
+      console.error("❌ Token expired. Please log in again.");
+      setError("Session expired. Please log in again.");
       setLoading(false);
       return;
     }
 
     try {
-      const response = await fetch("/api/resume/list", {
+      const response = await fetch("http://localhost:3000/api/resume/list", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // ✅ Ensure token is sent
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -52,7 +88,24 @@ const Dashboard: React.FC = () => {
       }
 
       const data = await response.json();
-      setResumes(data);
+
+      // ✅ Match backend response format
+      const formattedResumes = data.resumes.map((resume: any) => ({
+        id: resume.id,
+        name: resume.title || "Untitled Resume",
+        jobTitle: "N/A",
+        resumeSnippet: resume.content || "",
+        summary: resume.extracted_text || "",
+        experience: resume.experience || [],
+        education: resume.education || [],
+        skills: resume.skills || [],
+        certifications: resume.certifications || [],
+        createdAt: resume.created_at,
+        updatedAt: resume.updated_at,
+      }));
+
+      localStorage.setItem("resumes", JSON.stringify(formattedResumes));
+      setResumes(formattedResumes);
     } catch (error) {
       console.error("Error fetching resumes:", error);
       setError("Something went wrong. Please try again.");
@@ -94,11 +147,17 @@ const Dashboard: React.FC = () => {
     console.log("🚀 Debug: Sending resume data:", JSON.stringify(formattedResumeData));
 
     try {
+      const token = localStorage.getItem("token");
+
       const response = await fetch("/api/resume/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(formattedResumeData),
       });
+
 
       if (!response.ok) {
         setError("Failed to generate resume.");
@@ -178,6 +237,23 @@ const Dashboard: React.FC = () => {
 
 
 
+// ✅ Fetch resumes when the component mounts
+  useEffect(() => {
+    const loadResumes = async () => {
+      const storedResumes = localStorage.getItem("resumes");
+
+      if (storedResumes) {
+        setResumes(JSON.parse(storedResumes));
+      } else {
+        await fetchResumes();
+      }
+    };
+
+    loadResumes().catch((error) => console.error("❌ Error loading resumes:", error));
+  }, []);
+
+
+
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
@@ -231,13 +307,33 @@ const Dashboard: React.FC = () => {
                   name={resume.name}
                   jobTitle={resume.jobTitle}
                   resumeSnippet={resume.resumeSnippet}
+                  summary={resume.summary}
+                  experience={resume.experience}
+                  education={resume.education}
+                  skills={resume.skills}
+                  certifications={resume.certifications}
                   refreshResumes={fetchResumes}
-                  onViewResume={() => console.log(`Viewing resume: ${resume.id}`)}
                 />
               ))}
             </div>
           )}
         </div>
+
+        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          {resumes.length > 0 ? (
+            resumes.map((resume) => (
+              <div key={resume.id} className="p-4 border bg-white text-black">
+                <h3>{resume.name}</h3>  {/* ✅ Corrected field */}
+                <p><strong>Summary:</strong> {resume.summary}</p>  {/* ✅ Corrected field */}
+                <p><strong>Content:</strong> {resume.resumeSnippet}</p>  {/* ✅ Corrected field */}
+              </div>
+            ))
+          ) : (
+            <p className="text-center text-gray-400">No resumes found.</p>
+          )}
+        </div>
+
+
 
         {/* ✅ Resume Details Form */}
         <div className="bg-gray-800 p-6 rounded-lg w-full max-w-3xl shadow-lg mx-auto mt-12">
