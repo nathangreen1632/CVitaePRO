@@ -1,7 +1,5 @@
 // ‼️Rerun Database Migration after updating this file‼️
 
-
-
 import pkg from 'pg';
 import { v4 as uuidv4, validate as uuidValidate } from 'uuid';
 
@@ -11,12 +9,18 @@ const pool = new Pool({
   connectionString: process.env.DB_URL,
 });
 
-
-
 export const saveToPostgreSQL = async (
   fileHash: string,
   extractedText: string,
-  userId: string
+  userId: string,
+  resumeData: {
+    name?: string;
+    summary?: string;
+    experience?: { company: string; role: string; start_date: string; end_date: string; responsibilities: string[] }[];
+    education?: { institution: string; degree: string; graduation_year: string }[];
+    skills?: string[];
+    certifications?: { name: string; year: string }[];
+  }
 ): Promise<{ success: boolean; message: string }> => {
   console.log("🛠 Debug: Entering saveToPostgreSQL...");
   console.log("📌 Debug: userId received in saveToPostgreSQL:", userId);
@@ -27,7 +31,7 @@ export const saveToPostgreSQL = async (
   }
 
   try {
-    // ✅ Step 1: Check if the user exists in `users` table
+    // ✅ Step 1: Check if the user exists
     console.log(`🔍 Checking if user ${userId} exists in database...`);
     const userCheckResult = await pool.query('SELECT id FROM "users" WHERE id = $1', [userId]);
 
@@ -37,7 +41,7 @@ export const saveToPostgreSQL = async (
     }
     console.log(`✅ User ${userId} exists.`);
 
-    // ✅ Step 2: Ensure resume content is valid
+    // ✅ Step 2: Validate resume content
     console.log("📌 Extracted resume text before saving:", extractedText);
     const resumeContent = extractedText || (process.env.NODE_ENV !== "production" ? "Placeholder resume content" : null);
 
@@ -48,14 +52,22 @@ export const saveToPostgreSQL = async (
 
     console.log("📌 Final resume content before inserting:", resumeContent);
 
-    // ✅ Step 3: Insert into `Resumes`
+    // ✅ Step 3: Insert into DB
     const resumeId = uuidv4();
+    const title = resumeData.name || "Untitled Resume";
+
     console.log(`🛠 Inserting resume with ID ${resumeId} for user ${userId}...`);
 
     const insertQuery = `
-      INSERT INTO "Resumes" (id, file_hash, extracted_text, user_id, content, updated_at)
-      VALUES ($1, $2, $3, $4, $5, NOW())
-      RETURNING id;
+        INSERT INTO "Resumes" (
+            id, file_hash, extracted_text, user_id,
+            content, title, experience, education, skills, certifications, updated_at
+        )
+        VALUES (
+                   $1, $2, $3, $4,
+                   $5, $6, $7::JSONB, $8::JSONB, $9::JSONB, $10::JSONB, NOW()
+               )
+        RETURNING id;
     `;
 
     const insertResult = await pool.query(insertQuery, [
@@ -64,6 +76,11 @@ export const saveToPostgreSQL = async (
       extractedText,
       userId,
       resumeContent,
+      title,
+      JSON.stringify(resumeData.experience),
+      JSON.stringify(resumeData.education),
+      JSON.stringify(resumeData.skills),
+      JSON.stringify(resumeData.certifications),
     ]);
 
     if (insertResult.rowCount === 0) {
