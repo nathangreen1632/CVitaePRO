@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import ResumeCard from "../pages/ResumeCard"; // ✅ Ensure correct import
+import ResumeCard from "../pages/ResumeCard.jsx"; // ✅ Ensure correct import
 
 const Dashboard: React.FC = () => {
   const [resumes, setResumes] = useState<{ id: string; name: string; jobTitle: string; resumeSnippet: string }[]>([]);
@@ -23,12 +23,28 @@ const Dashboard: React.FC = () => {
     setResumeData({ ...resumeData, [e.target.name]: e.target.value });
   };
 
-  // ✅ Fetching the list of resumes from the backend
+  // ✅ Fetching the list of resumes from the backend with Authorization Header
   const fetchResumes = async (): Promise<void> => {
     setLoading(true);
     setError(null);
+
+    const token = localStorage.getItem("token"); // ✅ Retrieve the token
+
+    if (!token) {
+      console.error("❌ No token found in localStorage.");
+      setError("Unauthorized: No token found.");
+      setLoading(false);
+      return;
+    }
+
     try {
-      const response = await fetch("/api/resume/list");
+      const response = await fetch("/api/resume/list", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // ✅ Ensure token is sent
+        },
+      });
 
       if (!response.ok) {
         setError("Failed to load resumes. Please try again later.");
@@ -45,16 +61,11 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    fetchResumes().catch(console.error);
-  }, []);
-
   // ✅ Generate Resume Function (Sends Form Data to Backend with Correct Structure)
   const handleGenerateResume = async () => {
     setLoading(true);
     setError(null);
 
-    // ✅ Structure the data properly before sending
     const formattedResumeData = {
       type: "resume",
       resumeData: {
@@ -80,6 +91,8 @@ const Dashboard: React.FC = () => {
       },
     };
 
+    console.log("🚀 Debug: Sending resume data:", JSON.stringify(formattedResumeData));
+
     try {
       const response = await fetch("/api/resume/generate", {
         method: "POST",
@@ -92,6 +105,9 @@ const Dashboard: React.FC = () => {
         return;
       }
 
+      const responseData = await response.json();
+      console.log("✅ Resume Generated Response:", responseData);
+
       await fetchResumes();
     } catch (error) {
       console.error("Error generating resume:", error);
@@ -101,37 +117,67 @@ const Dashboard: React.FC = () => {
     }
   };
 
+
   // ✅ Enhance Resume Function (Sends Latest Resume to Backend)
   const handleEnhanceResume = async () => {
     setLoading(true);
     setError(null);
-    try {
-      if (resumes.length === 0) {
-        setError("No resumes found to enhance.");
-        return;
-      }
 
-      const latestResume = resumes[0];
+    if (resumes.length === 0) {
+      console.error("❌ No resumes available to enhance.");
+      setError("No resumes found to enhance.");
+      return;
+    }
+
+    const latestResume = resumes[0];
+
+    console.log("🚀 Debug: Latest resume before enhancing:", latestResume);
+
+    // **FORCE CHECK**: Ensure resumeId is a UUID
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(latestResume.id);
+    if (!isUUID) {
+      console.error("❌ Invalid resume ID detected (not UUID):", latestResume.id);
+      setError("Invalid resume ID. Cannot enhance resume.");
+      return;
+    }
+
+    console.log("✅ Resume ID is valid UUID:", latestResume.id);
+
+    try {
+      const requestBody = {
+        resumeId: latestResume.id,
+        resumeText: latestResume.resumeSnippet,
+      };
+
+      console.log("📤 Sending API Request:", JSON.stringify(requestBody));
 
       const response = await fetch("/api/openai/enhance-resume", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ resumeId: latestResume.id, resumeText: latestResume.resumeSnippet }),
+        body: JSON.stringify(requestBody),
       });
 
+      console.log("📩 Received Response Status:", response.status);
+
       if (!response.ok) {
+        const errorData = await response.json();
+        console.error("❌ Failed to enhance resume:", errorData);
         setError("Failed to enhance resume.");
         return;
       }
 
+      console.log("✅ Resume enhanced successfully!");
       await fetchResumes();
     } catch (error) {
-      console.error("Error enhancing resume:", error);
+      console.error("❌ Error enhancing resume:", error);
       setError("Something went wrong while enhancing the resume.");
     } finally {
       setLoading(false);
     }
   };
+
+
+
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
@@ -186,6 +232,7 @@ const Dashboard: React.FC = () => {
                   jobTitle={resume.jobTitle}
                   resumeSnippet={resume.resumeSnippet}
                   refreshResumes={fetchResumes}
+                  onViewResume={() => console.log(`Viewing resume: ${resume.id}`)}
                 />
               ))}
             </div>
