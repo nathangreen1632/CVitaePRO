@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { useAuth } from "../hooks/useAuth.tsx";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth.jsx";
+
 
 const Login = (): React.JSX.Element => {
   const { login } = useAuth();
