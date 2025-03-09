@@ -7,7 +7,7 @@ import {authenticateUser} from "../middleware/authMiddleware.js";
 const router: Router = Router();
 
 // Routes for Resume Processing
-router.post("/generate",  generateResume); // ✅ Explicit Path for Resume Generation
+router.post("/generate", authenticateUser, generateResume); // ✅ Explicit Path for Resume Generation
 router.post("/upload",  uploadResume); // ✅ Explicit Path for Resume Upload
 router.post("/process",  processResume); // ✅ Explicit Path for Resume Processing
 router.post("/enhance", enhanceResume); // ✅ Explicit Path for Resume Enhancement
