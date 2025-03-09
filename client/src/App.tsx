@@ -1,15 +1,15 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import Navbar from "./components/Navbar"; // ✅ Navbar included
-import NotFound from "./pages/NotFound"; // ✅ 404 Route added
-import Register from "./pages/Register";
-import Login from "./pages/Login";
-import ResumeEditor from "./pages/ResumeEditor";
-import Home from "./pages/Home"; // ✅ Home page
-import Features from "./pages/Features"; // ✅ Features page
-import Resume from "./pages/Resume"; // ✅ Resume page
-import { AuthProvider } from "./context/AuthContext"; // 🔥 ✅ Auth Context
-import Dashboard from "./pages/Dashboard";
+import Navbar from "./components/Navbar.jsx"; // ✅ Navbar included
+import NotFound from "./pages/NotFound.jsx"; // ✅ 404 Route added
+import Register from "./pages/Register.jsx";
+import Login from "./pages/Login.jsx";
+import ResumeEditor from "./pages/ResumeEditor.jsx";
+import Home from "./pages/Home.jsx"; // ✅ Home page
+import Features from "./pages/Features.jsx"; // ✅ Features page
+import Resume from "./pages/Resume.jsx"; // ✅ Resume page
+import { AuthProvider } from "./context/AuthContext.jsx"; // 🔥 ✅ Auth Context
+import Dashboard from "./pages/Dashboard.jsx";
 
 const App = (): React.JSX.Element => {
   return (
