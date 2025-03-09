@@ -6,7 +6,9 @@ interface ResumeCardProps {
   jobTitle: string;
   resumeSnippet: string;
   refreshResumes: () => void;
+  onViewResume: (resumeId: string) => void; // ✅ Added this!
 }
+
 
 const ResumeCard: React.FC<ResumeCardProps> = ({ id, name, jobTitle, resumeSnippet, refreshResumes }) => {
   const [loading, setLoading] = useState(false);
