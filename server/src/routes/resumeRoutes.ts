@@ -11,6 +11,7 @@ router.post("/generate",  generateResume); // ✅ Explicit Path for Resume Gener
 router.post("/upload",  uploadResume); // ✅ Explicit Path for Resume Upload
 router.post("/process",  processResume); // ✅ Explicit Path for Resume Processing
 router.post("/enhance", enhanceResume); // ✅ Explicit Path for Resume Enhancement
-router.get("/:id",  getResumeById); // ✅ Explicit Path for Resume Retrieval
 router.get("/list", authenticateUser, listResumes) // ✅ Explicit Path for Resume Listing
+router.get("/:id",  getResumeById); // ✅ Explicit Path for Resume Retrieval
+
 export default router;
