@@ -5,6 +5,7 @@ import { resumePrompt, userResumeDirections } from "../prompts/resumeDirections.
 import { userCoverLetterDirections } from "../prompts/coverLetterDirections.js";
 import { getFromPostgreSQL, saveToPostgreSQL } from "./postgreSQLService.js";
 import { getCachedResponse, setCachedResponse} from "./cacheService.js";
+import {parseResumeMarkdown} from "../utils/parseResumeMarkdown.js";
 import logger from "../register/logger.js"; // ✅ Use centralized logger
 
 // ✅ Define strict types for OpenAI content
@@ -137,9 +138,11 @@ export const generateFromOpenAI = async (
     // }
 
 
+    const parsedResume = parseResumeMarkdown(aiMessage, content);
+
 
     // ✅ Store the OpenAI response in PostgreSQL with the unique cache key
-    await saveToPostgreSQL(contentHash, aiMessage, userId); // ✅ Correct order
+    await saveToPostgreSQL(contentHash, aiMessage, userId, parsedResume); // ✅ Correct order
 
     await setCachedResponse(cacheKey, aiMessage, 7200); // ✅ Cache response for 2 hours
 
