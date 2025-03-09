@@ -44,7 +44,8 @@ router.post('/upload', authenticateUser, authenticateUser, rateLimiter('adobe_up
       await storeExtractedText(userId, fileHash, extractedText, 1800);
 
       // ✅ **Store permanently in PostgreSQL**
-      await saveToPostgreSQL(fileHash, extractedText, userId);
+      const parsedResume = JSON.parse(extractedText);
+      await saveToPostgreSQL(fileHash, extractedText, userId, parsedResume);
 
       // ✅ **Cleanup temp file after processing**
       fs.unlinkSync(filePath);
