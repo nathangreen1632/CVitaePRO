@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import ResumeUpload from "../components/ResumeUpload";
+import ResumeUpload from "../components/ResumeUpload.jsx";
 
 const ResumeEditor: React.FC = () => {
   const [resumeText, setResumeText] = useState<string>("");
