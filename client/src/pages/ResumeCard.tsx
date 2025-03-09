@@ -1,36 +1,65 @@
 import React, { useState } from "react";
 
+interface Experience {
+  company: string;
+  role: string;
+  start_date: string;
+  end_date: string;
+  responsibilities: string[];
+}
+
+interface Education {
+  institution: string;
+  degree: string;
+  graduation_year: string;
+}
+
+interface Certification {
+  name: string;
+  year: string;
+}
+
 interface ResumeCardProps {
   id: string;
   name: string;
   jobTitle: string;
   resumeSnippet: string;
+  summary: string;
+  experience?: Experience[];
+  education?: Education[];
+  skills?: string[];
+  certifications?: Certification[];
   refreshResumes: () => void;
-  onViewResume: (resumeId: string) => void; // ✅ Added this!
 }
 
-
-const ResumeCard: React.FC<ResumeCardProps> = ({ id, name, jobTitle, resumeSnippet, refreshResumes }) => {
+const ResumeCard: React.FC<ResumeCardProps> = ({
+                                                 id,
+                                                 name,
+                                                 jobTitle,
+                                                 resumeSnippet,
+                                                 summary,
+                                                 experience = [],
+                                                 education = [],
+                                                 skills = [],
+                                                 certifications = [],
+                                                 refreshResumes,
+                                               }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 🟢 Edit Resume (Redirect to edit page)
   const handleEdit = () => {
     window.location.href = `/edit-resume/${id}`;
   };
 
-  // 🟢 Download Resume
   const handleDownload = async () => {
     setLoading(true);
-    setError(null); // ✅ Clear previous errors
+    setError(null);
     try {
       const response = await fetch(`http://localhost:3000/api/resumes/${id}/download`);
       if (!response.ok) {
         setError("Failed to download resume.");
         return;
       }
-
-      // Convert response to blob (file data)
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -46,19 +75,16 @@ const ResumeCard: React.FC<ResumeCardProps> = ({ id, name, jobTitle, resumeSnipp
     setLoading(false);
   };
 
-  // 🟢 Delete Resume
   const handleDelete = async () => {
     setLoading(true);
     setError(null);
     try {
       const response = await fetch(`http://localhost:3000/api/resumes/${id}`, { method: "DELETE" });
-
       if (!response.ok) {
         setError("Failed to delete resume.");
         return;
       }
-
-      refreshResumes(); // ✅ Refresh list after deletion
+      refreshResumes();
     } catch (error) {
       console.error("Error deleting resume:", error);
       setError("Something went wrong while deleting.");
@@ -68,7 +94,7 @@ const ResumeCard: React.FC<ResumeCardProps> = ({ id, name, jobTitle, resumeSnipp
 
   return (
     <div className="bg-gray-800 text-white p-6 rounded-lg shadow-lg w-full max-w-md">
-      {/* Profile Section */}
+      {/* Profile Header */}
       <div className="flex items-center mb-4">
         <div className="w-14 h-14 bg-gray-600 rounded-full flex items-center justify-center text-xl font-bold">
           {name.charAt(0)}
@@ -79,17 +105,73 @@ const ResumeCard: React.FC<ResumeCardProps> = ({ id, name, jobTitle, resumeSnipp
         </div>
       </div>
 
-      {/* Resume Preview Snippet */}
-      <p className="text-gray-300 text-sm line-clamp-3">{resumeSnippet}</p>
+      <p className="text-sm text-gray-300 mb-2"><strong>Summary:</strong> {summary}</p>
+      <p className="text-sm text-gray-300 mb-4"><strong>Content:</strong> {resumeSnippet}</p>
 
-      {/* Error Display */}
+      {/* Experience */}
+      <div className="mb-4">
+        <h4 className="font-semibold text-lg">Experience</h4>
+        {experience.length > 0 ? (
+          experience.map((exp, idx) => (
+            <div key={idx} className="text-sm mt-2 border-b border-gray-700 pb-2">
+              <p className="font-medium">{exp.company} — {exp.role}</p>
+              <p className="text-gray-400">{exp.start_date} to {exp.end_date || "Present"}</p>
+              <ul className="list-disc list-inside ml-2 mt-1">
+                {exp.responsibilities.map((item, i) => (
+                  <li key={i} className="text-gray-300">{item}</li>
+                ))}
+              </ul>
+            </div>
+          ))
+        ) : (
+          <p className="text-gray-400 text-sm">No experience data available.</p>
+        )}
+      </div>
+
+      {/* Education */}
+      <div className="mb-4">
+        <h4 className="font-semibold text-lg">Education</h4>
+        {education.length > 0 ? (
+          education.map((edu, idx) => (
+            <div key={idx} className="text-sm text-gray-300 mt-1">
+              🎓 {edu.degree} from {edu.institution} ({edu.graduation_year})
+            </div>
+          ))
+        ) : (
+          <p className="text-gray-400 text-sm">No education data available.</p>
+        )}
+      </div>
+
+      {/* Skills */}
+      <div className="mb-4">
+        <h4 className="font-semibold text-lg">Skills</h4>
+        {skills.length > 0 ? (
+          <p className="text-gray-300 text-sm">{skills.join(", ")}</p>
+        ) : (
+          <p className="text-gray-400 text-sm">No skills listed.</p>
+        )}
+      </div>
+
+      {/* Certifications */}
+      <div className="mb-4">
+        <h4 className="font-semibold text-lg">Certifications</h4>
+        {certifications.length > 0 ? (
+          certifications.map((cert, idx) => (
+            <div key={idx} className="text-sm text-gray-300 mt-1">
+              ✅ {cert.name} ({cert.year})
+            </div>
+          ))
+        ) : (
+          <p className="text-gray-400 text-sm">No certifications listed.</p>
+        )}
+      </div>
+
+      {/* Error Message */}
       {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
 
       {/* Action Buttons */}
       <div className="mt-4 flex justify-between">
-        <button onClick={handleEdit} className="bg-blue-500 px-4 py-2 rounded-lg hover:bg-blue-600 transition">
-          Edit
-        </button>
+        <button onClick={handleEdit} className="bg-blue-500 px-4 py-2 rounded-lg hover:bg-blue-600 transition">Edit</button>
         <button onClick={handleDownload} className="bg-green-500 px-4 py-2 rounded-lg hover:bg-green-600 transition" disabled={loading}>
           {loading ? "Downloading..." : "Download"}
         </button>
