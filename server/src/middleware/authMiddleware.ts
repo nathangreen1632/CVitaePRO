@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction, RequestHandler } from "express";
-import logger from "../register/logger.js";
+// import logger from "../register/logger.js";
 import { verifyToken } from "../utils/jwtUtils.js";
 
 
@@ -17,7 +17,7 @@ export const authenticateUser: RequestHandler = (req: AuthenticatedRequest, res:
   const authHeader = req.headers.authorization;
 
   if (!authHeader?.startsWith("Bearer ")) {
-    logger.warn("Unauthorized: No token provided.");
+    console.warn("❌ Unauthorized: No token provided.");
     res.status(401).json({ error: "Unauthorized: No token provided" });
     return;
   }
@@ -25,12 +25,21 @@ export const authenticateUser: RequestHandler = (req: AuthenticatedRequest, res:
   const token = authHeader.split(" ")[1];
   const decoded = verifyToken(token);
 
-  if (!decoded) {
-    logger.warn("Unauthorized: Invalid token.");
+  console.log("🛠 Debug Middleware: Decoded Token ->", decoded); // ✅ LOGGING TOKEN DATA
+
+  if (!decoded || !decoded.userId) {
+    console.warn("❌ Unauthorized: Invalid token.");
     res.status(403).json({ error: "Invalid token" });
     return;
   }
 
-  req.user = { ...decoded, id: decoded.id ?? "" }; // ✅ Fully typed
+  req.user = {
+    ...decoded,
+    id: decoded.userId, // ✅ FORCE userId TO BE SET!
+  };
+
+  console.log("🛠 Debug Middleware: Assigned req.user ->", req.user); // ✅ CONFIRM req.user BEFORE NEXT()
   next();
 };
+
+
