@@ -2,6 +2,9 @@ import { Request, Response } from "express";
 import { generateFromOpenAI } from "../services/openaiService.js";
 import redisClient from "../services/cacheService.js";
 import { parseResumeMarkdown } from "../utils/parseResumeMarkdown.js"; // ✅ Correct Import
+import { saveToPostgreSQL } from "../services/postgreSQLService.js";
+import crypto from "crypto";
+
 
 /**
  * Handles resume generation via OpenAI.
@@ -28,7 +31,12 @@ export const generateResume = async (req: Request, res: Response): Promise<void>
     }
 
     console.log("⚠️ Nothing in cache! Generating new resume via OpenAI...");
-    const aiResponse = await generateFromOpenAI(req.user?.id ?? "guest", "resume", resumeData);
+    if (!req.user?.id) {
+      res.status(401).json({ error: "Unauthorized. Missing valid user session." });
+      return;
+    }
+
+    const aiResponse = await generateFromOpenAI(req.user.id, "resume", resumeData);
 
 
     if (!aiResponse.success) {
@@ -44,6 +52,10 @@ export const generateResume = async (req: Request, res: Response): Promise<void>
     // ✅ Store structured JSON in Redis
     await redisClient.set(cacheKey, JSON.stringify(formattedResume), { EX: 86400 });
     console.log("📝 Resume stored in Redis for future use.");
+
+    const resumeHash = crypto.createHash("sha256").update(aiResponse.message).digest("hex");
+    await saveToPostgreSQL(resumeHash, aiResponse.message, req.user?.id ?? "guest", formattedResume);
+
 
     res.status(200).json({ resume: formattedResume });
   } catch (error) {
