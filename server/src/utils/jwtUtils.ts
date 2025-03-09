@@ -9,13 +9,14 @@ interface JwtPayloadStructure {
   exp: number;
 }
 
-export const generateToken = (userId: string, role?: string): string => {
+export const generateToken = (id: string, role?: string): string => {
   return jwt.sign(
-    { userId, role },
+    { id, userId: id, role }, // ✅ Ensuring `id` and `userId` are both set
     JWT_SECRET,
     { expiresIn: "7d", issuer: "CVitaePRO", audience: "cvitaepro_users" }
   );
 };
+
 
 export const verifyToken = (token: string): JwtPayloadStructure | null => {
   try {
