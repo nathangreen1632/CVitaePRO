@@ -63,7 +63,7 @@ export const generateCoverLetter = async (req: Request, res: Response): Promise<
     }
 
     logger.info("✅ Successfully generated cover letter.");
-    res.status(200).json(aiResponse);
+    res.status(200).json({ coverLetter: aiResponse.message });
   } catch (error) {
     logger.error(`❌ Cover Letter Generation Error: ${error instanceof Error ? error.message : "Unknown error"}`);
     res.status(500).json({ error: "Internal server error" });
