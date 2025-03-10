@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import ResumeUpload from "../components/ResumeUpload.jsx";
+import HeaderBar from "../components/HeaderBar.jsx"; // ✅ NEW: Centralized Logout & Title
 
 const ResumeEditor: React.FC = () => {
   const [resumeText, setResumeText] = useState<string>("");
@@ -51,7 +52,9 @@ const ResumeEditor: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-6">
-      <div className="max-w-3xl mx-auto bg-white dark:bg-gray-800 p-6 shadow-lg rounded-lg">
+      <HeaderBar title="Resume Editor" /> {/* ✅ FIXED HEADER BAR */}
+
+      <div className="max-w-3xl mx-auto bg-white dark:bg-gray-800 p-6 shadow-lg rounded-lg mt-4">
         <h2 className="text-2xl font-bold mb-4">Resume Editor</h2>
 
         {/* Upload + Enhance buttons */}
