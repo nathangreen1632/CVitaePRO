@@ -215,3 +215,39 @@ export const getResumeById: RequestHandler = async (req, res) => {
   }
 };
 
+export const deleteResume = async (req: Request, res: Response): Promise<void> => {
+  const { resumeId } = req.params;
+  const userId = req.user?.id;
+
+  console.log(`🗑️ Request to delete resume: ${resumeId} by user: ${userId}`);
+
+  if (!resumeId) {
+    res.status(400).json({ success: false, message: "Missing resume ID" });
+    return;
+  }
+
+  try {
+    // ✅ Check if the resume exists AND belongs to the user
+    const resumeCheck = await pool.query(
+      `SELECT id FROM "Resumes" WHERE id = $1 AND user_id = $2`,
+      [resumeId, userId]
+    );
+
+    if (resumeCheck.rowCount === 0) {
+      res.status(404).json({ success: false, message: "Resume not found or unauthorized" });
+      return;
+    }
+
+    // ✅ Delete the resume
+    await pool.query(`DELETE FROM "Resumes" WHERE id = $1`, [resumeId]);
+
+    console.log(`✅ Resume ${resumeId} deleted successfully`);
+    res.json({ success: true, message: "Resume deleted successfully" });
+    return;
+
+  } catch (error) {
+    console.error("❌ Error deleting resume:", error);
+    res.status(500).json({ success: false, message: "Server error while deleting resume" });
+    return;
+  }
+};
