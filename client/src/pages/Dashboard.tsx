@@ -2,8 +2,6 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import ResumeCard from "../pages/ResumeCard.jsx"; // ✅ Ensure correct import
 
-
-
 const Dashboard: React.FC = () => {
   const [resumes, setResumes] = useState<{
     summary: string;
@@ -30,10 +28,10 @@ const Dashboard: React.FC = () => {
     }[];
   }[]>([]);
 
+  const [activityLog, setActivityLog] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // ✅ Capture Resume Form Data
   const [resumeData, setResumeData] = useState({
     name: "",
     email: "",
@@ -44,23 +42,20 @@ const Dashboard: React.FC = () => {
     skills: "",
   });
 
-  // ✅ Update Form Inputs
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setResumeData({ ...resumeData, [e.target.name]: e.target.value });
   };
 
-  // ✅ Fetching the list of resumes from the backend with Authorization Header
   const isTokenExpired = (token: string): boolean => {
     try {
-      const payload = JSON.parse(atob(token.split(".")[1])); // Decode JWT
-      return payload.exp * 1000 < Date.now(); // Compare expiration time
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      return payload.exp * 1000 < Date.now();
     } catch (error) {
       console.error("❌ Invalid token format:", error);
       return true;
     }
   };
 
-  // ✅ Fetching the list of resumes from the backend with Authorization Header
   const fetchResumes = async (): Promise<void> => {
     setLoading(true);
     setError(null);
@@ -89,10 +84,9 @@ const Dashboard: React.FC = () => {
 
       const data = await response.json();
 
-      // ✅ Match backend response format
       const formattedResumes = data.resumes.map((resume: any) => ({
         id: resume.id,
-        name: resume.title || "Untitled Resume",
+        name: resume.title,
         jobTitle: "N/A",
         resumeSnippet: resume.content || "",
         summary: resume.extracted_text || "",
@@ -114,7 +108,6 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  // ✅ Generate Resume Function (Sends Form Data to Backend with Correct Structure)
   const handleGenerateResume = async () => {
     setLoading(true);
     setError(null);
@@ -158,7 +151,6 @@ const Dashboard: React.FC = () => {
         body: JSON.stringify(formattedResumeData),
       });
 
-
       if (!response.ok) {
         setError("Failed to generate resume.");
         return;
@@ -166,6 +158,11 @@ const Dashboard: React.FC = () => {
 
       const responseData = await response.json();
       console.log("✅ Resume Generated Response:", responseData);
+
+      const activityItem = `Generated Resume - ${resumeData.name || "Untitled Resume"}`;
+      const updatedLog = [activityItem, ...activityLog];
+      localStorage.setItem("activityLog", JSON.stringify(updatedLog));
+      setActivityLog(updatedLog);
 
       await fetchResumes();
     } catch (error) {
@@ -176,8 +173,6 @@ const Dashboard: React.FC = () => {
     }
   };
 
-
-  // ✅ Enhance Resume Function (Sends Latest Resume to Backend)
   const handleEnhanceResume = async () => {
     setLoading(true);
     setError(null);
@@ -190,9 +185,6 @@ const Dashboard: React.FC = () => {
 
     const latestResume = resumes[0];
 
-    console.log("🚀 Debug: Latest resume before enhancing:", latestResume);
-
-    // **FORCE CHECK**: Ensure resumeId is a UUID
     const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(latestResume.id);
     if (!isUUID) {
       console.error("❌ Invalid resume ID detected (not UUID):", latestResume.id);
@@ -235,12 +227,14 @@ const Dashboard: React.FC = () => {
     }
   };
 
-
-
-// ✅ Fetch resumes when the component mounts
   useEffect(() => {
     const loadResumes = async () => {
       const storedResumes = localStorage.getItem("resumes");
+      const storedActivity = localStorage.getItem("activityLog");
+
+      if (storedActivity) {
+        setActivityLog(JSON.parse(storedActivity));
+      }
 
       if (storedResumes) {
         setResumes(JSON.parse(storedResumes));
@@ -252,12 +246,8 @@ const Dashboard: React.FC = () => {
     loadResumes().catch((error) => console.error("❌ Error loading resumes:", error));
   }, []);
 
-
-
-
   return (
     <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-      {/* Navigation */}
       <header className="bg-white dark:bg-gray-800 shadow p-4 flex justify-between items-center">
         <h1 className="text-xl font-bold">Resume Dashboard</h1>
         <nav>
@@ -266,34 +256,95 @@ const Dashboard: React.FC = () => {
         </nav>
       </header>
 
-      {/* Main Content */}
       <main className="flex-grow container mx-auto p-6">
         <h2 className="text-2xl font-semibold mb-4">Welcome to your Dashboard</h2>
 
-        {/* Resume Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <button className="p-4 bg-blue-500 text-white text-center rounded">Upload Resume</button>
+
           <button onClick={handleGenerateResume} className="p-4 bg-purple-500 text-white text-center rounded">
             Generate Resume
           </button>
+
           <button onClick={handleEnhanceResume} className="p-4 bg-green-500 text-white text-center rounded">
             Enhance Resume
           </button>
+
+          <Link to="/generate-cover-letter">
+            <button className="p-4 bg-indigo-500 text-white text-center rounded hover:bg-indigo-600">
+              Generate Cover Letter
+            </button>
+          </Link>
         </div>
 
-        {/* Error Message Display */}
+
         {error && <p className="text-red-500 text-center mb-4">{error}</p>}
 
-        {/* ✅ Recent Activity (Restored) */}
-        <div className="bg-white dark:bg-gray-800 p-4 rounded shadow">
+        <div className="bg-white dark:bg-gray-800 p-4 rounded shadow mb-8">
           <h3 className="text-lg font-semibold mb-2">Recent Activity</h3>
           <ul>
-            <li className="py-2 border-b">Edited Resume - <span className="text-blue-500">Software Engineer</span></li>
-            <li className="py-2 border-b">Generated Resume - <span className="text-green-500">Marketing Specialist</span></li>
+            {activityLog.length > 0 ? (
+              activityLog.map((item, index) => (
+                <li key={index} className="py-2 border-b">
+                  <Link to="#" className="hover:underline">
+                    {item.includes("Generated") ? (
+                      <>
+                        Generated Resume - <span className="text-green-500">{item.split(" - ")[1]}</span>
+                      </>
+                    ) : (
+                      <>
+                        Edited Resume - <span className="text-blue-500">{item.split(" - ")[1]}</span>
+                      </>
+                    )}
+                  </Link>
+                </li>
+              ))
+            ) : (
+              <li className="py-2 text-gray-400">No recent activity yet.</li>
+            )}
           </ul>
         </div>
 
-        {/* Your Resumes Section */}
+        {/* ✅ Resume Details Form */}
+        <div className="bg-gray-800 p-6 rounded-lg w-full max-w-3xl shadow-lg mx-auto mb-12">
+          <h2 className="text-2xl font-semibold mb-4 text-center text-white">Resume Details</h2>
+          {/* ALL FIELDS EXACTLY AS YOU WROTE THEM */}
+          <label className="block mb-3">
+            <span className="text-gray-300">Full Name</span>
+            <input type="text" name="name" value={resumeData.name} onChange={handleChange} className="w-full p-3 bg-gray-700 rounded-lg text-white" placeholder="John Doe" />
+          </label>
+          <label className="block mb-3">
+            <span className="text-gray-300">Email</span>
+            <input type="text" name="email" value={resumeData.email} onChange={handleChange} className="w-full p-3 bg-gray-700 rounded-lg text-white" placeholder="example@example.com" />
+          </label>
+          <label className="block mb-3">
+            <span className="text-gray-300">Phone Number</span>
+            <input type="text" name="phone" value={resumeData.phone} onChange={handleChange} className="w-full p-3 bg-gray-700 rounded-lg text-white" placeholder="555-555-5555" />
+          </label>
+          <label className="block mb-3">
+            <span className="text-gray-300">Professional Summary</span>
+            <textarea name="summary" value={resumeData.summary} onChange={handleChange} className="w-full p-3 bg-gray-700 rounded-lg text-white" placeholder="Write a brief summary..."></textarea>
+          </label>
+          <label className="block mb-3">
+            <span className="text-gray-300">Work Experience</span>
+            <textarea name="experience" value={resumeData.experience} onChange={handleChange} className="w-full p-3 bg-gray-700 rounded-lg text-white" placeholder="List your work experience..."></textarea>
+          </label>
+          <label className="block mb-3">
+            <span className="text-gray-300">Education</span>
+            <textarea name="education" value={resumeData.education} onChange={handleChange} className="w-full p-3 bg-gray-700 rounded-lg text-white" placeholder="List your educational background..."></textarea>
+          </label>
+          <label className="block mb-3">
+            <span className="text-gray-300">Skills</span>
+            <input type="text" name="skills" value={resumeData.skills} onChange={handleChange} className="w-full p-3 bg-gray-700 rounded-lg text-white" placeholder="E.g. JavaScript, React, Node.js" />
+          </label>
+          <div className="flex justify-center mt-6 ">
+            <button onClick={handleGenerateResume} className="bg-green-500 text-white px-6 py-3 rounded-lg">
+              Generate Resume
+            </button>
+          </div>
+        </div>
+
+
         <div className="mt-8">
           <h3 className="text-xl font-semibold mb-4 text-center">Your Resumes</h3>
           {loading ? (
@@ -304,81 +355,20 @@ const Dashboard: React.FC = () => {
                 <ResumeCard
                   key={resume.id}
                   id={resume.id}
-                  name={resume.name}
-                  jobTitle={resume.jobTitle}
-                  resumeSnippet={resume.resumeSnippet}
-                  summary={resume.summary}
-                  experience={resume.experience}
-                  education={resume.education}
-                  skills={resume.skills}
-                  certifications={resume.certifications}
+                  name={resume.name || "Untitled Resume"}
+                  jobTitle={resume.jobTitle || "N/A"}
+                  resumeSnippet={resume.resumeSnippet || ""}
+                  summary={resume.summary || ""}
+                  experience={resume.experience || []}
+                  education={resume.education || []}
+                  skills={resume.skills || []}
+                  certifications={resume.certifications || []}
                   refreshResumes={fetchResumes}
                 />
               ))}
+
             </div>
           )}
-        </div>
-
-        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-          {resumes.length > 0 ? (
-            resumes.map((resume) => (
-              <div key={resume.id} className="p-4 border bg-white text-black">
-                <h3>{resume.name}</h3>  {/* ✅ Corrected field */}
-                <p><strong>Summary:</strong> {resume.summary}</p>  {/* ✅ Corrected field */}
-                <p><strong>Content:</strong> {resume.resumeSnippet}</p>  {/* ✅ Corrected field */}
-              </div>
-            ))
-          ) : (
-            <p className="text-center text-gray-400">No resumes found.</p>
-          )}
-        </div>
-
-
-
-        {/* ✅ Resume Details Form */}
-        <div className="bg-gray-800 p-6 rounded-lg w-full max-w-3xl shadow-lg mx-auto mt-12">
-          <h2 className="text-2xl font-semibold mb-4 text-center text-white">Resume Details</h2>
-
-          <label className="block mb-3">
-            <span className="text-gray-300">Full Name</span>
-            <input type="text" name="name" value={resumeData.name} onChange={handleChange} className="w-full p-3 bg-gray-700 rounded-lg text-white" placeholder="John Doe" />
-          </label>
-
-          <label className="block mb-3">
-            <span className="text-gray-300">Email</span>
-            <input type="text" name="email" value={resumeData.email} onChange={handleChange} className="w-full p-3 bg-gray-700 rounded-lg text-white" placeholder="example@example.com" />
-          </label>
-
-          <label className="block mb-3">
-            <span className="text-gray-300">Phone Number</span>
-            <input type="text" name="phone" value={resumeData.phone} onChange={handleChange} className="w-full p-3 bg-gray-700 rounded-lg text-white" placeholder="555-555-5555" />
-          </label>
-
-          <label className="block mb-3">
-            <span className="text-gray-300">Professional Summary</span>
-            <textarea name="summary" value={resumeData.summary} onChange={handleChange} className="w-full p-3 bg-gray-700 rounded-lg text-white" placeholder="Write a brief summary..."></textarea>
-          </label>
-
-          <label className="block mb-3">
-            <span className="text-gray-300">Work Experience</span>
-            <textarea name="experience" value={resumeData.experience} onChange={handleChange} className="w-full p-3 bg-gray-700 rounded-lg text-white" placeholder="List your work experience..."></textarea>
-          </label>
-
-          <label className="block mb-3">
-            <span className="text-gray-300">Education</span>
-            <textarea name="education" value={resumeData.education} onChange={handleChange} className="w-full p-3 bg-gray-700 rounded-lg text-white" placeholder="List your educational background..."></textarea>
-          </label>
-
-          <label className="block mb-3">
-            <span className="text-gray-300">Skills</span>
-            <input type="text" name="skills" value={resumeData.skills} onChange={handleChange} className="w-full p-3 bg-gray-700 rounded-lg text-white" placeholder="E.g. JavaScript, React, Node.js" />
-          </label>
-
-          <div className="flex justify-center mt-6 ">
-            <button onClick={handleGenerateResume} className="bg-green-500 text-white px-6 py-3 rounded-lg">
-              Generate Resume
-            </button>
-          </div>
         </div>
       </main>
     </div>
