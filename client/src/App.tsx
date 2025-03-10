@@ -17,8 +17,8 @@ const App = (): React.JSX.Element => {
 
   return (
     <Router>
-      <AuthProvider> {/* 🔥 Wrap everything inside AuthProvider */}
-        <Navbar /> {/* ✅ Navbar persists on all pages */}
+      <AuthProvider>
+        <Navbar />
 
         <Routes>
           {/* 🔥 Auto-redirect "/" to "/home" */}
@@ -29,12 +29,12 @@ const App = (): React.JSX.Element => {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/features" element={<Features />} />
-          <Route path="/resume" element={<Resume />} />
-          <Route path="/resume-editor" element={<ResumeEditor />} />
 
           {/* ✅ Auth-Protected Routes */}
           <Route path="/dashboard" element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" replace />} />
           <Route path="/generate-cover-letter" element={isAuthenticated ? <GenerateCoverLetter /> : <Navigate to="/login" replace />} />
+          <Route path="/resume" element={isAuthenticated ? <Resume /> : <Navigate to="/login" replace />} />
+          <Route path="/resume-editor" element={isAuthenticated ? <ResumeEditor /> : <Navigate to="/login" replace />} />
 
           {/* ✅ 404 Fallback Route */}
           <Route path="*" element={<NotFound />} />
