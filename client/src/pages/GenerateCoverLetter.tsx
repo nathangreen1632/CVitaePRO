@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import HeaderBar from "../components/HeaderBar.jsx"; // ✅ ADD THIS
 
 const GenerateCoverLetter: React.FC = () => {
   const [coverLetter, setCoverLetter] = useState<string>("");
@@ -80,7 +81,9 @@ const GenerateCoverLetter: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-6">
-      <div className="max-w-3xl mx-auto bg-white dark:bg-gray-800 p-6 rounded shadow">
+      <HeaderBar title="Generate Cover Letter" /> {/* ✅ HEADER BELOW NAVBAR */}
+
+      <div className="max-w-3xl mx-auto bg-white dark:bg-gray-800 p-6 rounded shadow mt-4">
         <h2 className="text-2xl font-bold mb-4">Generate Cover Letter</h2>
 
         {/* Inputs */}
