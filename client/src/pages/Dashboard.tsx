@@ -173,35 +173,34 @@ const Dashboard: React.FC = () => {
     setLoading(true);
     setError(null);
 
-    if (resumes.length === 0) {
-      setError("No resumes found to enhance.");
-      return;
-    }
-
-    const latestResume = resumes[0];
-
-    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(latestResume.id);
-    if (!isUUID) {
-      setError("Invalid resume ID. Cannot enhance resume.");
-      return;
-    }
+    const resumeText = `
+    Name: ${resumeData.name}
+    Email: ${resumeData.email}
+    Phone: ${resumeData.phone}
+    Summary: ${resumeData.summary}
+    Experience: ${resumeData.experience}
+    Education: ${resumeData.education}
+    Skills: ${resumeData.skills}
+  `;
 
     try {
       const response = await fetch("/api/openai/enhance-resume", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          resumeId: latestResume.id,
-          resumeText: latestResume.resumeSnippet,
-        }),
+        body: JSON.stringify({ resumeText }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error("❌ Failed to enhance resume:", errorData);
-        setError("Failed to enhance resume.");
+        setError(data.error || "Failed to enhance resume.");
         return;
       }
+
+      const activityItem = `Enhanced Resume - ${resumeData.name || "Untitled Resume"}`;
+      const updatedLog = [activityItem, ...activityLog];
+      localStorage.setItem("activityLog", JSON.stringify(updatedLog));
+      setActivityLog(updatedLog);
 
       await fetchResumes();
     } catch (error) {
@@ -211,6 +210,7 @@ const Dashboard: React.FC = () => {
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     const loadResumes = async () => {
@@ -315,6 +315,12 @@ const Dashboard: React.FC = () => {
             <span className="text-gray-300">Skills</span>
             <input type="text" name="skills" value={resumeData.skills} onChange={handleChange} className="w-full p-3 bg-gray-700 rounded-lg text-white" placeholder="E.g. JavaScript, React, Node.js" />
           </label>
+
+          <label className="block mb-3">
+            <span className="text-gray-300">Certifications</span>
+            <input type="text" className="w-full p-3 bg-gray-700 rounded-lg text-white mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="E.g. AWS Certified Developer" />
+          </label>
+
           <div className="flex justify-center mt-6 ">
             <button onClick={handleGenerateResume} className="bg-green-500 text-white px-6 py-3 rounded-lg">
               Generate Resume
