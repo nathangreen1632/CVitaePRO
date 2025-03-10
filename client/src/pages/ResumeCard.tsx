@@ -78,19 +78,37 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
   const handleDelete = async () => {
     setLoading(true);
     setError(null);
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      setError("You're not logged in.");
+      setLoading(false);
+      return;
+    }
+
     try {
-      const response = await fetch(`http://localhost:3000/api/resumes/${id}`, { method: "DELETE" });
+      const response = await fetch(`/api/resume/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+
       if (!response.ok) {
         setError("Failed to delete resume.");
         return;
       }
-      refreshResumes();
+
+      refreshResumes(); // ✅ Refresh list after successful delete
     } catch (error) {
       console.error("Error deleting resume:", error);
       setError("Something went wrong while deleting.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
+
 
   return (
     <div className="bg-gray-800 text-white p-6 rounded-lg shadow-lg w-full max-w-md">
