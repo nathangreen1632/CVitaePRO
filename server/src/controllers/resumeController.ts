@@ -1,16 +1,16 @@
 import { RequestHandler, Request, Response } from "express";
 import pool from "../db/pgClient.js"; // ✅ Import PostgreSQL client
 import { parseResumeFromPDF } from "../services/pdfResumeParser.js";
-import { getCachedResponse, setCachedResponse, deleteCachedResponse } from "../services/cacheService.js"; // ✅ Import Redis delete function
-// import logger from "../register/logger.js"; // ✅ Use structured logging
+import { getCachedResponse, setCachedResponse, deleteCachedResponse } from "../services/cacheService.js";
 import { generateFromOpenAI } from "../services/openaiService.js"; // ✅ Import OpenAI processing
 import { validate as uuidValidate } from "uuid";
-import { AuthenticatedRequest } from "../middleware/authMiddleware.js"; // ✅ Import your AuthenticatedRequest type
-
+import { AuthenticatedRequest } from "../middleware/authMiddleware.js";
+import PDFDocument from "pdfkit"; // ✅ For resume PDF generation
+import { parseResumeMarkdown } from "../utils/parseResumeMarkdown.js"; // ✅ Adjust path if needed
 
 declare module "express" {
   interface Request {
-    user?: { id: string }; // Augmenting Express's Request type to include 'user'
+    user?: { id: string };
   }
 }
 
@@ -22,26 +22,22 @@ export const uploadResume: RequestHandler = async (req, res) => {
       return;
     }
 
-    // ✅ Generate a unique cache key based on file hash
     const fileHash = Buffer.from(req.file.originalname).toString("base64");
     const cacheKey = `resumeText:${fileHash}`;
-
-    // ✅ Check Redis cache first
     const cachedResumeText = await getCachedResponse(cacheKey);
+
     if (cachedResumeText) {
       console.log("✅ Returning extracted resume text from cache");
       res.status(200).json({ resumeText: cachedResumeText });
       return;
     }
 
-    // ✅ Validate file path before parsing
     if (!req.file.path) {
       console.error("❌ Uploaded file does not have a valid path.");
       res.status(400).json({ error: "Invalid file path." });
       return;
     }
 
-    // Process PDF if not in cache
     const structuredResume = await parseResumeFromPDF(req.file.path);
 
     if (!structuredResume) {
@@ -50,9 +46,7 @@ export const uploadResume: RequestHandler = async (req, res) => {
       return;
     }
 
-    // ✅ Store extracted resume text in Redis for 24 hours
     await setCachedResponse(cacheKey, structuredResume, 86400);
-
     console.log("✅ Successfully processed and cached resume text.");
     res.status(200).json(structuredResume);
   } catch (error) {
@@ -61,9 +55,6 @@ export const uploadResume: RequestHandler = async (req, res) => {
   }
 };
 
-/**
- * Handles enhancing an existing resume using OpenAI.
- */
 export const enhanceResume: RequestHandler = async (req, res): Promise<void> => {
   try {
     const { userId, resumeText } = req.body;
@@ -76,7 +67,6 @@ export const enhanceResume: RequestHandler = async (req, res): Promise<void> => 
 
     console.log(`🟡 Enhancing resume for user: ${userId}`);
 
-    // ✅ Fix: Change "enhanceResume" to "resume" (TS2345 Fix)
     const enhancedResume = await generateFromOpenAI(userId, "resume", resumeText);
 
     if (!enhancedResume.success) {
@@ -84,7 +74,6 @@ export const enhanceResume: RequestHandler = async (req, res): Promise<void> => 
       return;
     }
 
-    // ✅ Fix: Ensure raw resume is removed from Redis
     const rawCacheKey = `resumeText:${userId}`;
     await deleteCachedResponse(rawCacheKey);
     console.log(`🗑️ Deleted raw resume from Redis cache: ${rawCacheKey}`);
@@ -96,10 +85,6 @@ export const enhanceResume: RequestHandler = async (req, res): Promise<void> => 
   }
 };
 
-/**
- * Handles processing a resume that was already uploaded.
- * Extracts content from a file and converts it into structured data.
- */
 export const processResume: RequestHandler = async (req, res) => {
   try {
     const { filePath } = req.body;
@@ -110,14 +95,12 @@ export const processResume: RequestHandler = async (req, res) => {
       return;
     }
 
-    // ✅ Ensure file exists before parsing
     if (!filePath || typeof filePath !== "string") {
       console.error("❌ Invalid file path provided.");
       res.status(400).json({ error: "Invalid file path." });
       return;
     }
 
-    // ✅ Parses resume from PDF
     const structuredResume = await parseResumeFromPDF(filePath);
 
     if (!structuredResume) {
@@ -133,7 +116,6 @@ export const processResume: RequestHandler = async (req, res) => {
     res.status(500).json({ error: "Error processing resume data." });
   }
 };
-
 
 export const listResumes = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
@@ -157,7 +139,6 @@ export const listResumes = async (req: AuthenticatedRequest, res: Response): Pro
       return;
     }
 
-// ✅ Format the response to match frontend expectations
     const formattedResumes = queryResult.rows.map(row => ({
       id: row.id,
       name: row.title || "Untitled Resume",
@@ -172,7 +153,6 @@ export const listResumes = async (req: AuthenticatedRequest, res: Response): Pro
     }));
 
     console.log(`✅ ${queryResult.rowCount} resumes found and returned for user: ${userId}`);
-
     res.status(200).json({ success: true, resumes: formattedResumes });
 
   } catch (error) {
@@ -180,7 +160,6 @@ export const listResumes = async (req: AuthenticatedRequest, res: Response): Pro
     res.status(500).json({ success: false, message: "Internal server error while retrieving resumes." });
   }
 };
-
 
 export const getResumeById: RequestHandler = async (req, res) => {
   try {
@@ -207,7 +186,6 @@ export const getResumeById: RequestHandler = async (req, res) => {
     }
 
     console.log(`✅ Resume found and returned for user: ${userId}`);
-
     res.status(200).json({ success: true, resume: queryResult.rows[0] });
   } catch (error) {
     console.error(`❌ Error fetching resume: ${error instanceof Error ? error.message : "Unknown error"}`);
@@ -227,7 +205,6 @@ export const deleteResume = async (req: Request, res: Response): Promise<void> =
   }
 
   try {
-    // ✅ Check if the resume exists AND belongs to the user
     const resumeCheck = await pool.query(
       `SELECT id FROM "Resumes" WHERE id = $1 AND user_id = $2`,
       [resumeId, userId]
@@ -238,7 +215,6 @@ export const deleteResume = async (req: Request, res: Response): Promise<void> =
       return;
     }
 
-    // ✅ Delete the resume
     await pool.query(`DELETE FROM "Resumes" WHERE id = $1`, [resumeId]);
 
     console.log(`✅ Resume ${resumeId} deleted successfully`);
@@ -251,3 +227,88 @@ export const deleteResume = async (req: Request, res: Response): Promise<void> =
     return;
   }
 };
+
+// ✅ New - Download Resume as PDF
+export const downloadResume = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const { id: resumeId } = req.params;
+    const userId = req.user?.id;
+
+    if (!resumeId || !uuidValidate(resumeId)) {
+      res.status(400).json({ error: "Invalid resume ID." });
+      return;
+    }
+
+    const result = await pool.query(
+      `SELECT * FROM "Resumes" WHERE id = $1 AND user_id = $2`,
+      [resumeId, userId]
+    );
+
+    if (result.rowCount === 0) {
+      res.status(404).json({ error: "Resume not found." });
+      return;
+    }
+
+    const resume = result.rows[0];
+
+    // ✅ Strip markdown and get structured data
+    const parsed = parseResumeMarkdown(resume.content, {
+      name: resume.title,
+      email: "",
+      phone: "",
+      summary: resume.extracted_text,
+      experience: resume.experience,
+      education: resume.education,
+      skills: resume.skills,
+      certifications: resume.certifications,
+    });
+
+    // ✅ Create PDF
+    const doc = new PDFDocument();
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="${resume.title || "resume"}.pdf"`);
+
+    doc.pipe(res);
+    doc.fontSize(20).text(parsed.name, { underline: true });
+    doc.moveDown();
+
+    doc.fontSize(12).text(`Email: ${parsed.email}`);
+    doc.text(`Phone: ${parsed.phone}`);
+    doc.moveDown();
+
+    doc.fontSize(14).text("Summary", { underline: true });
+    doc.fontSize(12).text(parsed.summary);
+    doc.moveDown();
+
+    doc.fontSize(14).text("Experience", { underline: true });
+    parsed.experience.forEach((job: any) => {
+      doc.fontSize(12).text(`${job.company} — ${job.role}`);
+      doc.text(`${job.start_date} to ${job.end_date}`);
+      job.responsibilities.forEach((r: string) => {
+        doc.text(`• ${r}`);
+      });
+      doc.moveDown();
+    });
+
+    doc.fontSize(14).text("Education", { underline: true });
+    parsed.education.forEach((edu: any) => {
+      doc.fontSize(12).text(`${edu.degree} at ${edu.institution} (${edu.graduation_year})`);
+    });
+    doc.moveDown();
+
+    doc.fontSize(14).text("Skills", { underline: true });
+    doc.fontSize(12).text(parsed.skills.join(", "));
+    doc.moveDown();
+
+    doc.fontSize(14).text("Certifications", { underline: true });
+    parsed.certifications.forEach((cert: any) => {
+      doc.fontSize(12).text(`${cert.name} (${cert.year})`);
+    });
+
+    doc.end();
+  } catch (error) {
+    console.error("❌ Error downloading resume:", error);
+    res.status(500).json({ error: "Failed to download resume." });
+  }
+};
+
