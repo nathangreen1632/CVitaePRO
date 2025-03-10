@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import ResumeCard from "../pages/ResumeCard.jsx"; // ✅ Ensure correct import
+import ResumeCard from "../pages/ResumeCard.jsx";
+import HeaderBar from "../components/HeaderBar.jsx"; // ✅ Added shared HeaderBar
 
 const Dashboard: React.FC = () => {
   const [resumes, setResumes] = useState<{
@@ -137,8 +138,6 @@ const Dashboard: React.FC = () => {
       },
     };
 
-    console.log("🚀 Debug: Sending resume data:", JSON.stringify(formattedResumeData));
-
     try {
       const token = localStorage.getItem("token");
 
@@ -155,9 +154,6 @@ const Dashboard: React.FC = () => {
         setError("Failed to generate resume.");
         return;
       }
-
-      const responseData = await response.json();
-      console.log("✅ Resume Generated Response:", responseData);
 
       const activityItem = `Generated Resume - ${resumeData.name || "Untitled Resume"}`;
       const updatedLog = [activityItem, ...activityLog];
@@ -178,7 +174,6 @@ const Dashboard: React.FC = () => {
     setError(null);
 
     if (resumes.length === 0) {
-      console.error("❌ No resumes available to enhance.");
       setError("No resumes found to enhance.");
       return;
     }
@@ -187,28 +182,19 @@ const Dashboard: React.FC = () => {
 
     const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(latestResume.id);
     if (!isUUID) {
-      console.error("❌ Invalid resume ID detected (not UUID):", latestResume.id);
       setError("Invalid resume ID. Cannot enhance resume.");
       return;
     }
 
-    console.log("✅ Resume ID is valid UUID:", latestResume.id);
-
     try {
-      const requestBody = {
-        resumeId: latestResume.id,
-        resumeText: latestResume.resumeSnippet,
-      };
-
-      console.log("📤 Sending API Request:", JSON.stringify(requestBody));
-
       const response = await fetch("/api/openai/enhance-resume", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(requestBody),
+        body: JSON.stringify({
+          resumeId: latestResume.id,
+          resumeText: latestResume.resumeSnippet,
+        }),
       });
-
-      console.log("📩 Received Response Status:", response.status);
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -217,7 +203,6 @@ const Dashboard: React.FC = () => {
         return;
       }
 
-      console.log("✅ Resume enhanced successfully!");
       await fetchResumes();
     } catch (error) {
       console.error("❌ Error enhancing resume:", error);
@@ -248,38 +233,31 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-      <header className="bg-white dark:bg-gray-800 shadow p-4 flex justify-between items-center">
-        <h1 className="text-xl font-bold">Resume Dashboard</h1>
-        <nav>
-          <Link to="/settings" className="px-4 py-2 hover:text-blue-500">Settings</Link>
-          <button className="px-4 py-2 bg-red-500 text-white rounded">Logout</button>
-        </nav>
-      </header>
+      <HeaderBar title="Dashboard" /> {/* ✅ Persistent HeaderBar */}
 
       <main className="flex-grow container mx-auto p-6">
         <h2 className="text-2xl font-semibold mb-4">Welcome to your Dashboard</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <button className="p-4 bg-blue-500 text-white text-center rounded">Upload Resume</button>
-
-          <button onClick={handleGenerateResume} className="p-4 bg-purple-500 text-white text-center rounded">
+          <button className="p-4 bg-blue-500 text-white text-center rounded hover:bg-blue-600">Upload Resume</button>
+          <button onClick={handleGenerateResume} className="p-4 bg-purple-500 text-white text-center rounded hover:bg-purple-600">
             Generate Resume
           </button>
-
-          <button onClick={handleEnhanceResume} className="p-4 bg-green-500 text-white text-center rounded">
+          <button onClick={handleEnhanceResume} className="p-4 bg-green-500 text-white text-center rounded hover:bg-green-600">
             Enhance Resume
           </button>
-
-          <Link to="/generate-cover-letter">
-            <button className="p-4 bg-indigo-500 text-white text-center rounded hover:bg-indigo-600">
-              Generate Cover Letter
-            </button>
+          <Link
+            to="/generate-cover-letter"
+            className="p-4 bg-indigo-500 text-white text-center rounded hover:bg-indigo-600"
+          >
+            Generate Cover Letter
           </Link>
-        </div>
 
+        </div>
 
         {error && <p className="text-red-500 text-center mb-4">{error}</p>}
 
+        {/* Recent Activity */}
         <div className="bg-white dark:bg-gray-800 p-4 rounded shadow mb-8">
           <h3 className="text-lg font-semibold mb-2">Recent Activity</h3>
           <ul>
@@ -344,7 +322,6 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-
         <div className="mt-8">
           <h3 className="text-xl font-semibold mb-4 text-center">Your Resumes</h3>
           {loading ? (
@@ -366,7 +343,6 @@ const Dashboard: React.FC = () => {
                   refreshResumes={fetchResumes}
                 />
               ))}
-
             </div>
           )}
         </div>
