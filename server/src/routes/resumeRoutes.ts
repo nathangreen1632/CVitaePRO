@@ -1,5 +1,5 @@
 import { Router } from "express";
-import {uploadResume, processResume, enhanceResume, getResumeById, listResumes} from "../controllers/resumeController.js";
+import {uploadResume, processResume, enhanceResume, getResumeById, listResumes, deleteResume} from "../controllers/resumeController.js";
 // import { validateToken } from "../middleware/validateJWT.js";
 import { generateResume } from "../controllers/openaiController.js";
 import {authenticateUser} from "../middleware/authMiddleware.js";
@@ -13,5 +13,6 @@ router.post("/process",  processResume); // ✅ Explicit Path for Resume Process
 router.post("/enhance", enhanceResume); // ✅ Explicit Path for Resume Enhancement
 router.get("/list", authenticateUser, listResumes) // ✅ Explicit Path for Resume Listing
 router.get("/:id",  getResumeById); // ✅ Explicit Path for Resume Retrieval
+router.delete("/:resumeId", authenticateUser, deleteResume); // ✅ Explicit Path for Resume Deletion
 
 export default router;
