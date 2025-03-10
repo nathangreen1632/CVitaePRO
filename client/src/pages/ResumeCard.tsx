@@ -54,12 +54,21 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
   const handleDownload = async () => {
     setLoading(true);
     setError(null);
+
+    const token = localStorage.getItem("token");
+
     try {
-      const response = await fetch(`http://localhost:3000/api/resumes/${id}/download`);
+      const response = await fetch(`/api/resume/${id}/download`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
       if (!response.ok) {
         setError("Failed to download resume.");
         return;
       }
+
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -72,6 +81,7 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
       console.error("Error downloading resume:", error);
       setError("Something went wrong while downloading.");
     }
+
     setLoading(false);
   };
 
@@ -88,10 +98,10 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
     }
 
     try {
-      const response = await fetch(`/api/resume/${id}`, {
+      const response = await fetch(`/api/resume/${id}/download`, {
         method: "DELETE",
         headers: {
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -100,7 +110,7 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
         return;
       }
 
-      refreshResumes(); // ✅ Refresh list after successful delete
+      refreshResumes();
     } catch (error) {
       console.error("Error deleting resume:", error);
       setError("Something went wrong while deleting.");
@@ -109,10 +119,34 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
     }
   };
 
+  const handleEnhance = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/openai/enhance-resume", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resumeId: id, resumeText: resumeSnippet }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("❌ Failed to enhance resume:", errorData);
+        setError("Failed to enhance resume.");
+        return;
+      }
+
+      refreshResumes();
+    } catch (error) {
+      console.error("❌ Error enhancing resume:", error);
+      setError("Something went wrong while enhancing.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="bg-gray-800 text-white p-6 rounded-lg shadow-lg w-full max-w-md">
-      {/* Profile Header */}
       <div className="flex items-center mb-4">
         <div className="w-14 h-14 bg-gray-600 rounded-full flex items-center justify-center text-xl font-bold">
           {name.charAt(0)}
@@ -123,20 +157,29 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
         </div>
       </div>
 
-      <p className="text-sm text-gray-300 mb-2"><strong>Summary:</strong> {summary}</p>
-      <p className="text-sm text-gray-300 mb-4"><strong>Content:</strong> {resumeSnippet}</p>
+      <p className="text-sm text-gray-300 mb-2">
+        <strong>Summary:</strong> {summary}
+      </p>
+      <p className="text-sm text-gray-300 mb-4">
+        <strong>Content:</strong> {resumeSnippet}
+      </p>
 
-      {/* Experience */}
       <div className="mb-4">
         <h4 className="font-semibold text-lg">Experience</h4>
         {experience.length > 0 ? (
           experience.map((exp, idx) => (
             <div key={idx} className="text-sm mt-2 border-b border-gray-700 pb-2">
-              <p className="font-medium">{exp.company} — {exp.role}</p>
-              <p className="text-gray-400">{exp.start_date} to {exp.end_date || "Present"}</p>
+              <p className="font-medium">
+                {exp.company} — {exp.role}
+              </p>
+              <p className="text-gray-400">
+                {exp.start_date} to {exp.end_date || "Present"}
+              </p>
               <ul className="list-disc list-inside ml-2 mt-1">
                 {exp.responsibilities.map((item, i) => (
-                  <li key={i} className="text-gray-300">{item}</li>
+                  <li key={i} className="text-gray-300">
+                    {item}
+                  </li>
                 ))}
               </ul>
             </div>
@@ -146,7 +189,6 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
         )}
       </div>
 
-      {/* Education */}
       <div className="mb-4">
         <h4 className="font-semibold text-lg">Education</h4>
         {education.length > 0 ? (
@@ -160,7 +202,6 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
         )}
       </div>
 
-      {/* Skills */}
       <div className="mb-4">
         <h4 className="font-semibold text-lg">Skills</h4>
         {skills.length > 0 ? (
@@ -170,7 +211,6 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
         )}
       </div>
 
-      {/* Certifications */}
       <div className="mb-4">
         <h4 className="font-semibold text-lg">Certifications</h4>
         {certifications.length > 0 ? (
@@ -184,16 +224,31 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
         )}
       </div>
 
-      {/* Error Message */}
       {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
 
-      {/* Action Buttons */}
-      <div className="mt-4 flex justify-between">
-        <button onClick={handleEdit} className="bg-blue-500 px-4 py-2 rounded-lg hover:bg-blue-600 transition">Edit</button>
-        <button onClick={handleDownload} className="bg-green-500 px-4 py-2 rounded-lg hover:bg-green-600 transition" disabled={loading}>
+      <div className="mt-4 flex flex-wrap gap-2 justify-between">
+        <button onClick={handleEdit} className="bg-blue-500 px-4 py-2 rounded-lg hover:bg-blue-600 transition">
+          Edit
+        </button>
+        <button
+          onClick={handleDownload}
+          className="bg-green-500 px-4 py-2 rounded-lg hover:bg-green-600 transition"
+          disabled={loading}
+        >
           {loading ? "Downloading..." : "Download"}
         </button>
-        <button onClick={handleDelete} className="bg-red-500 px-4 py-2 rounded-lg hover:bg-red-600 transition" disabled={loading}>
+        <button
+          onClick={handleEnhance}
+          className="bg-purple-500 px-4 py-2 rounded-lg hover:bg-purple-600 transition"
+          disabled={loading}
+        >
+          {loading ? "Enhancing..." : "Enhance"}
+        </button>
+        <button
+          onClick={handleDelete}
+          className="bg-red-500 px-4 py-2 rounded-lg hover:bg-red-600 transition"
+          disabled={loading}
+        >
           {loading ? "Deleting..." : "Delete"}
         </button>
       </div>
