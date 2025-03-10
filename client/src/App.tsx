@@ -10,7 +10,9 @@ import Features from "./pages/Features.jsx"; // ✅ Features page
 import Resume from "./pages/Resume.jsx"; // ✅ Resume page
 import { AuthProvider } from "./context/AuthContext.jsx"; // 🔥 ✅ Auth Context
 import Dashboard from "./pages/Dashboard.jsx";
-import GenerateCoverLetter from "./pages/GenerateCoverLetter"; // ✅ NEW: Cover Letter Page
+import GenerateCoverLetter from "./pages/GenerateCoverLetter.jsx"; // ✅ NEW: Cover Letter Page
+import Settings from "./pages/Settings.jsx"; // ✅ Add this line
+
 
 const App = (): React.JSX.Element => {
   const isAuthenticated = !!localStorage.getItem("token"); // ✅ Auth check
@@ -30,11 +32,14 @@ const App = (): React.JSX.Element => {
           <Route path="/register" element={<Register />} />
           <Route path="/features" element={<Features />} />
 
+
           {/* ✅ Auth-Protected Routes */}
           <Route path="/dashboard" element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" replace />} />
           <Route path="/generate-cover-letter" element={isAuthenticated ? <GenerateCoverLetter /> : <Navigate to="/login" replace />} />
           <Route path="/resume" element={isAuthenticated ? <Resume /> : <Navigate to="/login" replace />} />
-          <Route path="/resume-editor" element={isAuthenticated ? <ResumeEditor /> : <Navigate to="/login" replace />} />
+          <Route path="/resume-editor" element={isAuthenticated ? <ResumeEditor /> : <Navigate to="/login" replace />} /><Route path="/settings" element={isAuthenticated ? <Settings /> : <Navigate to="/login" replace />} />
+
+
 
           {/* ✅ 404 Fallback Route */}
           <Route path="*" element={<NotFound />} />
