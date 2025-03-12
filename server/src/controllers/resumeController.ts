@@ -1,12 +1,13 @@
 import { RequestHandler, Request, Response } from "express";
 import pool from "../db/pgClient.js"; // ✅ Import PostgreSQL client
 import { parseResumeFromPDF } from "../services/pdfResumeParser.js";
-import { getCachedResponse, setCachedResponse, deleteCachedResponse } from "../services/cacheService.js";
+import { getCachedResponse, setCachedResponse } from "../services/cacheService.js";
 import { generateFromOpenAI } from "../services/openaiService.js"; // ✅ Import OpenAI processing
 import { validate as uuidValidate } from "uuid";
 import { AuthenticatedRequest } from "../middleware/authMiddleware.js";
 import PDFDocument from "pdfkit"; // ✅ For resume PDF generation
-import { parseResumeMarkdown } from "../utils/parseResumeMarkdown.js"; // ✅ Adjust path if needed
+import { parseResumeMarkdown } from "../utils/parseResumeMarkdown.js";
+import {saveToPostgreSQL} from "../services/postgreSQLService.js"; // ✅ Adjust path if needed
 
 declare module "express" {
   interface Request {
@@ -55,35 +56,67 @@ export const uploadResume: RequestHandler = async (req, res) => {
   }
 };
 
-export const enhanceResume: RequestHandler = async (req, res): Promise<void> => {
+export const enhanceResume: RequestHandler = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
-    const { userId, resumeText } = req.body;
-    console.log("🚀 Received request body:", req.body);
+    const userId = req.user?.id;
 
-    if (!userId || !resumeText) {
-      res.status(400).json({ success: false, message: "Missing userId or resumeText" });
+    if (!userId) {
+      res.status(401).json({ success: false, message: "Unauthorized" });
       return;
     }
 
-    console.log(`🟡 Enhancing resume for user: ${userId}`);
+    const { resumeText } = req.body;
+    console.log("🚀 Received enhanceResume request:", { userId, resumeText });
 
-    const enhancedResume = await generateFromOpenAI(userId, "resume", resumeText);
-
-    if (!enhancedResume.success) {
-      res.status(500).json({ success: false, message: enhancedResume.message });
+    if (!resumeText) {
+      res.status(400).json({ success: false, message: "Missing resume text" });
       return;
     }
 
-    const rawCacheKey = `resumeText:${userId}`;
-    await deleteCachedResponse(rawCacheKey);
-    console.log(`🗑️ Deleted raw resume from Redis cache: ${rawCacheKey}`);
+    // ✅ Generate new resume via OpenAI
+    const enhancedResponse = await generateFromOpenAI(userId, "resume", resumeText);
 
-    res.status(200).json({ success: true, message: "Resume enhanced successfully", enhancedResume });
+    if (!enhancedResponse.success || !enhancedResponse.message) {
+      res.status(500).json({ success: false, message: enhancedResponse.message || "OpenAI enhancement failed" });
+      return;
+    }
+
+    // ✅ Parse AI response into structured JSON
+    const structuredResume = parseResumeMarkdown(enhancedResponse.message, {});
+
+    console.log("🧠 Parsed Enhanced Resume:", structuredResume);
+
+    // ✅ Save structured resume to PostgreSQL
+    const crypto = await import("crypto");
+    const hash = crypto.createHash("sha256").update(enhancedResponse.message).digest("hex");
+
+    const saveResult = await saveToPostgreSQL(
+      hash,
+      enhancedResponse.message,
+      userId,
+      structuredResume
+    );
+
+    if (!saveResult.success) {
+      res.status(500).json({ success: false, message: saveResult.message });
+      return;
+    }
+
+    // ✅ Cache resume in Redis
+    const cacheKey = `resume:${hash}`;
+    await setCachedResponse(cacheKey, structuredResume, 86400);
+
+    res.status(200).json({
+      success: true,
+      message: "Resume enhanced and saved successfully",
+      resume: structuredResume,
+    });
   } catch (error) {
-    console.error("❌ Error enhancing resume:", error);
-    res.status(500).json({ success: false, message: "Failed to enhance resume." });
+    console.error("❌ Error enhancing and saving resume:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
+
 
 export const processResume: RequestHandler = async (req, res) => {
   try {
