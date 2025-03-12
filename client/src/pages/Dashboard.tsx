@@ -1,13 +1,11 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import HeaderBar from "../components/HeaderBar.jsx";
-import ResumeDetailsForm from "../components/ResumeDetailsForm.jsx";
-import ResumeList from "../components/ResumeList";
-import ResumeActionsPanel from "../components/ResumeActionsPanel";
-import RecentActivityLog from "../components/RecentActivityLog";
-import { useDashboardState } from "../hooks/useDashboardState";
+import ResumeList from "../components/ResumeList.jsx";
+import ResumeActionsPanel from "../components/ResumeActionsPanel.jsx";
+import RecentActivityLog from "../components/RecentActivityLog.jsx";
+import { useDashboardState } from "../hooks/useDashboardState.js";
 import {
-  handleGenerateResume,
   handleEnhanceResume,
   handleScoreResume,
 } from "../helpers/resumeHandlers";
@@ -15,8 +13,8 @@ import {
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
 
-  const { resumes, setResumes, activityLog, setActivityLog, loading, setLoading, error, setError, atsScores, setAtsScores, jobDescriptions, setJobDescriptions, resumeData,
-    setResumeData, handleChange } = useDashboardState();
+  const { resumes, setResumes, activityLog, setActivityLog, loading, setLoading, error, setError, atsScores, setAtsScores, jobDescriptions, setJobDescriptions,
+    resumeData } = useDashboardState();
 
   const isTokenExpired = (token: string): boolean => {
     try {
@@ -128,15 +126,6 @@ const Dashboard: React.FC = () => {
         <RecentActivityLog activityLog={activityLog} />
 
         <ResumeActionsPanel
-          onGenerate={() =>
-            handleGenerateResume({
-              resumeData,
-              setLoading,
-              setError,
-              setActivityLog,
-              fetchResumes,
-            })
-          }
           onEnhance={() =>
             handleEnhanceResume({
               resumeData,
@@ -150,20 +139,6 @@ const Dashboard: React.FC = () => {
 
         {error && <p className="text-red-500 text-center mb-4">{error}</p>}
 
-        <ResumeDetailsForm
-          resumeData={resumeData}
-          setResumeData={setResumeData}
-          handleChange={handleChange}
-          handleGenerateResume={() =>
-            handleGenerateResume({
-              resumeData,
-              setLoading,
-              setError,
-              setActivityLog,
-              fetchResumes,
-            })
-          }
-        />
 
         {loading ? (
           <p className="text-center text-gray-400">Loading resumes...</p>
