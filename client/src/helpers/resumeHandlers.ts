@@ -71,7 +71,7 @@ export const handleGenerateResume = async ({
     }
 
     const activityItem = `Generated Resume - ${resumeData.name || "Untitled Resume"}`;
-    const updatedLog = [activityItem, ...(JSON.parse(localStorage.getItem("activityLog") || "[]"))];
+    const updatedLog = [activityItem, ...(JSON.parse(localStorage.getItem("activityLog") ?? "[]"))];
     localStorage.setItem("activityLog", JSON.stringify(updatedLog));
     setActivityLog(updatedLog);
 
@@ -124,7 +124,7 @@ export const handleEnhanceResume = async ({
     const enhancedResume = data.resume;
 
     const activityItem = `Enhanced Resume - ${enhancedResume.name || "Untitled Resume"}`;
-    const updatedLog = [activityItem, ...(JSON.parse(localStorage.getItem("activityLog") || "[]"))];
+    const updatedLog = [activityItem, ...(JSON.parse(localStorage.getItem("activityLog") ?? "[]"))];
     localStorage.setItem("activityLog", JSON.stringify(updatedLog));
     setActivityLog(updatedLog);
 
@@ -182,8 +182,8 @@ export const handleScoreResume = async ({
     .map(
       (exp: { role?: string; company?: string; start_date?: string; end_date?: string; responsibilities?: string[] }) => `
           <li>
-            <strong>${exp.role || ""}</strong> at ${exp.company || ""}<br />
-            ${exp.start_date || ""} – ${exp.end_date || "Present"}<br />
+            <strong>${exp.role ?? ""}</strong> at ${exp.company ?? ""}<br />
+            ${exp.start_date ?? ""} – ${exp.end_date ?? "Present"}<br />
             <ul>
               ${(exp.responsibilities || []).map((r) => `<li>${r}</li>`).join("")}
             </ul>
@@ -198,7 +198,7 @@ export const handleScoreResume = async ({
     .map(
       (edu: { degree?: string; institution?: string; graduation_year?: string }) => `
         <li>
-          ${edu.degree || ""} from ${edu.institution || ""}, ${edu.graduation_year || ""}
+          ${edu.degree ?? ""} from ${edu.institution ?? ""}, ${edu.graduation_year ?? ""}
         </li>`
     )
     .join("")}
@@ -210,7 +210,7 @@ export const handleScoreResume = async ({
       <h3>Certifications</h3>
       <ul>
         ${(parsedResume.certifications || [])
-    .map((cert: { name?: string; year?: string }) => `<li>${cert.name || ""} (${cert.year || ""})</li>`)
+    .map((cert: { name?: string; year?: string }) => `<li>${cert.name ?? ""} (${cert.year ?? ""})</li>`)
     .join("")}
       </ul>
     </section>
