@@ -112,6 +112,14 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
         return;
       }
 
+      // 🧼 Remove deleted resume from localStorage manually
+      const stored = localStorage.getItem("resumes");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        const updated = parsed.filter((resume: { id: string }) => resume.id !== id);
+        localStorage.setItem("resumes", JSON.stringify(updated));
+      }
+
       refreshResumes();
     } catch (error) {
       console.error("Error deleting resume:", error);
