@@ -77,10 +77,10 @@ export const saveToPostgreSQL = async (
       userId,
       resumeContent,
       title,
-      JSON.stringify(resumeData.experience),
-      JSON.stringify(resumeData.education),
-      JSON.stringify(resumeData.skills),
-      JSON.stringify(resumeData.certifications),
+      JSON.stringify(resumeData.experience || []),
+      JSON.stringify(resumeData.education || []),
+      JSON.stringify(resumeData.skills || []),
+      JSON.stringify(resumeData.certifications || []),
     ]);
 
     if (insertResult.rowCount === 0) {
