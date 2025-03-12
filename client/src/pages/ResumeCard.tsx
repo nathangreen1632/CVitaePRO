@@ -44,7 +44,9 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
                                                  certifications = [],
                                                  refreshResumes,
                                                }) => {
-  const [loading, setLoading] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isEnhancing, setIsEnhancing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleEdit = () => {
@@ -52,7 +54,7 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
   };
 
   const handleDownload = async () => {
-    setLoading(true);
+    setIsDownloading(true);
     setError(null);
 
     const token = localStorage.getItem("token");
@@ -82,23 +84,23 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
       setError("Something went wrong while downloading.");
     }
 
-    setLoading(false);
+    setIsDownloading(false);
   };
 
   const handleDelete = async () => {
-    setLoading(true);
+    setIsDeleting(true);
     setError(null);
 
     const token = localStorage.getItem("token");
 
     if (!token) {
       setError("You're not logged in.");
-      setLoading(false);
+      setIsDeleting(false);
       return;
     }
 
     try {
-      const response = await fetch(`/api/resume/${id}/download`, {
+      const response = await fetch(`/api/resume/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -115,13 +117,14 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
       console.error("Error deleting resume:", error);
       setError("Something went wrong while deleting.");
     } finally {
-      setLoading(false);
+      setIsDeleting(false);
     }
   };
 
   const handleEnhance = async () => {
-    setLoading(true);
+    setIsEnhancing(true);
     setError(null);
+
     try {
       const response = await fetch("/api/openai/enhance-resume", {
         method: "POST",
@@ -141,7 +144,7 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
       console.error("❌ Error enhancing resume:", error);
       setError("Something went wrong while enhancing.");
     } finally {
-      setLoading(false);
+      setIsEnhancing(false);
     }
   };
 
@@ -232,24 +235,24 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
         </button>
         <button
           onClick={handleDownload}
+          disabled={isDownloading}
           className="bg-green-500 px-4 py-2 rounded-lg hover:bg-green-600 transition"
-          disabled={loading}
         >
-          {loading ? "Downloading..." : "Download"}
+          {isDownloading ? "Downloading..." : "Download"}
         </button>
         <button
           onClick={handleEnhance}
+          disabled={isEnhancing}
           className="bg-purple-500 px-4 py-2 rounded-lg hover:bg-purple-600 transition"
-          disabled={loading}
         >
-          {loading ? "Enhancing..." : "Enhance"}
+          {isEnhancing ? "Enhancing..." : "Enhance"}
         </button>
         <button
           onClick={handleDelete}
+          disabled={isDeleting}
           className="bg-red-500 px-4 py-2 rounded-lg hover:bg-red-600 transition"
-          disabled={loading}
         >
-          {loading ? "Deleting..." : "Delete"}
+          {isDeleting ? "Deleting..." : "Delete"}
         </button>
       </div>
     </div>
