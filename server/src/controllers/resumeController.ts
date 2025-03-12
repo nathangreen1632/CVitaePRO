@@ -1,13 +1,15 @@
 import { RequestHandler, Request, Response } from "express";
 import pool from "../db/pgClient.js"; // ✅ Import PostgreSQL client
 import { parseResumeFromPDF } from "../services/pdfResumeParser.js";
-import { getCachedResponse, setCachedResponse } from "../services/cacheService.js";
+import { getCachedResponse, setCachedResponse, deleteCachedResponse } from "../services/cacheService.js";
 import { generateFromOpenAI } from "../services/openaiService.js"; // ✅ Import OpenAI processing
 import { validate as uuidValidate } from "uuid";
 import { AuthenticatedRequest } from "../middleware/authMiddleware.js";
 import PDFDocument from "pdfkit"; // ✅ For resume PDF generation
 import { parseResumeMarkdown } from "../utils/parseResumeMarkdown.js";
 import {saveToPostgreSQL} from "../services/postgreSQLService.js"; // ✅ Adjust path if needed
+
+
 
 declare module "express" {
   interface Request {
@@ -166,12 +168,6 @@ export const listResumes = async (req: AuthenticatedRequest, res: Response): Pro
       [userId]
     );
 
-    if (queryResult.rowCount === 0) {
-      console.log(`❌ No resumes found for user: ${userId}`);
-      res.status(404).json({ success: false, message: "No resumes found for this user." });
-      return;
-    }
-
     const formattedResumes = queryResult.rows.map(row => ({
       id: row.id,
       name: row.title || "Untitled Resume",
@@ -186,13 +182,14 @@ export const listResumes = async (req: AuthenticatedRequest, res: Response): Pro
     }));
 
     console.log(`✅ ${queryResult.rowCount} resumes found and returned for user: ${userId}`);
-    res.status(200).json({ success: true, resumes: formattedResumes });
+    res.status(200).json({ success: true, resumes: formattedResumes }); // ✅ Always 200, even if empty
 
   } catch (error) {
     console.error(`❌ Error fetching resumes:`, error);
     res.status(500).json({ success: false, message: "Internal server error while retrieving resumes." });
   }
 };
+
 
 export const getResumeById: RequestHandler = async (req, res) => {
   try {
@@ -248,16 +245,19 @@ export const deleteResume = async (req: Request, res: Response): Promise<void> =
       return;
     }
 
+    // ✅ Delete from PostgreSQL
     await pool.query(`DELETE FROM "Resumes" WHERE id = $1`, [resumeId]);
+
+    // ✅ Invalidate Redis cache using centralized service
+    const redisKey = `resume:${resumeId}`;
+    await deleteCachedResponse(redisKey);
+    console.log(`🧹 Redis cache cleared for key: ${redisKey}`);
 
     console.log(`✅ Resume ${resumeId} deleted successfully`);
     res.json({ success: true, message: "Resume deleted successfully" });
-    return;
-
   } catch (error) {
     console.error("❌ Error deleting resume:", error);
     res.status(500).json({ success: false, message: "Server error while deleting resume" });
-    return;
   }
 };
 
