@@ -1,13 +1,22 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import ResumeCard from "../pages/ResumeCard.jsx";
 import HeaderBar from "../components/HeaderBar.jsx"; // ✅ Added shared HeaderBar
+import ATSScoreBreakdown from "../components/ATSScoreBreakdown.jsx"; // ✅ NEW
+import { parseResumeMarkdown } from "../helpers/parseResumeMarkdown"; // ✅ NEW
+import { buildOpenAIPayload } from "../helpers/buildOpenAIPayload"; // ✅ Make sure this is at the top
+import ResumeDetailsForm from "../components/ResumeDetailsForm.jsx"; // ✅ NEW
+
+
 
 const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
   const [resumes, setResumes] = useState<{
     summary: string;
     id: string;
     name: string;
+    email: string;
+    phone: string;
     jobTitle: string;
     resumeSnippet: string;
     experience: {
@@ -29,19 +38,54 @@ const Dashboard: React.FC = () => {
     }[];
   }[]>([]);
 
+
+
+
   const [activityLog, setActivityLog] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [atsScores, setAtsScores] = useState<Record<string, {
+    atsScore: number;
+    keywordMatch: number;
+    softSkillsMatch: number;
+    industryTermsMatch: number;
+    formattingErrors: string[];
+  }>>({}); // ✅ NEW
+  const [jobDescriptions, setJobDescriptions] = useState<Record<string, string>>({}); // ✅ NEW
+
 
   const [resumeData, setResumeData] = useState({
     name: "",
     email: "",
     phone: "",
+    linkedin: "",
+    portfolio: "",
     summary: "",
-    experience: "",
-    education: "",
-    skills: "",
+    experience: [
+      {
+        company: "",
+        role: "",
+        start_date: "",
+        end_date: "",
+        responsibilities: [""],
+      },
+    ],
+    education: [
+      {
+        institution: "",
+        degree: "",
+        graduation_year: "",
+      },
+    ],
+    skills: [],
+    certifications: [
+      {
+        name: "",
+        year: "",
+      },
+    ],
   });
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setResumeData({ ...resumeData, [e.target.name]: e.target.value });
@@ -57,6 +101,15 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    if (!token || isTokenExpired(token)) {
+      console.warn("🔒 No valid token found. Redirecting to login...");
+      navigate("/login");
+    }
+  }, []);
+
   const fetchResumes = async (): Promise<void> => {
     setLoading(true);
     setError(null);
@@ -70,7 +123,7 @@ const Dashboard: React.FC = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:3000/api/resume/list", {
+      const response = await fetch("/api/resume/list", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -119,24 +172,38 @@ const Dashboard: React.FC = () => {
         name: resumeData.name,
         email: resumeData.email,
         phone: resumeData.phone,
+        linkedin: resumeData.linkedin,
+        portfolio: resumeData.portfolio,
         summary: resumeData.summary,
-        experience: resumeData.experience.split("\n").map((exp) => ({
-          company: exp.trim(),
-          role: "Software Engineer",
-          start_date: "2023-01-01",
-          end_date: "",
-          responsibilities: ["Worked on multiple projects"],
-        })),
-        education: [
+        experience: [
           {
-            institution: resumeData.education,
-            degree: "Bachelor's Degree",
-            graduation_year: "2025",
+            company: resumeData.experience[0].company,
+            role: resumeData.experience[0].role,
+            start_date: resumeData.experience[0].start_date,
+            end_date: resumeData.experience[0].end_date,
+            responsibilities: resumeData.experience[0].responsibilities,
           },
         ],
-        skills: resumeData.skills.split(",").map((skill) => skill.trim()),
+
+        education: [
+          {
+            institution: resumeData.education[0].institution,
+            degree: resumeData.education[0].degree,
+            graduation_year: resumeData.education[0].graduation_year,
+
+          },
+        ],
+        skills: resumeData.skills.filter((s: string) => s.trim().length > 0),
+        certifications: [
+          {
+            name: resumeData.certifications || "Placeholder for future certifications.",
+            year: "",
+          },
+        ],
       },
     };
+
+
 
     try {
       const token = localStorage.getItem("token");
@@ -169,40 +236,41 @@ const Dashboard: React.FC = () => {
     }
   };
 
+
+
   const handleEnhanceResume = async () => {
     setLoading(true);
     setError(null);
 
-    const resumeText = `
-    Name: ${resumeData.name}
-    Email: ${resumeData.email}
-    Phone: ${resumeData.phone}
-    Summary: ${resumeData.summary}
-    Experience: ${resumeData.experience}
-    Education: ${resumeData.education}
-    Skills: ${resumeData.skills}
-  `;
-
     try {
+      const token = localStorage.getItem("token");
+
+      const resumeText = buildOpenAIPayload(resumeData); // ✅ Use formatter
+
       const response = await fetch("/api/openai/enhance-resume", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({ resumeText }),
       });
 
       const data = await response.json();
 
-      if (!response.ok) {
+      if (!response.ok || !data.resume) {
         setError(data.error || "Failed to enhance resume.");
         return;
       }
 
-      const activityItem = `Enhanced Resume - ${resumeData.name || "Untitled Resume"}`;
+      const enhancedResume = data.resume;
+
+      const activityItem = `Enhanced Resume - ${enhancedResume.name || "Untitled Resume"}`;
       const updatedLog = [activityItem, ...activityLog];
       localStorage.setItem("activityLog", JSON.stringify(updatedLog));
       setActivityLog(updatedLog);
 
-      await fetchResumes();
+      await fetchResumes(); // ✅ Refresh after enhancement
     } catch (error) {
       console.error("❌ Error enhancing resume:", error);
       setError("Something went wrong while enhancing the resume.");
@@ -210,6 +278,72 @@ const Dashboard: React.FC = () => {
       setLoading(false);
     }
   };
+
+
+
+  const handleScoreResume = async (resumeId: string, resumeSnippet: string) => {
+    const jobDescription = jobDescriptions[resumeId]?.trim();
+
+    // Step 1: Parse the resumeSnippet into structured fields
+    const parsedResume = parseResumeMarkdown(resumeSnippet, {});
+
+    // Step 2: Convert to HTML for scoring
+    const resumeHtml = convertResumeToHTML({
+      id: resumeId,
+      summary: parsedResume.summary || "",
+      name: parsedResume.name || "",
+      email: parsedResume.email || "",
+      phone: parsedResume.phone || "",
+      jobTitle: parsedResume.jobTitle || "",
+      resumeSnippet: parsedResume.resumeSnippet || "",
+      experience: parsedResume.experience || [],
+      education: parsedResume.education || [],
+      skills: parsedResume.skills || [],
+      certifications: parsedResume.certifications || [],
+    });
+
+    console.log("DEBUG scoring:", { resumeId, resumeHtml, jobDescription });
+
+    if (!resumeHtml || resumeHtml.length < 50) {
+      alert("❌ Resume content is missing or too short to score.");
+      return;
+    }
+
+    if (!jobDescription) {
+      alert("Please enter a job description to compare with the resume.");
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/ats/score-resume", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ htmlResume: resumeHtml, jobDescription }),
+
+      });
+
+      if (!response.ok) {
+        console.error("❌ Failed to fetch ATS score");
+        return;
+      }
+
+      const data = await response.json();
+      setAtsScores((prev) => ({
+        ...prev,
+        [resumeId]: {
+          atsScore: data.atsScore,
+          keywordMatch: data.keywordMatch,
+          softSkillsMatch: data.softSkillsMatch,
+          industryTermsMatch: data.industryTermsMatch,
+          formattingErrors: data.formattingErrors || [],
+        },
+      }));
+    } catch (error) {
+      console.error("❌ Error scoring resume:", error);
+    }
+  };
+
+
 
 
   useEffect(() => {
@@ -230,6 +364,57 @@ const Dashboard: React.FC = () => {
 
     loadResumes().catch((error) => console.error("❌ Error loading resumes:", error));
   }, []);
+
+  const convertResumeToHTML = (resume: typeof resumes[number]): string => {
+    return `
+    <section>
+      <h1>${resume.name || "Untitled Resume"}</h1>
+      <p><strong>Email:</strong> ${resume.email || "No email provided"}</p>
+      <p><strong>Phone:</strong> ${resume.phone || "No phone provided"}</p>
+
+      <h2>${resume.jobTitle || ""}</h2>
+      <p>${resume.summary || ""}</p>
+
+      <h3>Experience</h3>
+      <ul>
+        ${(resume.experience || []).map(
+      (exp) => `
+            <li>
+              <strong>${exp.role || ""}</strong> at ${exp.company || ""}<br />
+              ${exp.start_date || ""} – ${exp.end_date || "Present"}<br />
+              <ul>
+                ${(exp.responsibilities || []).map((r) => `<li>${r}</li>`).join("")}
+              </ul>
+            </li>`
+    ).join("")}
+      </ul>
+
+      <h3>Education</h3>
+      <ul>
+        ${(resume.education || []).map(
+      (edu) => `
+            <li>
+              ${edu.degree || ""} from ${edu.institution || ""}, ${edu.graduation_year || ""}
+            </li>`
+    ).join("")}
+      </ul>
+
+      <h3>Skills</h3>
+      <p>${(resume.skills || []).join(", ")}</p>
+
+      <h3>Certifications</h3>
+      <ul>
+        ${(resume.certifications || []).map(
+      (cert) => `<li>${cert.name || ""} (${cert.year || ""})</li>`
+    ).join("")}
+      </ul>
+    </section>
+  `.trim();
+  };
+
+
+
+
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
@@ -252,7 +437,6 @@ const Dashboard: React.FC = () => {
           >
             Generate Cover Letter
           </Link>
-
         </div>
 
         {error && <p className="text-red-500 text-center mb-4">{error}</p>}
@@ -284,49 +468,14 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* ✅ Resume Details Form */}
-        <div className="bg-gray-800 p-6 rounded-lg w-full max-w-3xl shadow-lg mx-auto mb-12">
-          <h2 className="text-2xl font-semibold mb-4 text-center text-white">Resume Details</h2>
-          {/* ALL FIELDS EXACTLY AS YOU WROTE THEM */}
-          <label className="block mb-3">
-            <span className="text-gray-300">Full Name</span>
-            <input type="text" name="name" value={resumeData.name} onChange={handleChange} className="w-full p-3 bg-gray-700 rounded-lg text-white" placeholder="John Doe" />
-          </label>
-          <label className="block mb-3">
-            <span className="text-gray-300">Email</span>
-            <input type="text" name="email" value={resumeData.email} onChange={handleChange} className="w-full p-3 bg-gray-700 rounded-lg text-white" placeholder="example@example.com" />
-          </label>
-          <label className="block mb-3">
-            <span className="text-gray-300">Phone Number</span>
-            <input type="text" name="phone" value={resumeData.phone} onChange={handleChange} className="w-full p-3 bg-gray-700 rounded-lg text-white" placeholder="555-555-5555" />
-          </label>
-          <label className="block mb-3">
-            <span className="text-gray-300">Professional Summary</span>
-            <textarea name="summary" value={resumeData.summary} onChange={handleChange} className="w-full p-3 bg-gray-700 rounded-lg text-white" placeholder="Write a brief summary..."></textarea>
-          </label>
-          <label className="block mb-3">
-            <span className="text-gray-300">Work Experience</span>
-            <textarea name="experience" value={resumeData.experience} onChange={handleChange} className="w-full p-3 bg-gray-700 rounded-lg text-white" placeholder="List your work experience..."></textarea>
-          </label>
-          <label className="block mb-3">
-            <span className="text-gray-300">Education</span>
-            <textarea name="education" value={resumeData.education} onChange={handleChange} className="w-full p-3 bg-gray-700 rounded-lg text-white" placeholder="List your educational background..."></textarea>
-          </label>
-          <label className="block mb-3">
-            <span className="text-gray-300">Skills</span>
-            <input type="text" name="skills" value={resumeData.skills} onChange={handleChange} className="w-full p-3 bg-gray-700 rounded-lg text-white" placeholder="E.g. JavaScript, React, Node.js" />
-          </label>
+        <ResumeDetailsForm
+          resumeData={resumeData}
+          setResumeData={setResumeData}
+          handleChange={handleChange}
+          handleGenerateResume={handleGenerateResume}
+        />
 
-          <label className="block mb-3">
-            <span className="text-gray-300">Certifications</span>
-            <input type="text" className="w-full p-3 bg-gray-700 rounded-lg text-white mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="E.g. AWS Certified Developer" />
-          </label>
 
-          <div className="flex justify-center mt-6 ">
-            <button onClick={handleGenerateResume} className="bg-green-500 text-white px-6 py-3 rounded-lg">
-              Generate Resume
-            </button>
-          </div>
-        </div>
 
         <div className="mt-8">
           <h3 className="text-xl font-semibold mb-4 text-center">Your Resumes</h3>
@@ -335,19 +484,61 @@ const Dashboard: React.FC = () => {
           ) : (
             <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {resumes.map((resume) => (
-                <ResumeCard
-                  key={resume.id}
-                  id={resume.id}
-                  name={resume.name || "Untitled Resume"}
-                  jobTitle={resume.jobTitle || "N/A"}
-                  resumeSnippet={resume.resumeSnippet || ""}
-                  summary={resume.summary || ""}
-                  experience={resume.experience || []}
-                  education={resume.education || []}
-                  skills={resume.skills || []}
-                  certifications={resume.certifications || []}
-                  refreshResumes={fetchResumes}
-                />
+                <div key={resume.id}>
+                  <ResumeCard
+                    id={resume.id}
+                    name={resume.name || "Untitled Resume"}
+                    jobTitle={resume.jobTitle || "N/A"}
+                    resumeSnippet={resume.resumeSnippet || ""}
+                    summary={resume.summary || ""}
+                    experience={resume.experience || []}
+                    education={resume.education || []}
+                    skills={resume.skills || []}
+                    certifications={resume.certifications || []}
+                    refreshResumes={fetchResumes}
+                  />
+
+                  <div className="mt-4">
+                    <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Job Description
+                    </label>
+                    <textarea
+                      className="w-full p-3 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      rows={4}
+                      placeholder="Paste the job description here..."
+                      value={jobDescriptions[resume.id] || ""}
+                      onChange={(e) =>
+                        setJobDescriptions((prev) => ({
+                          ...prev,
+                          [resume.id]: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+
+                  <div className="flex justify-center mt-4">
+                    <button
+                      onClick={() => handleScoreResume(resume.id, resume.resumeSnippet)}
+
+
+
+
+                      className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded"
+                    >
+                      Score Resume
+                    </button>
+                  </div>
+
+                  {atsScores[resume.id] && (
+                    <ATSScoreBreakdown
+                      atsScore={atsScores[resume.id].atsScore}
+                      keywordMatch={atsScores[resume.id].keywordMatch}
+                      softSkillsMatch={atsScores[resume.id].softSkillsMatch}
+                      industryTermsMatch={atsScores[resume.id].industryTermsMatch}
+                      formattingErrors={atsScores[resume.id].formattingErrors}
+                    />
+                  )}
+                </div>
               ))}
             </div>
           )}
@@ -358,3 +549,5 @@ const Dashboard: React.FC = () => {
 };
 
 export default Dashboard;
+
+
