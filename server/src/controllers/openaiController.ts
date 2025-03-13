@@ -38,6 +38,10 @@ export const generateResume = async (req: Request, res: Response): Promise<void>
 
     const aiResponse = await generateFromOpenAI(req.user.id, "resume", resumeData);
 
+    // // DEV MODE ONLY: override user ID manually
+    // const userId = req.user?.id ?? "dev-user-override-id";
+    // const aiResponse = await generateFromOpenAI(userId, "resume", resumeData);
+
 
     if (!aiResponse.success) {
       res.status(500).json({ error: aiResponse.message });

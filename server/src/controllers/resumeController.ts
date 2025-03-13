@@ -6,7 +6,10 @@ import { generateFromOpenAI } from "../services/openaiService.js"; // ✅ Import
 import { validate as uuidValidate } from "uuid";
 import { AuthenticatedRequest } from "../middleware/authMiddleware.js";
 import PDFDocument from "pdfkit"; // ✅ For resume PDF generation
-import { parseResumeMarkdown } from "../utils/parseResumeMarkdown.js"; // ✅ Adjust path if needed
+import { parseResumeMarkdown } from "../utils/parseResumeMarkdown.js";
+import {saveToPostgreSQL} from "../services/postgreSQLService.js"; // ✅ Adjust path if needed
+
+
 
 declare module "express" {
   interface Request {
@@ -55,35 +58,67 @@ export const uploadResume: RequestHandler = async (req, res) => {
   }
 };
 
-export const enhanceResume: RequestHandler = async (req, res): Promise<void> => {
+export const enhanceResume: RequestHandler = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
-    const { userId, resumeText } = req.body;
-    console.log("🚀 Received request body:", req.body);
+    const userId = req.user?.id;
 
-    if (!userId || !resumeText) {
-      res.status(400).json({ success: false, message: "Missing userId or resumeText" });
+    if (!userId) {
+      res.status(401).json({ success: false, message: "Unauthorized" });
       return;
     }
 
-    console.log(`🟡 Enhancing resume for user: ${userId}`);
+    const { resumeText } = req.body;
+    console.log("🚀 Received enhanceResume request:", { userId, resumeText });
 
-    const enhancedResume = await generateFromOpenAI(userId, "resume", resumeText);
-
-    if (!enhancedResume.success) {
-      res.status(500).json({ success: false, message: enhancedResume.message });
+    if (!resumeText) {
+      res.status(400).json({ success: false, message: "Missing resume text" });
       return;
     }
 
-    const rawCacheKey = `resumeText:${userId}`;
-    await deleteCachedResponse(rawCacheKey);
-    console.log(`🗑️ Deleted raw resume from Redis cache: ${rawCacheKey}`);
+    // ✅ Generate new resume via OpenAI
+    const enhancedResponse = await generateFromOpenAI(userId, "resume", resumeText);
 
-    res.status(200).json({ success: true, message: "Resume enhanced successfully", enhancedResume });
+    if (!enhancedResponse.success || !enhancedResponse.message) {
+      res.status(500).json({ success: false, message: enhancedResponse.message || "OpenAI enhancement failed" });
+      return;
+    }
+
+    // ✅ Parse AI response into structured JSON
+    const structuredResume = parseResumeMarkdown(enhancedResponse.message, {});
+
+    console.log("🧠 Parsed Enhanced Resume:", structuredResume);
+
+    // ✅ Save structured resume to PostgreSQL
+    const crypto = await import("crypto");
+    const hash = crypto.createHash("sha256").update(enhancedResponse.message).digest("hex");
+
+    const saveResult = await saveToPostgreSQL(
+      hash,
+      enhancedResponse.message,
+      userId,
+      structuredResume
+    );
+
+    if (!saveResult.success) {
+      res.status(500).json({ success: false, message: saveResult.message });
+      return;
+    }
+
+    // ✅ Cache resume in Redis
+    const cacheKey = `resume:${hash}`;
+    await setCachedResponse(cacheKey, structuredResume, 86400);
+
+    res.status(200).json({
+      success: true,
+      message: "Resume enhanced and saved successfully",
+      resume: structuredResume,
+    });
   } catch (error) {
-    console.error("❌ Error enhancing resume:", error);
-    res.status(500).json({ success: false, message: "Failed to enhance resume." });
+    console.error("❌ Error enhancing and saving resume:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
+
 
 export const processResume: RequestHandler = async (req, res) => {
   try {
@@ -127,23 +162,24 @@ export const listResumes = async (req: AuthenticatedRequest, res: Response): Pro
 
     const queryResult = await pool.query(
       `SELECT id, user_id, title, content, extracted_text, file_hash,
+              email, phone, linkedin, portfolio,        -- ✅ Make sure these fields are included
               experience, education, skills, certifications, created_at, updated_at
        FROM public."Resumes"
        WHERE user_id = $1`,
       [userId]
     );
 
-    if (queryResult.rowCount === 0) {
-      console.log(`❌ No resumes found for user: ${userId}`);
-      res.status(404).json({ success: false, message: "No resumes found for this user." });
-      return;
-    }
 
     const formattedResumes = queryResult.rows.map(row => ({
       id: row.id,
       name: row.title || "Untitled Resume",
-      resumeSnippet: row.content,
-      summary: row.extracted_text || "No summary available",
+      jobTitle: "N/A",
+      resumeSnippet: row.content || "",
+      summary: row.extracted_text || "",
+      email: row.email || "",              // ✅ REQUIRED
+      phone: row.phone || "",              // ✅ REQUIRED
+      linkedin: row.linkedin || "",        // ✅ REQUIRED
+      portfolio: row.portfolio || "",      // ✅ REQUIRED
       experience: row.experience || [],
       education: row.education || [],
       skills: row.skills || [],
@@ -153,13 +189,14 @@ export const listResumes = async (req: AuthenticatedRequest, res: Response): Pro
     }));
 
     console.log(`✅ ${queryResult.rowCount} resumes found and returned for user: ${userId}`);
-    res.status(200).json({ success: true, resumes: formattedResumes });
+    res.status(200).json({ success: true, resumes: formattedResumes }); // ✅ Always 200, even if empty
 
   } catch (error) {
     console.error(`❌ Error fetching resumes:`, error);
     res.status(500).json({ success: false, message: "Internal server error while retrieving resumes." });
   }
 };
+
 
 export const getResumeById: RequestHandler = async (req, res) => {
   try {
@@ -215,16 +252,19 @@ export const deleteResume = async (req: Request, res: Response): Promise<void> =
       return;
     }
 
+    // ✅ Delete from PostgreSQL
     await pool.query(`DELETE FROM "Resumes" WHERE id = $1`, [resumeId]);
+
+    // ✅ Invalidate Redis cache using centralized service
+    const redisKey = `resume:${resumeId}`;
+    await deleteCachedResponse(redisKey);
+    console.log(`🧹 Redis cache cleared for key: ${redisKey}`);
 
     console.log(`✅ Resume ${resumeId} deleted successfully`);
     res.json({ success: true, message: "Resume deleted successfully" });
-    return;
-
   } catch (error) {
     console.error("❌ Error deleting resume:", error);
     res.status(500).json({ success: false, message: "Server error while deleting resume" });
-    return;
   }
 };
 
@@ -240,9 +280,13 @@ export const downloadResume = async (req: AuthenticatedRequest, res: Response): 
     }
 
     const result = await pool.query(
-      `SELECT * FROM "Resumes" WHERE id = $1 AND user_id = $2`,
+      `SELECT id, title, content, extracted_text, experience, education, skills, certifications,
+              email, phone, linkedin, portfolio
+       FROM "Resumes"
+       WHERE id = $1 AND user_id = $2`,
       [resumeId, userId]
     );
+
 
     if (result.rowCount === 0) {
       res.status(404).json({ error: "Resume not found." });
@@ -254,8 +298,10 @@ export const downloadResume = async (req: AuthenticatedRequest, res: Response): 
     // ✅ Strip markdown and get structured data
     const parsed = parseResumeMarkdown(resume.content, {
       name: resume.title,
-      email: "",
-      phone: "",
+      email: resume.email || "",               // ✅ Pass fallback
+      phone: resume.phone || "",               // ✅ Pass fallback
+      linkedin: resume.linkedin || "",         // ✅ Optional: future-proof
+      portfolio: resume.portfolio || "",       // ✅ Optional: future-proof
       summary: resume.extracted_text,
       experience: resume.experience,
       education: resume.education,
@@ -263,17 +309,20 @@ export const downloadResume = async (req: AuthenticatedRequest, res: Response): 
       certifications: resume.certifications,
     });
 
+
     // ✅ Create PDF
     const doc = new PDFDocument();
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", `attachment; filename="${resume.title || "resume"}.pdf"`);
 
     doc.pipe(res);
-    doc.fontSize(20).text(parsed.name, { underline: true });
+    doc.fontSize(20).text(parsed.name || "Untitled Resume", { underline: true });
     doc.moveDown();
 
-    doc.fontSize(12).text(`Email: ${parsed.email}`);
-    doc.text(`Phone: ${parsed.phone}`);
+    if (parsed.email) doc.fontSize(12).text(`Email: ${parsed.email}`);
+    if (parsed.phone) doc.text(`Phone: ${parsed.phone}`);
+    if (parsed.linkedin) doc.text(`LinkedIn: ${parsed.linkedin}`);
+    if (parsed.portfolio) doc.text(`Portfolio: ${parsed.portfolio}`);
     doc.moveDown();
 
     doc.fontSize(14).text("Summary", { underline: true });

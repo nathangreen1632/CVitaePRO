@@ -25,6 +25,10 @@ interface ResumeCardProps {
   jobTitle: string;
   resumeSnippet: string;
   summary: string;
+  email: string;          // ✅ Add this
+  phone: string;          // ✅ Add this
+  linkedin: string;       // ✅ Add this
+  portfolio: string;      // ✅ Add this
   experience?: Experience[];
   education?: Education[];
   skills?: string[];
@@ -32,19 +36,27 @@ interface ResumeCardProps {
   refreshResumes: () => void;
 }
 
+
 const ResumeCard: React.FC<ResumeCardProps> = ({
                                                  id,
                                                  name,
                                                  jobTitle,
                                                  resumeSnippet,
                                                  summary,
+                                                 email,        // ✅ Add this
+                                                 phone,        // ✅ Add this
                                                  experience = [],
                                                  education = [],
                                                  skills = [],
                                                  certifications = [],
+                                                 portfolio,
+                                                 linkedin,
                                                  refreshResumes,
                                                }) => {
-  const [loading, setLoading] = useState(false);
+
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isEnhancing, setIsEnhancing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleEdit = () => {
@@ -52,7 +64,7 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
   };
 
   const handleDownload = async () => {
-    setLoading(true);
+    setIsDownloading(true);
     setError(null);
 
     const token = localStorage.getItem("token");
@@ -82,23 +94,23 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
       setError("Something went wrong while downloading.");
     }
 
-    setLoading(false);
+    setIsDownloading(false);
   };
 
   const handleDelete = async () => {
-    setLoading(true);
+    setIsDeleting(true);
     setError(null);
 
     const token = localStorage.getItem("token");
 
     if (!token) {
       setError("You're not logged in.");
-      setLoading(false);
+      setIsDeleting(false);
       return;
     }
 
     try {
-      const response = await fetch(`/api/resume/${id}/download`, {
+      const response = await fetch(`/api/resume/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -110,18 +122,26 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
         return;
       }
 
+      const stored = localStorage.getItem("resumes");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        const updated = parsed.filter((resume: { id: string }) => resume.id !== id);
+        localStorage.setItem("resumes", JSON.stringify(updated));
+      }
+
       refreshResumes();
     } catch (error) {
       console.error("Error deleting resume:", error);
       setError("Something went wrong while deleting.");
     } finally {
-      setLoading(false);
+      setIsDeleting(false);
     }
   };
 
   const handleEnhance = async () => {
-    setLoading(true);
+    setIsEnhancing(true);
     setError(null);
+
     try {
       const response = await fetch("/api/openai/enhance-resume", {
         method: "POST",
@@ -141,7 +161,7 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
       console.error("❌ Error enhancing resume:", error);
       setError("Something went wrong while enhancing.");
     } finally {
-      setLoading(false);
+      setIsEnhancing(false);
     }
   };
 
@@ -154,6 +174,44 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
         <div className="ml-4">
           <h3 className="text-xl font-semibold">{name}</h3>
           <p className="text-gray-400">{jobTitle}</p>
+          {email && (
+            <p className="text-sm text-gray-300 break-all">
+              <strong>Email: </strong>{email}
+            </p>
+          )}
+          {phone && (
+            <p className="text-sm text-gray-300 break-all">
+              <strong>Phone: </strong>{phone}
+            </p>
+          )}
+
+          {portfolio && (
+            <p className="text-sm text-blue-300 break-all">
+              <strong>Portfolio: </strong>
+              <a
+                href={portfolio}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:text-blue-500"
+              >
+                {portfolio}
+              </a>
+            </p>
+          )}
+
+          {linkedin && (
+            <p className="text-sm text-blue-300 break-all">
+              <strong>LinkedIn: </strong>
+              <a
+                href={linkedin}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:text-blue-500"
+              >
+                {linkedin}
+              </a>
+            </p>
+          )}
         </div>
       </div>
 
@@ -232,24 +290,24 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
         </button>
         <button
           onClick={handleDownload}
+          disabled={isDownloading}
           className="bg-green-500 px-4 py-2 rounded-lg hover:bg-green-600 transition"
-          disabled={loading}
         >
-          {loading ? "Downloading..." : "Download"}
+          {isDownloading ? "Downloading..." : "Download"}
         </button>
         <button
           onClick={handleEnhance}
+          disabled={isEnhancing}
           className="bg-purple-500 px-4 py-2 rounded-lg hover:bg-purple-600 transition"
-          disabled={loading}
         >
-          {loading ? "Enhancing..." : "Enhance"}
+          {isEnhancing ? "Enhancing..." : "Enhance"}
         </button>
         <button
           onClick={handleDelete}
+          disabled={isDeleting}
           className="bg-red-500 px-4 py-2 rounded-lg hover:bg-red-600 transition"
-          disabled={loading}
         >
-          {loading ? "Deleting..." : "Delete"}
+          {isDeleting ? "Deleting..." : "Delete"}
         </button>
       </div>
     </div>
