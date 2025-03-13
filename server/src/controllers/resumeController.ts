@@ -273,9 +273,13 @@ export const downloadResume = async (req: AuthenticatedRequest, res: Response): 
     }
 
     const result = await pool.query(
-      `SELECT * FROM "Resumes" WHERE id = $1 AND user_id = $2`,
+      `SELECT id, title, content, extracted_text, experience, education, skills, certifications,
+              email, phone, linkedin, portfolio
+       FROM "Resumes"
+       WHERE id = $1 AND user_id = $2`,
       [resumeId, userId]
     );
+
 
     if (result.rowCount === 0) {
       res.status(404).json({ error: "Resume not found." });
@@ -287,8 +291,10 @@ export const downloadResume = async (req: AuthenticatedRequest, res: Response): 
     // ✅ Strip markdown and get structured data
     const parsed = parseResumeMarkdown(resume.content, {
       name: resume.title,
-      email: "",
-      phone: "",
+      email: resume.email || "",               // ✅ Pass fallback
+      phone: resume.phone || "",               // ✅ Pass fallback
+      linkedin: resume.linkedin || "",         // ✅ Optional: future-proof
+      portfolio: resume.portfolio || "",       // ✅ Optional: future-proof
       summary: resume.extracted_text,
       experience: resume.experience,
       education: resume.education,
@@ -296,17 +302,20 @@ export const downloadResume = async (req: AuthenticatedRequest, res: Response): 
       certifications: resume.certifications,
     });
 
+
     // ✅ Create PDF
     const doc = new PDFDocument();
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", `attachment; filename="${resume.title || "resume"}.pdf"`);
 
     doc.pipe(res);
-    doc.fontSize(20).text(parsed.name, { underline: true });
+    doc.fontSize(20).text(parsed.name || "Untitled Resume", { underline: true });
     doc.moveDown();
 
-    doc.fontSize(12).text(`Email: ${parsed.email}`);
-    doc.text(`Phone: ${parsed.phone}`);
+    if (parsed.email) doc.fontSize(12).text(`Email: ${parsed.email}`);
+    if (parsed.phone) doc.text(`Phone: ${parsed.phone}`);
+    if (parsed.linkedin) doc.text(`LinkedIn: ${parsed.linkedin}`);
+    if (parsed.portfolio) doc.text(`Portfolio: ${parsed.portfolio}`);
     doc.moveDown();
 
     doc.fontSize(14).text("Summary", { underline: true });
