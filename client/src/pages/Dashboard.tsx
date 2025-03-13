@@ -64,20 +64,38 @@ const Dashboard: React.FC = () => {
       const data = await response.json();
 
       const formattedResumes = data.resumes.map((resume: any) => ({
-        id: resume.id,
+        id: resume.id || "",
         name: resume.name || resume.title || "Untitled Resume",
-        jobTitle: resume.jobTitle || "N/A",
         resumeSnippet: resume.resumeSnippet || resume.content || "",
         summary: resume.summary || resume.extracted_text || "",
         email: resume.email || "",
         phone: resume.phone || "",
         linkedin: resume.linkedin || "",
         portfolio: resume.portfolio || "",
-        experience: resume.experience || [],
-        education: resume.education || [],
-        skills: resume.skills || [],
-        certifications: resume.certifications || [],
+        experience: (resume.experience || []).map((exp: any) => ({
+          company: exp.company || '',
+          role: exp.role || '',
+          start_date: typeof exp.start_date === 'string' ? exp.start_date.trim() : '',
+          end_date: typeof exp.end_date === 'string'
+            ? exp.end_date.trim()
+            : typeof exp.end_date === 'object' && exp.end_date !== null
+              ? ''
+              : '',
+          responsibilities: Array.isArray(exp.responsibilities) ? exp.responsibilities : [],
+        })),
+        education: (resume.education || []).map((edu: any) => ({
+          institution: edu.institution || '',
+          degree: edu.degree || '',
+          graduation_year: edu.graduation_year || '',
+        })),
+        skills: Array.isArray(resume.skills) ? resume.skills : [],
+        certifications: (resume.certifications || []).map((cert: any) => ({
+          name: cert.name || '',
+          year: cert.year || '',
+        })),
       }));
+
+
 
 
 
