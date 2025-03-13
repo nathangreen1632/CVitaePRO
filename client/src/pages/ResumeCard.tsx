@@ -25,6 +25,10 @@ interface ResumeCardProps {
   jobTitle: string;
   resumeSnippet: string;
   summary: string;
+  email: string;          // ✅ Add this
+  phone: string;          // ✅ Add this
+  linkedin: string;       // ✅ Add this
+  portfolio: string;      // ✅ Add this
   experience?: Experience[];
   education?: Education[];
   skills?: string[];
@@ -32,18 +36,24 @@ interface ResumeCardProps {
   refreshResumes: () => void;
 }
 
+
 const ResumeCard: React.FC<ResumeCardProps> = ({
                                                  id,
                                                  name,
                                                  jobTitle,
                                                  resumeSnippet,
                                                  summary,
+                                                 email,        // ✅ Add this
+                                                 phone,        // ✅ Add this
                                                  experience = [],
                                                  education = [],
                                                  skills = [],
                                                  certifications = [],
+                                                 portfolio,
+                                                 linkedin,
                                                  refreshResumes,
                                                }) => {
+
   const [isDownloading, setIsDownloading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEnhancing, setIsEnhancing] = useState(false);
@@ -112,7 +122,6 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
         return;
       }
 
-      // 🧼 Remove deleted resume from localStorage manually
       const stored = localStorage.getItem("resumes");
       if (stored) {
         const parsed = JSON.parse(stored);
@@ -165,6 +174,44 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
         <div className="ml-4">
           <h3 className="text-xl font-semibold">{name}</h3>
           <p className="text-gray-400">{jobTitle}</p>
+          {email && (
+            <p className="text-sm text-gray-300 break-all">
+              <strong>Email: </strong>{email}
+            </p>
+          )}
+          {phone && (
+            <p className="text-sm text-gray-300 break-all">
+              <strong>Phone: </strong>{phone}
+            </p>
+          )}
+
+          {portfolio && (
+            <p className="text-sm text-blue-300 break-all">
+              <strong>Portfolio: </strong>
+              <a
+                href={portfolio}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:text-blue-500"
+              >
+                {portfolio}
+              </a>
+            </p>
+          )}
+
+          {linkedin && (
+            <p className="text-sm text-blue-300 break-all">
+              <strong>LinkedIn: </strong>
+              <a
+                href={linkedin}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:text-blue-500"
+              >
+                {linkedin}
+              </a>
+            </p>
+          )}
         </div>
       </div>
 
