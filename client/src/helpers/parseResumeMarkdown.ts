@@ -11,6 +11,8 @@ export const parseResumeMarkdown = (markdown: string, inputData: any): Record<st
         name: parsedJson.name || inputData.name,
         email: parsedJson.email || inputData.email,
         phone: parsedJson.phone || inputData.phone,
+        linkedin: parsedJson.linkedin || inputData.linkedin,     // ✅ Add this
+        portfolio: parsedJson.portfolio || inputData.portfolio,
         summary: parsedJson.summary || inputData.summary || "No summary provided.",
         experience: parsedJson.experience || inputData.experience || [],
         education: parsedJson.education || inputData.education || [],
@@ -29,6 +31,8 @@ export const parseResumeMarkdown = (markdown: string, inputData: any): Record<st
     name: inputData.name || "",
     email: inputData.email || "",
     phone: inputData.phone || "",
+    linkedin: inputData.linkedin || "",     // ✅ Add this
+    portfolio: inputData.portfolio || "",
     summary: inputData.summary || "No summary provided.",
     experience: inputData.experience || [],
     education: inputData.education || [],
@@ -47,6 +51,15 @@ export const parseResumeMarkdown = (markdown: string, inputData: any): Record<st
     let content = lines.slice(1).map(line => line.replace(/[*-]/g, "").trim()).filter(line => line.length > 0);
 
     switch (title.toLowerCase()) {
+      case "contact information": // ✅ ADDED
+        content.forEach((line) => {
+          if (line.toLowerCase().includes("email:")) {
+            resume.email = line.split(":")[1]?.trim() || inputData.email || "";
+          } else if (line.toLowerCase().includes("phone:")) {
+            resume.phone = line.split(":")[1]?.trim() || inputData.phone || "";
+          }
+        });
+        break;
       case "summary":
         resume.summary = content.join(" ") || inputData.summary || "No summary provided.";
         break;
