@@ -171,6 +171,24 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
     }
   };
 
+  const formatWorkDates = (start: string, end?: string): string => {
+    if (!start || start.trim() === "") {
+      alert("⚠️ Start Date is required for work experience entries.");
+      return "";
+    }
+
+    const trimmedStart = start.trim();
+    const trimmedEnd = end?.trim() ?? "";
+
+    if (trimmedStart && trimmedEnd) {
+      return `${trimmedStart} to ${trimmedEnd}`;
+    } else if (trimmedStart && !trimmedEnd) {
+      return `${trimmedStart} to Present`;
+    } else {
+      return "";
+    }
+  };
+
   return (
     <div className="bg-gray-800 text-white p-6 rounded-lg shadow-lg w-full max-w-md">
       <div className="flex items-center mb-4">
@@ -221,9 +239,16 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
         </div>
       </div>
 
+      {typeof summary === 'string' ? (
       <p className="text-sm text-gray-300 mb-2">
         <strong>Summary:</strong> {cleanSummary}
       </p>
+      ) : (
+        <p className="text-sm text-gray-300 mb-2">
+          <strong>Summary:</strong> {cleanSummary}
+        </p>
+      )}
+
       <p
         className="text-sm text-gray-300 mb-4"
         dangerouslySetInnerHTML={{ __html: parseResumeMarkdown(resumeSnippet, []) }}
@@ -239,8 +264,9 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
                 {exp.company} — {exp.role}
               </p>
               <p className="text-gray-400">
-                {exp.start_date} to {exp.end_date || "Present"}
+                {formatWorkDates(exp.start_date, exp.end_date)}
               </p>
+
               <ul className="list-disc list-inside ml-2 mt-1">
                 {exp.responsibilities.map((item, i) => (
                   <li key={i} className="text-gray-300">
@@ -271,11 +297,26 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
       <div className="mb-4">
         <h4 className="font-semibold text-lg">Skills</h4>
         {skills.length > 0 ? (
-          <p className="text-gray-300 text-sm">{skills.join(", ")}</p>
+          <div className="text-gray-300 text-sm space-y-1">
+            {skills.map((skillLine, idx) => {
+              const parts = skillLine.split(":");
+              if (parts.length === 2) {
+                const label = parts[0].trim();
+                const content = parts[1].trim();
+                return (
+                  <p key={idx}>
+                    <strong>{label}:</strong> {content}
+                  </p>
+                );
+              }
+              return <p key={idx}>{skillLine}</p>;
+            })}
+          </div>
         ) : (
           <p className="text-gray-400 text-sm">No skills listed.</p>
         )}
       </div>
+
 
       <div className="mb-4">
         <h4 className="font-semibold text-lg">Certifications</h4>
