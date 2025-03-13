@@ -15,6 +15,10 @@ export const saveToPostgreSQL = async (
   userId: string,
   resumeData: {
     name?: string;
+    email?: string;
+    phone?: string;
+    linkedin?: string;
+    portfolio?: string;
     summary?: string;
     experience?: { company: string; role: string; start_date: string; end_date: string; responsibilities: string[] }[];
     education?: { institution: string; degree: string; graduation_year: string }[];
@@ -31,7 +35,7 @@ export const saveToPostgreSQL = async (
   }
 
   try {
-    // ✅ Step 1: Check if the user exists
+    // ✅ Step 1: Confirm user exists
     console.log(`🔍 Checking if user ${userId} exists in database...`);
     const userCheckResult = await pool.query('SELECT id FROM "users" WHERE id = $1', [userId]);
 
@@ -39,10 +43,10 @@ export const saveToPostgreSQL = async (
       console.warn(`⚠️ User with ID ${userId} does not exist in 'users' table.`);
       return { success: false, message: `User with ID ${userId} does not exist.` };
     }
+
     console.log(`✅ User ${userId} exists.`);
 
-    // ✅ Step 2: Validate resume content
-    console.log("📌 Extracted resume text before saving:", extractedText);
+    // ✅ Step 2: Prepare resume content
     const resumeContent = extractedText || (process.env.NODE_ENV !== "production" ? "Placeholder resume content" : null);
 
     if (!resumeContent) {
@@ -50,22 +54,22 @@ export const saveToPostgreSQL = async (
       return { success: false, message: "Resume content is empty." };
     }
 
-    console.log("📌 Final resume content before inserting:", resumeContent);
-
-    // ✅ Step 3: Insert into DB
     const resumeId = uuidv4();
-    const title = resumeData.name || "Untitled Resume";
+    const title = resumeData.name ?? "Untitled Resume";
 
     console.log(`🛠 Inserting resume with ID ${resumeId} for user ${userId}...`);
 
+    // ✅ Step 3: Insert resume into DB
     const insertQuery = `
         INSERT INTO "Resumes" (
             id, file_hash, extracted_text, user_id,
-            content, title, experience, education, skills, certifications, updated_at
+            content, title, experience, education, skills, certifications,
+            email, phone, linkedin, portfolio, updated_at
         )
         VALUES (
                    $1, $2, $3, $4,
-                   $5, $6, $7::JSONB, $8::JSONB, $9::JSONB, $10::JSONB, NOW()
+                   $5, $6, $7::JSONB, $8::JSONB, $9::JSONB, $10::JSONB,
+                   $11, $12, $13, $14, NOW()
                )
         RETURNING id;
     `;
@@ -77,10 +81,14 @@ export const saveToPostgreSQL = async (
       userId,
       resumeContent,
       title,
-      JSON.stringify(resumeData.experience || []),
-      JSON.stringify(resumeData.education || []),
-      JSON.stringify(resumeData.skills || []),
-      JSON.stringify(resumeData.certifications || []),
+      JSON.stringify(resumeData.experience ?? []),
+      JSON.stringify(resumeData.education ?? []),
+      JSON.stringify(resumeData.skills ?? []),
+      JSON.stringify(resumeData.certifications ?? []),
+      resumeData.email ?? "",
+      resumeData.phone ?? "",
+      resumeData.linkedin ?? "",
+      resumeData.portfolio ?? ""
     ]);
 
     if (insertResult.rowCount === 0) {
