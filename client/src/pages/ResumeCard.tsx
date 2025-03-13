@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { parseResumeMarkdown } from "../helpers/parseResumeMarkdown";
+
 
 interface Experience {
   company: string;
@@ -53,6 +55,10 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
                                                  linkedin,
                                                  refreshResumes,
                                                }) => {
+  const parsed = parseResumeMarkdown(resumeSnippet, summary);
+
+  const cleanSummary = parsed.summary || summary;
+
 
   const [isDownloading, setIsDownloading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -216,11 +222,13 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
       </div>
 
       <p className="text-sm text-gray-300 mb-2">
-        <strong>Summary:</strong> {summary}
+        <strong>Summary:</strong> {cleanSummary}
       </p>
-      <p className="text-sm text-gray-300 mb-4">
-        <strong>Content:</strong> {resumeSnippet}
-      </p>
+      <p
+        className="text-sm text-gray-300 mb-4"
+        dangerouslySetInnerHTML={{ __html: parseResumeMarkdown(resumeSnippet, []) }}
+      ></p>
+
 
       <div className="mb-4">
         <h4 className="font-semibold text-lg">Experience</h4>
