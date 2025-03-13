@@ -19,7 +19,7 @@ const ResumeDetailsForm: React.FC<ResumeDetailsFormProps> = ({
                                                              }) => {
   return (
     <div className="bg-gray-800 p-6 rounded-lg w-full max-w-3xl shadow-lg mx-auto mb-12">
-      <h2 className="text-2xl font-semibold mb-4 text-center text-white">Resume Details (Auto-Sync)</h2>
+      <h2 className="text-2xl font-semibold mb-4 text-center text-white">Resume Details</h2>
 
       {['name', 'email', 'phone', 'linkedin', 'portfolio', 'summary'].map((field) => (
         <label key={field} className="block mb-3">
