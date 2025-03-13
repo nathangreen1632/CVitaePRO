@@ -27,29 +27,25 @@ export const handleGenerateResume = async ({
       linkedin: resumeData.linkedin,
       portfolio: resumeData.portfolio,
       summary: resumeData.summary,
-      experience: [
-        {
-          company: resumeData.experience[0].company,
-          role: resumeData.experience[0].role,
-          start_date: resumeData.experience[0].start_date,
-          end_date: resumeData.experience[0].end_date,
-          responsibilities: resumeData.experience[0].responsibilities,
-        },
-      ],
-      education: [
-        {
-          institution: resumeData.education[0].institution,
-          degree: resumeData.education[0].degree,
-          graduation_year: resumeData.education[0].graduation_year,
-        },
-      ],
+      experience: resumeData.experience.map((exp: any) => ({
+        company: exp.company,
+        role: exp.role,
+        start_date: exp.start_date,
+        end_date: exp.end_date,
+        responsibilities: Array.isArray(exp.responsibilities)
+          ? exp.responsibilities
+          : [],
+      })),
+      education: resumeData.education.map((edu: any) => ({
+        institution: edu.institution,
+        degree: edu.degree,
+        graduation_year: edu.graduation_year,
+      })),
       skills: resumeData.skills.filter((s: string) => s.trim().length > 0),
-      certifications: [
-        {
-          name: resumeData.certifications || "Placeholder for future certifications.",
-          year: "",
-        },
-      ],
+      certifications: resumeData.certifications.map((cert: any) => ({
+        name: cert.name,
+        year: cert.year,
+      })),
     },
   };
 
@@ -83,6 +79,7 @@ export const handleGenerateResume = async ({
     setLoading(false);
   }
 };
+
 
 export const handleEnhanceResume = async ({
                                             resumeData,
