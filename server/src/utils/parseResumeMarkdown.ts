@@ -7,22 +7,38 @@ export const parseResumeMarkdown = (markdown: string, inputData: any): Record<st
   if (jsonMatch) {
     try {
       const parsedJson = JSON.parse(jsonMatch[1]);
+
+      let summary = "No summary provided.";
+      if (typeof parsedJson.summary === "string") {
+        summary = parsedJson.summary;
+      } else if (typeof inputData.summary === "string") {
+        summary = inputData.summary;
+      }
+
+      let certifications: any[] = [];
+      if (Array.isArray(parsedJson.certifications)) {
+        certifications = parsedJson.certifications;
+      } else if (Array.isArray(inputData.certifications)) {
+        certifications = inputData.certifications;
+      }
+
       return {
         name: parsedJson.name || inputData.name,
         email: parsedJson.email || inputData.email,
         phone: parsedJson.phone || inputData.phone,
-        linkedin: parsedJson.linkedin || inputData.linkedin,     // ✅ Add this
+        linkedin: parsedJson.linkedin || inputData.linkedin,
         portfolio: parsedJson.portfolio || inputData.portfolio,
-        summary: parsedJson.summary || inputData.summary || "No summary provided.",
+        summary,
         experience: parsedJson.experience || inputData.experience || [],
         education: parsedJson.education || inputData.education || [],
         skills: parsedJson.skills || inputData.skills || ["No skills listed."],
-        certifications: parsedJson.certifications || inputData.certifications || ["No certifications listed."]
+        certifications,
       };
     } catch (error) {
       console.error("❌ Failed to parse JSON from markdown:", error);
     }
   }
+
 
   console.warn("⚠️ No JSON block found in markdown. Falling back to section-based parsing.");
 
