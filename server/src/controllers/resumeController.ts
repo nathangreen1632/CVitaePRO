@@ -162,17 +162,24 @@ export const listResumes = async (req: AuthenticatedRequest, res: Response): Pro
 
     const queryResult = await pool.query(
       `SELECT id, user_id, title, content, extracted_text, file_hash,
+              email, phone, linkedin, portfolio,        -- ✅ Make sure these fields are included
               experience, education, skills, certifications, created_at, updated_at
        FROM public."Resumes"
        WHERE user_id = $1`,
       [userId]
     );
 
+
     const formattedResumes = queryResult.rows.map(row => ({
       id: row.id,
       name: row.title || "Untitled Resume",
-      resumeSnippet: row.content,
-      summary: row.extracted_text || "No summary available",
+      jobTitle: "N/A",
+      resumeSnippet: row.content || "",
+      summary: row.extracted_text || "",
+      email: row.email || "",              // ✅ REQUIRED
+      phone: row.phone || "",              // ✅ REQUIRED
+      linkedin: row.linkedin || "",        // ✅ REQUIRED
+      portfolio: row.portfolio || "",      // ✅ REQUIRED
       experience: row.experience || [],
       education: row.education || [],
       skills: row.skills || [],
