@@ -65,10 +65,14 @@ const Dashboard: React.FC = () => {
 
       const formattedResumes = data.resumes.map((resume: any) => ({
         id: resume.id,
-        name: resume.title,
-        jobTitle: "N/A",
+        name: resume.name || "Untitled Resume",           // ✅ Fix mismatch
+        jobTitle: resume.jobTitle || "N/A",
         resumeSnippet: resume.content || "",
         summary: resume.extracted_text || "",
+        email: resume.email || "",            // ✅ Added
+        phone: resume.phone || "",            // ✅ Added
+        linkedin: resume.linkedin || "",      // ✅ Added
+        portfolio: resume.portfolio || "",    // ✅ Added
         experience: resume.experience || [],
         education: resume.education || [],
         skills: resume.skills || [],
@@ -76,6 +80,7 @@ const Dashboard: React.FC = () => {
         createdAt: resume.created_at,
         updatedAt: resume.updated_at,
       }));
+
 
       localStorage.setItem("resumes", JSON.stringify(formattedResumes));
       setResumes(formattedResumes);
