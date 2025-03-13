@@ -9,6 +9,10 @@ interface ResumeListProps {
     jobTitle: string;
     resumeSnippet: string;
     summary: string;
+    email: string;
+    phone: string;
+    linkedin: string;
+    portfolio: string;
     experience: {
       company: string;
       role: string;
@@ -67,6 +71,10 @@ const ResumeList: React.FC<ResumeListProps> = ({
                 jobTitle={resume.jobTitle || "N/A"}
                 resumeSnippet={resume.resumeSnippet || ""}
                 summary={resume.summary || ""}
+                email={resume.email || ""}
+                phone={resume.phone || ""}
+                linkedin={resume.linkedin || ""}
+                portfolio={resume.portfolio || ""}
                 experience={resume.experience || []}
                 education={resume.education || []}
                 skills={resume.skills || []}
