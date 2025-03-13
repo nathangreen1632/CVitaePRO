@@ -59,29 +59,10 @@ export const useDashboardState = () => {
     linkedin: "",
     portfolio: "",
     summary: "",
-    experience: [
-      {
-        company: "",
-        role: "",
-        start_date: "",
-        end_date: "",
-        responsibilities: [""],
-      },
-    ],
-    education: [
-      {
-        institution: "",
-        degree: "",
-        graduation_year: "",
-      },
-    ],
+    experience: [],
+    education: [],
     skills: [],
-    certifications: [
-      {
-        name: "",
-        year: "",
-      },
-    ],
+    certifications: [],
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
