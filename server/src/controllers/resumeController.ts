@@ -309,6 +309,24 @@ export const downloadResume = async (req: AuthenticatedRequest, res: Response): 
       certifications: resume.certifications,
     });
 
+    const formatWorkDates = (start: string, end?: string): string => {
+      if (!start || start.trim() === "") {
+        return ""; // Don't throw here — handle silently server-side
+      }
+
+      const trimmedStart = start.trim();
+      const trimmedEnd = end?.trim() ?? "";
+
+      if (trimmedStart && trimmedEnd) {
+        return `${trimmedStart} to ${trimmedEnd}`;
+      } else if (trimmedStart && !trimmedEnd) {
+        return `${trimmedStart} to Present`;
+      } else {
+        return "";
+      }
+    };
+
+
 
     // ✅ Create PDF
     const doc = new PDFDocument();
@@ -332,7 +350,7 @@ export const downloadResume = async (req: AuthenticatedRequest, res: Response): 
     doc.fontSize(14).text("Experience", { underline: true });
     parsed.experience.forEach((job: any) => {
       doc.fontSize(12).text(`${job.company} — ${job.role}`);
-      doc.text(`${job.start_date} to ${job.end_date}`);
+      doc.text(formatWorkDates(job.start_date, job.end_date));
       job.responsibilities.forEach((r: string) => {
         doc.text(`• ${r}`);
       });
@@ -346,13 +364,24 @@ export const downloadResume = async (req: AuthenticatedRequest, res: Response): 
     doc.moveDown();
 
     doc.fontSize(14).text("Skills", { underline: true });
-    doc.fontSize(12).text(parsed.skills.join(", "));
+    parsed.skills.forEach((line: string) => {
+      const [label, content] = line.split(":").map(str => str.trim());
+      if (label && content) {
+        doc.fontSize(12).text(`${label}: ${content}`);
+      } else {
+        doc.fontSize(12).text(line);
+      }
+    });
     doc.moveDown();
+
 
     doc.fontSize(14).text("Certifications", { underline: true });
     parsed.certifications.forEach((cert: any) => {
-      doc.fontSize(12).text(`${cert.name} (${cert.year})`);
+      const hasYear = cert.year && cert.year.trim().length > 0;
+      const line = hasYear ? `${cert.name} (${cert.year})` : `${cert.name}`;
+      doc.fontSize(12).text(line);
     });
+
 
     doc.end();
   } catch (error) {

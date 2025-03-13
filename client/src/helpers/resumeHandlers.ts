@@ -170,7 +170,6 @@ export const handleScoreResume = async ({
       <h1>${parsedResume.name || "Untitled Resume"}</h1>
       <p><strong>Email:</strong> ${parsedResume.email || "No email provided"}</p>
       <p><strong>Phone:</strong> ${parsedResume.phone || "No phone provided"}</p>
-      <h2>${parsedResume.jobTitle || ""}</h2>
       <p>${parsedResume.summary || ""}</p>
 
       <h3>Experience</h3>
@@ -180,7 +179,7 @@ export const handleScoreResume = async ({
       (exp: { role?: string; company?: string; start_date?: string; end_date?: string; responsibilities?: string[] }) => `
           <li>
             <strong>${exp.role ?? ""}</strong> at ${exp.company ?? ""}<br />
-            ${exp.start_date ?? ""} – ${exp.end_date ?? "Present"}<br />
+            ${exp.start_date ?? ""} – ${exp.end_date}<br />
             <ul>
               ${(exp.responsibilities || []).map((r) => `<li>${r}</li>`).join("")}
             </ul>

@@ -1,37 +1,35 @@
 import React, { useState } from "react";
 
-type Experience = {
-  company: string;
-  role: string;
-  start_date: string;
-  end_date: string;
-  responsibilities: string[];
-};
-
-type Education = {
-  institution: string;
-  degree: string;
-  graduation_year: string;
-};
-
-type Certification = {
-  name: string;
-  year: string;
-};
 
 type Resume = {
-  summary: string;
   id: string;
   name: string;
-  email: string;
-  phone: string;
   jobTitle: string;
   resumeSnippet: string;
-  experience: Experience[];
-  education: Education[];
+  summary: string;
+  email: string;
+  phone: string;
+  linkedin: string;
+  portfolio: string;
+  experience: {
+    company: string;
+    role: string;
+    start_date: string;
+    end_date: string;
+    responsibilities: string[];
+  }[];
+  education: {
+    institution: string;
+    degree: string;
+    graduation_year: string;
+  }[];
   skills: string[];
-  certifications: Certification[];
+  certifications: {
+    name: string;
+    year: string;
+  }[];
 };
+
 
 type AtsScores = Record<
   string,

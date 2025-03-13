@@ -62,13 +62,12 @@ const ResumeList: React.FC<ResumeListProps> = ({
       {resumes.length === 0 ? (
         <p className="text-center text-gray-400">No resumes found.</p>
       ) : (
-        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2">
           {resumes.map((resume) => (
             <div key={resume.id}>
               <ResumeCard
                 id={resume.id}
                 name={resume.name || "Untitled Resume"}
-                jobTitle={resume.jobTitle || "N/A"}
                 resumeSnippet={resume.resumeSnippet || ""}
                 summary={resume.summary || ""}
                 email={resume.email || ""}
