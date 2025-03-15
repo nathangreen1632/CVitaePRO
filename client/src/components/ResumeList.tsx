@@ -1,6 +1,8 @@
 import React from "react";
 import ResumeCard from "../pages/ResumeCard.jsx";
 import ATSScoreBreakdown from "./ATSScoreBreakdown.jsx";
+import { buildMarkdownFromResume } from "../helpers/buildMarkdownFromResume";
+
 
 interface ResumeListProps {
   resumes: {
@@ -33,7 +35,25 @@ interface ResumeListProps {
   }[];
   jobDescriptions: Record<string, string>;
   setJobDescriptions: React.Dispatch<React.SetStateAction<Record<string, string>>>;
-  handleScoreResume: (resumeId: string, resumeSnippet: string) => void;
+  handleScoreResume: (params: {
+    resumeId: string;
+    resumeSnippet: string;
+    jobDescription: string;
+    setAtsScores: React.Dispatch<
+      React.SetStateAction<
+        Record<
+          string,
+          {
+            atsScore: number;
+            keywordMatch: number;
+            softSkillsMatch: number;
+            industryTermsMatch: number;
+            formattingErrors: string[];
+          }
+        >
+      >
+    >;
+  }) => void;
   atsScores: Record<
     string,
     {
@@ -44,8 +64,23 @@ interface ResumeListProps {
       formattingErrors: string[];
     }
   >;
+  setAtsScores: React.Dispatch<
+    React.SetStateAction<
+      Record<
+        string,
+        {
+          atsScore: number;
+          keywordMatch: number;
+          softSkillsMatch: number;
+          industryTermsMatch: number;
+          formattingErrors: string[];
+        }
+      >
+    >
+  >;
   refreshResumes: () => void;
 }
+
 
 const ResumeList: React.FC<ResumeListProps> = ({
                                                  resumes,
@@ -53,6 +88,7 @@ const ResumeList: React.FC<ResumeListProps> = ({
                                                  setJobDescriptions,
                                                  handleScoreResume,
                                                  atsScores,
+                                                  setAtsScores,
                                                  refreshResumes,
                                                }) => {
   return (
@@ -100,13 +136,25 @@ const ResumeList: React.FC<ResumeListProps> = ({
               </div>
 
               <button
-                onClick={() =>
-                  handleScoreResume(resume.id, resume.resumeSnippet)
-                }
+                onClick={() => {
+                  console.log("📦 Resume passed to buildMarkdownFromResume:", resume);
+                  const markdown = buildMarkdownFromResume(resume);
+                  console.log("🧾 Markdown generated:", markdown);
+
+                  handleScoreResume({
+                    resumeId: resume.id,
+                    resumeSnippet: markdown,
+                    jobDescription: jobDescriptions[resume.id],
+                    setAtsScores,
+                  });
+                }}
                 className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded mt-2"
               >
                 Score Resume
               </button>
+
+
+
 
               {atsScores[resume.id] && (
                 <ATSScoreBreakdown
