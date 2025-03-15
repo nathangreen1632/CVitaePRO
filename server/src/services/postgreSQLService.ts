@@ -1,7 +1,8 @@
 // ‼️Rerun Database Migration after updating this file‼️
-
 import pkg from 'pg';
 import { v4 as uuidv4, validate as uuidValidate } from 'uuid';
+import type { ParsedResume } from "../utils/parseResumeMarkdown.js";
+
 
 const { Pool } = pkg;
 
@@ -13,18 +14,7 @@ export const saveToPostgreSQL = async (
   fileHash: string,
   extractedText: string,
   userId: string,
-  resumeData: {
-    name?: string;
-    email?: string;
-    phone?: string;
-    linkedin?: string;
-    portfolio?: string;
-    summary?: string;
-    experience?: { company: string; role: string; start_date: string; end_date: string; responsibilities: string[] }[];
-    education?: { institution: string; degree: string; graduation_year: string }[];
-    skills?: string[];
-    certifications?: { name: string; year: string }[];
-  }
+  resumeData: ParsedResume
 ): Promise<{ success: boolean; message: string }> => {
   console.log("🛠 Debug: Entering saveToPostgreSQL...");
   console.log("📌 Debug: userId received in saveToPostgreSQL:", userId);
