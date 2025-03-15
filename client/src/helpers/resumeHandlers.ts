@@ -120,6 +120,14 @@ export const handleEnhanceResume = async ({
 
     const enhancedResume = data.resume;
 
+    if (enhancedResume.resumeSnippet) {
+      enhancedResume.resumeSnippet = enhancedResume.resumeSnippet
+        .replace(/^```markdown\n/, "")
+        .replace(/\n```$/, "")
+        .trim();
+    }
+
+
     const activityItem = `Enhanced Resume - ${enhancedResume.name || "Untitled Resume"}`;
     const updatedLog = [activityItem, ...(JSON.parse(localStorage.getItem("activityLog") ?? "[]"))];
     localStorage.setItem("activityLog", JSON.stringify(updatedLog));
@@ -163,27 +171,35 @@ export const handleScoreResume = async ({
     return;
   }
 
-  const parsedResume = parseResumeMarkdown(resumeSnippet, {});
+  // ✅ Strip code block from markdown
+  const cleanedSnippet = resumeSnippet.replace(/^```markdown\n/, "").replace(/\n```$/, "").trim();
+
+// ✅ Parse clean markdown
+  const parsedResume = parseResumeMarkdown(cleanedSnippet, {});
+
+
 
   const resumeHtml = `
     <section>
-      <h1>${parsedResume.name || "Untitled Resume"}</h1>
+      <h1>${parsedResume.name || "No name provided"}</h1>
       <p><strong>Email:</strong> ${parsedResume.email || "No email provided"}</p>
       <p><strong>Phone:</strong> ${parsedResume.phone || "No phone provided"}</p>
-      <p>${parsedResume.summary || ""}</p>
+      <p><strong>LinkedIn:</strong> ${parsedResume.linkedin || "N/A"}</p>
+      <p><strong>Portfolio:</strong> ${parsedResume.portfolio || "N/A"}</p>
+      <p><strong>Summary:</strong> ${parsedResume.summary || ""}</p>
 
       <h3>Experience</h3>
       <ul>
         ${(parsedResume.experience || [])
     .map(
       (exp: { role?: string; company?: string; start_date?: string; end_date?: string; responsibilities?: string[] }) => `
-          <li>
-            <strong>${exp.role ?? ""}</strong> at ${exp.company ?? ""}<br />
-            ${exp.start_date ?? ""} – ${exp.end_date}<br />
-            <ul>
-              ${(exp.responsibilities || []).map((r) => `<li>${r}</li>`).join("")}
-            </ul>
-          </li>`
+              <li>
+                <strong>${exp.role ?? ""}</strong> at ${exp.company ?? ""}<br />
+                ${exp.start_date ?? ""} – ${exp.end_date ?? ""}<br />
+                <ul>
+                  ${(exp.responsibilities || []).map((r) => `<li>${r}</li>`).join("")}
+                </ul>
+              </li>`
     )
     .join("")}
       </ul>
@@ -193,15 +209,17 @@ export const handleScoreResume = async ({
         ${(parsedResume.education || [])
     .map(
       (edu: { degree?: string; institution?: string; graduation_year?: string }) => `
-        <li>
-          ${edu.degree ?? ""} from ${edu.institution ?? ""}, ${edu.graduation_year ?? ""}
-        </li>`
+            <li>
+              ${edu.degree ?? ""} from ${edu.institution ?? ""}, ${edu.graduation_year ?? ""}
+            </li>`
     )
     .join("")}
       </ul>
 
       <h3>Skills</h3>
-      <p>${(parsedResume.skills || []).join(", ")}</p>
+      <ul>
+        ${(parsedResume.skills || []).map((skill: string) => `<li>${skill}</li>`).join("")}
+      </ul>
 
       <h3>Certifications</h3>
       <ul>
@@ -211,6 +229,7 @@ export const handleScoreResume = async ({
       </ul>
     </section>
   `.trim();
+
 
   if (!resumeHtml || resumeHtml.length < 50) {
     alert("❌ Resume content is missing or too short to score.");
