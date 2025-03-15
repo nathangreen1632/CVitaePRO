@@ -27,7 +27,12 @@ interface ResumeInput {
 export function buildOpenAIPayload(resume: ResumeInput): string {
   return `
     - Applicant Name: ${resume.name}
-    - Contact Info: Email - ${resume.email}, Phone - ${resume.phone}, LinkedIn - ${resume.linkedin || "N/A"}, Portfolio - ${resume.portfolio || "N/A"}
+    - Contact Info:
+  ${resume.email ? `Email: ${resume.email}` : ""}
+  ${resume.phone ? ` | Phone: ${resume.phone}` : ""}
+  ${resume.linkedin ? ` | LinkedIn: ${resume.linkedin}` : ""}
+  ${resume.portfolio ? ` | Portfolio: ${resume.portfolio}` : ""}
+
 
     - Resume Summary: ${resume.summary}
     - Experience: ${JSON.stringify(resume.experience, null, 2)}
