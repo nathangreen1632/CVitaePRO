@@ -25,6 +25,7 @@ export default defineConfig({
     chunkSizeWarningLimit: 6000, // ✅ Increased limit to prevent warnings
     rollupOptions: {
       output: {
+        // @ts-ignore
         manualChunks(id) {
           if (id.includes("node_modules")) {
             if (id.includes("@splinetool/react-spline")) {
