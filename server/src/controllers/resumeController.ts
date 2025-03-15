@@ -271,25 +271,36 @@ export const deleteResume = async (req: Request, res: Response): Promise<void> =
 // ✅ New - Download Resume as PDF
 export const downloadResume = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
-    const { id: resumeId } = req.params;
+    const {id: resumeId} = req.params;
     const userId = req.user?.id;
 
     if (!resumeId || !uuidValidate(resumeId)) {
-      res.status(400).json({ error: "Invalid resume ID." });
+      res.status(400).json({error: "Invalid resume ID."});
       return;
     }
 
     const result = await pool.query(
-      `SELECT id, title, content, extracted_text, experience, education, skills, certifications,
-              email, phone, linkedin, portfolio
+      `SELECT id,
+              title,
+              content,
+              extracted_text,
+              experience,
+              education,
+              skills,
+              certifications,
+              email,
+              phone,
+              linkedin,
+              portfolio
        FROM "Resumes"
-       WHERE id = $1 AND user_id = $2`,
+       WHERE id = $1
+         AND user_id = $2`,
       [resumeId, userId]
     );
 
 
     if (result.rowCount === 0) {
-      res.status(404).json({ error: "Resume not found." });
+      res.status(404).json({error: "Resume not found."});
       return;
     }
 
@@ -327,14 +338,13 @@ export const downloadResume = async (req: AuthenticatedRequest, res: Response): 
     };
 
 
-
     // ✅ Create PDF
     const doc = new PDFDocument();
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", `attachment; filename="${resume.title || "resume"}.pdf"`);
 
     doc.pipe(res);
-    doc.fontSize(20).text(parsed.name || "Untitled Resume", { underline: true });
+    doc.fontSize(20).text(parsed.name ?? "Untitled Resume", {underline: true});
     doc.moveDown();
 
     if (parsed.email) doc.fontSize(12).text(`Email: ${parsed.email}`);
@@ -343,28 +353,31 @@ export const downloadResume = async (req: AuthenticatedRequest, res: Response): 
     if (parsed.portfolio) doc.text(`Portfolio: ${parsed.portfolio}`);
     doc.moveDown();
 
-    doc.fontSize(14).text("Summary", { underline: true });
-    doc.fontSize(12).text(parsed.summary);
+    doc.fontSize(14).text("Summary", {underline: true});
+    doc.fontSize(12).text(parsed.summary ?? "No summary provided.");
     doc.moveDown();
 
-    doc.fontSize(14).text("Experience", { underline: true });
-    parsed.experience.forEach((job: any) => {
-      doc.fontSize(12).text(`${job.company} — ${job.role}`);
-      doc.text(formatWorkDates(job.start_date, job.end_date));
-      job.responsibilities.forEach((r: string) => {
+    doc.fontSize(14).text("Experience", {underline: true});
+    (parsed.experience ?? []).forEach((job) => {
+      doc.fontSize(12).text(`${job.company ?? "Unknown Company"} — ${job.role ?? "Unknown Role"}`);
+      doc.text(formatWorkDates(job.start_date ?? "", job.end_date ?? ""));
+      (job.responsibilities ?? []).forEach((r: string) => {
         doc.text(`• ${r}`);
       });
       doc.moveDown();
     });
 
-    doc.fontSize(14).text("Education", { underline: true });
-    parsed.education.forEach((edu: any) => {
-      doc.fontSize(12).text(`${edu.degree} at ${edu.institution} (${edu.graduation_year})`);
+    doc.fontSize(14).text("Education", {underline: true});
+    (parsed.education ?? []).forEach((edu) => {
+      const degree = edu.degree ?? "Unknown Degree";
+      const institution = edu.institution ?? "Unknown Institution";
+      const year = edu.graduation_year ?? "Unknown Year";
+      doc.fontSize(12).text(`${degree} at ${institution} (${year})`);
     });
     doc.moveDown();
 
-    doc.fontSize(14).text("Skills", { underline: true });
-    parsed.skills.forEach((line: string) => {
+    doc.fontSize(14).text("Skills", {underline: true});
+    (parsed.skills ?? []).forEach((line: string) => {
       const [label, content] = line.split(":").map(str => str.trim());
       if (label && content) {
         doc.fontSize(12).text(`${label}: ${content}`);
@@ -374,19 +387,18 @@ export const downloadResume = async (req: AuthenticatedRequest, res: Response): 
     });
     doc.moveDown();
 
-
-    doc.fontSize(14).text("Certifications", { underline: true });
-    parsed.certifications.forEach((cert: any) => {
+    doc.fontSize(14).text("Certifications", {underline: true});
+    (parsed.certifications ?? []).forEach((cert) => {
+      const name = cert.name ?? "Unknown Certification";
       const hasYear = cert.year && cert.year.trim().length > 0;
-      const line = hasYear ? `${cert.name} (${cert.year})` : `${cert.name}`;
+      const line = hasYear ? `${name} (${cert.year})` : name;
       doc.fontSize(12).text(line);
     });
 
-
     doc.end();
-  } catch (error) {
-    console.error("❌ Error downloading resume:", error);
-    res.status(500).json({ error: "Failed to download resume." });
+  }
+  catch (error) {
+    console.error("❌ Error generating PDF:", error);
+    res.status(500).json({error: "Failed to generate PDF."});
   }
 };
-
