@@ -20,7 +20,6 @@ const GenerateResumeForm: React.FC = () => {
 
   return (
     <div className="p-4 bg-gray-800 text-white rounded-lg shadow-lg max-w-4xl mx-auto">
-      <h2 className="text-xl font-semibold mb-4">Resume Details (Auto-Sync)</h2>
 
       <ResumeDetailsForm
         resumeData={resumeData}
