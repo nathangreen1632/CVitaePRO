@@ -40,9 +40,10 @@ export function parseResume(htmlResume: string) {
     $("p:contains('-')").first().text().replace(/Phone:\s?/i, "").trim() ??
     null;
 
-  const experience = extractText("section#experience, div.experience");
-  const education = extractText("section#education, div.education");
-  const skills = extractText("section#skills, div.skills");
+  const experience = extractText("h2:contains('Experience')") || extractText("section:contains('Experience')");
+  const education = extractText("h2:contains('Education')") || extractText("section:contains('Education')");
+  const skills = extractText("h2:contains('Skills')") || extractText("section:contains('Skills')");
+
 
   return { name, email, phone, experience, education, skills };
 }
