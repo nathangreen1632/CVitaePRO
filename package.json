@@ -30,6 +30,7 @@
     "nodemon": "^3.1.9",
     "pg": "^8.13.3",
     "pg-hstore": "^2.3.4",
+    "remove-markdown": "^0.6.0",
     "sequelize": "^6.37.5",
     "wait-on": "^8.0.2"
   },
