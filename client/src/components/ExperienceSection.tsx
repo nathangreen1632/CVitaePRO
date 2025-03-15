@@ -131,7 +131,7 @@ const ExperienceSection: React.FC<Props> = ({ resumeData, setResumeData }) => {
             {exp.responsibilities.map((r, ridx) => (
               <span
                 key={ridx}
-                className="bg-blue-300 dark:bg-blue-600 text-black dark:text-white px-3 py-1 rounded-full flex items-center gap-2"
+                className="bg-blue-300 dark:bg-blue-700 text-black dark:text-white px-3 py-1 rounded flex items-center gap-2"
               >
                 {r}
                 <button
