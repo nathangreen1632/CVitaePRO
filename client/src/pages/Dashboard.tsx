@@ -5,16 +5,26 @@ import ResumeList from "../components/ResumeList.jsx";
 import ResumeActionsPanel from "../components/ResumeActionsPanel.jsx";
 import RecentActivityLog from "../components/RecentActivityLog.jsx";
 import { useDashboardState } from "../hooks/useDashboardState.js";
-import {
-  handleEnhanceResume,
-  handleScoreResume,
-} from "../helpers/resumeHandlers";
+import { handleEnhanceResume, handleScoreResume } from "../helpers/resumeHandlers";
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
 
-  const { resumes, setResumes, activityLog, setActivityLog, loading, setLoading, error, setError, atsScores, setAtsScores, jobDescriptions, setJobDescriptions,
-    resumeData } = useDashboardState();
+  const {
+    resumes,
+    setResumes,
+    activityLog,
+    setActivityLog,
+    loading,
+    setLoading,
+    error,
+    setError,
+    atsScores,
+    setAtsScores,
+    jobDescriptions,
+    setJobDescriptions,
+    resumeData,
+  } = useDashboardState();
 
   const isTokenExpired = (token: string): boolean => {
     try {
@@ -34,6 +44,13 @@ const Dashboard: React.FC = () => {
       navigate("/login");
     }
   }, []);
+
+  const buildActivityLogFromResumes = (resumeList: typeof resumes): string[] => {
+    return resumeList.map((resume) => {
+      const type = resume.resumeSnippet?.length > 0 ? "Edited" : "Generated";
+      return `${type} Resume - ${resume.name}`;
+    });
+  };
 
   const fetchResumes = async (): Promise<void> => {
     setLoading(true);
@@ -63,44 +80,60 @@ const Dashboard: React.FC = () => {
 
       const data = await response.json();
 
-      const formattedResumes = data.resumes.map((resume: any) => ({
-        id: resume.id || "",
-        name: resume.name || resume.title || "Untitled Resume",
-        resumeSnippet: resume.resumeSnippet || resume.content || "",
-        summary: resume.summary || resume.extracted_text || "",
-        email: resume.email || "",
-        phone: resume.phone || "",
-        linkedin: resume.linkedin || "",
-        portfolio: resume.portfolio || "",
-        experience: (resume.experience || []).map((exp: any) => ({
-          company: exp.company || '',
-          role: exp.role || '',
-          start_date: typeof exp.start_date === 'string' ? exp.start_date.trim() : '',
-          end_date: typeof exp.end_date === 'string'
-            ? exp.end_date.trim()
-            : typeof exp.end_date === 'object' && exp.end_date !== null
-              ? ''
-              : '',
-          responsibilities: Array.isArray(exp.responsibilities) ? exp.responsibilities : [],
-        })),
-        education: (resume.education || []).map((edu: any) => ({
-          institution: edu.institution || '',
-          degree: edu.degree || '',
-          graduation_year: edu.graduation_year || '',
-        })),
-        skills: Array.isArray(resume.skills) ? resume.skills : [],
-        certifications: (resume.certifications || []).map((cert: any) => ({
-          name: cert.name || '',
-          year: cert.year || '',
-        })),
-      }));
+      const formattedResumes = data.resumes.map((resume: any) => {
+        const mappedExperience = (resume.experience || []).map((exp: any) => {
+          let cleanEndDate = "";
+          if (typeof exp.end_date === "string") {
+            cleanEndDate = exp.end_date.trim();
+          }
 
+          return {
+            company: exp.company || '',
+            role: exp.role || '',
+            start_date: typeof exp.start_date === 'string' ? exp.start_date.trim() : '',
+            end_date: cleanEndDate,
+            responsibilities: Array.isArray(exp.responsibilities) ? exp.responsibilities : [],
+          };
+        });
 
-
-
+        return {
+          id: resume.id || "",
+          name: resume.name || resume.title || "Untitled Resume",
+          resumeSnippet: resume.resumeSnippet || resume.content || "",
+          summary: resume.summary || resume.extracted_text || "",
+          email: resume.email || "",
+          phone: resume.phone || "",
+          linkedin: resume.linkedin || "",
+          portfolio: resume.portfolio || "",
+          experience: mappedExperience,
+          education: (resume.education || []).map((edu: any) => ({
+            institution: edu.institution || '',
+            degree: edu.degree || '',
+            graduation_year: edu.graduation_year || '',
+          })),
+          skills: Array.isArray(resume.skills) ? resume.skills : [],
+          certifications: (resume.certifications || []).map((cert: any) => ({
+            name: cert.name || '',
+            year: cert.year || '',
+          })),
+        };
+      });
 
       localStorage.setItem("resumes", JSON.stringify(formattedResumes));
       setResumes(formattedResumes);
+
+      if (formattedResumes.length > resumes.length) {
+        const last = formattedResumes[formattedResumes.length - 1];
+        const scrollId = `resume-${last.id}-${last.name.replace(/\s+/g, "-")}`;
+        setTimeout(() => {
+          const el = document.getElementById(scrollId);
+          if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 200);
+      }
+
+      const log = buildActivityLogFromResumes(formattedResumes);
+      localStorage.setItem("activityLog", JSON.stringify(log));
+      setActivityLog(log);
     } catch (error) {
       console.error("Error fetching resumes:", error);
       setError("Something went wrong. Please try again.");
@@ -114,22 +147,22 @@ const Dashboard: React.FC = () => {
       setResumes((prev) => {
         const updated = prev.filter((r) => r.id !== deletedId);
         localStorage.setItem("resumes", JSON.stringify(updated));
+        const updatedLog = buildActivityLogFromResumes(updated);
+        localStorage.setItem("activityLog", JSON.stringify(updatedLog));
+        setActivityLog(updatedLog);
         return updated;
       });
     } else {
-      void fetchResumes(); // ✅ Prevents TS/IDE warnings about unhandled Promise
+      void fetchResumes();
     }
   };
-
 
   useEffect(() => {
     const loadResumes = async () => {
       const storedActivity = localStorage.getItem("activityLog");
-
       if (storedActivity) {
         setActivityLog(JSON.parse(storedActivity));
       }
-
       await fetchResumes();
     };
 
@@ -161,7 +194,6 @@ const Dashboard: React.FC = () => {
 
         {error && <p className="text-red-500 text-center mb-4">{error}</p>}
 
-
         {loading ? (
           <p className="text-center text-gray-400">Loading resumes...</p>
         ) : (
@@ -169,10 +201,9 @@ const Dashboard: React.FC = () => {
             resumes={resumes}
             jobDescriptions={jobDescriptions}
             setJobDescriptions={setJobDescriptions}
-            handleScoreResume={(resumeId, resumeSnippet) =>
+            handleScoreResume={(resumeId) =>
               handleScoreResume({
                 resumeId,
-                resumeSnippet,
                 jobDescription: jobDescriptions[resumeId] || "",
                 setAtsScores,
               })
@@ -180,7 +211,6 @@ const Dashboard: React.FC = () => {
             atsScores={atsScores}
             refreshResumes={refreshResumes}
           />
-
         )}
       </main>
     </div>
