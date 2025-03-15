@@ -8,9 +8,19 @@ export const parseResumeMarkdown = (markdown: string, inputData: any): Record<st
     try {
       const parsedJson = JSON.parse(jsonMatch[1]);
 
+      // ✅ FIXED: Clean summary parsing from markdown blob
       let summary = "No summary provided.";
       if (typeof parsedJson.summary === "string") {
-        summary = parsedJson.summary;
+        const summarySection = parsedJson.summary
+          .split(/\n(?=## )/)
+          .find((s: string) => s.toLowerCase().startsWith("## summary"));
+
+        if (summarySection) {
+          summary = summarySection
+            .replace(/## summary/i, "")
+            .replace(/[*_~`>#-]/g, "")
+            .trim();
+        }
       } else if (typeof inputData.summary === "string") {
         summary = inputData.summary;
       }
@@ -39,7 +49,6 @@ export const parseResumeMarkdown = (markdown: string, inputData: any): Record<st
     }
   }
 
-
   console.warn("⚠️ No JSON block found in markdown. Falling back to section-based parsing.");
 
   // ✅ Default resume structure (if JSON extraction fails)
@@ -47,7 +56,7 @@ export const parseResumeMarkdown = (markdown: string, inputData: any): Record<st
     name: inputData.name || "",
     email: inputData.email || "",
     phone: inputData.phone || "",
-    linkedin: inputData.linkedin || "",     // ✅ Add this
+    linkedin: inputData.linkedin || "",
     portfolio: inputData.portfolio || "",
     summary: inputData.summary || "No summary provided.",
     experience: inputData.experience || [],
@@ -67,7 +76,7 @@ export const parseResumeMarkdown = (markdown: string, inputData: any): Record<st
     let content = lines.slice(1).map(line => line.replace(/[*-]/g, "").trim()).filter(line => line.length > 0);
 
     switch (title.toLowerCase()) {
-      case "contact information": // ✅ ADDED
+      case "contact information":
         content.forEach((line) => {
           if (line.toLowerCase().includes("email:")) {
             resume.email = line.split(":")[1]?.trim() || inputData.email || "";
@@ -109,18 +118,15 @@ const parseExperienceSection = (content: string[], inputExperience: any[]): any[
       if (currentJob) experiences.push(currentJob);
       currentJob = { company: "", role: "", start_date: "", end_date: "", responsibilities: [] };
       currentJob.company = line.replace("### ", "").trim();
-    }
-    else if (currentJob && !currentJob.role) {
+    } else if (currentJob && !currentJob.role) {
       currentJob.role = line.trim();
-    }
-    else if (currentJob && !currentJob.start_date) {
+    } else if (currentJob && !currentJob.start_date) {
       const dates = line.split(" - ").map(d => d.trim());
       const startDate = formatDate(dates[0]);
       let endDate = dates.length > 1 ? dates[1] : "";
       currentJob.start_date = startDate;
       currentJob.end_date = endDate.toLowerCase() === "present" ? "Present" : formatDate(endDate);
-    }
-    else if (currentJob) {
+    } else if (currentJob) {
       currentJob.responsibilities.push(line.trim());
     }
   });
@@ -155,11 +161,9 @@ const parseEducationSection = (content: string[], inputEducation: any[]): any[] 
       currentEducation.graduation_year = line.replace("Graduation Year:", "").trim();
       education.push(currentEducation);
       currentEducation = {};
-    }
-    else if (!currentEducation?.degree) {
+    } else if (!currentEducation?.degree) {
       currentEducation.degree = line.trim();
-    }
-    else if (!currentEducation?.institution) {
+    } else if (!currentEducation?.institution) {
       currentEducation.institution = line.trim();
     }
   });
