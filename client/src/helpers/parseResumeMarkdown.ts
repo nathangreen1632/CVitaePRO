@@ -1,8 +1,35 @@
-export const parseResumeMarkdown = (markdown: string, inputData: any): Record<string, any> => {
-  // ✅ Remove leading/trailing backticks (if OpenAI wraps in ```markdown ... ```)
+export interface ParsedResume {
+  name?: string;
+  email?: string;
+  phone?: string;
+  linkedin?: string;
+  portfolio?: string;
+  summary?: string;
+  experience?: {
+    role?: string;
+    company?: string;
+    start_date?: string;
+    end_date?: string;
+    responsibilities?: string[];
+  }[];
+  education?: {
+    degree?: string;
+    institution?: string;
+    graduation_year?: string;
+  }[];
+  skills?: string[];
+  certifications?: {
+    name?: string;
+    year?: string;
+  }[];
+}
+
+export const parseResumeMarkdown = (
+  markdown: string,
+  inputData: Partial<ParsedResume> = {}
+): ParsedResume => {
   markdown = markdown.replace(/^```[a-zA-Z]*\n/, "").replace(/\n```$/, "").trim();
 
-  // ✅ Extract JSON block from markdown if OpenAI returned structured data
   const jsonMatch = RegExp(/```json\n([\s\S]*?)\n```/).exec(markdown);
   if (jsonMatch) {
     try {
@@ -39,24 +66,43 @@ export const parseResumeMarkdown = (markdown: string, inputData: any): Record<st
     }
   }
 
-
   console.warn("⚠️ No JSON block found in markdown. Falling back to section-based parsing.");
 
-  // ✅ Default resume structure (if JSON extraction fails)
-  const resume: Record<string, any> = {
-    name: inputData.name || "",
-    email: inputData.email || "",
-    phone: inputData.phone || "",
-    linkedin: inputData.linkedin || "",     // ✅ Add this
-    portfolio: inputData.portfolio || "",
+  const contactInfoRegex = {
+    name: /#\s+([A-Z][a-z]+\s[A-Z][a-z]+)/,
+    email: /[*_-]*Email[:：]*[*_-]*\s*([\w.-]+@[\w.-]+\.\w+)/i,
+    phone: /[*_-]*Phone[:：]*[*_-]*\s*([\d\-().\s]{10,})/i,
+    linkedin: /linkedin\.com\/in\/[^\s)]+/i,
+    portfolio: /https?:\/\/[^\s)]+/i,
+  };
+
+  const fallbackFields: Partial<ParsedResume> = {};
+
+  const nameMatch = RegExp(contactInfoRegex.name).exec(markdown);
+  const emailMatch = RegExp(contactInfoRegex.email).exec(markdown);
+  const phoneMatch = RegExp(contactInfoRegex.phone).exec(markdown);
+  const linkedinMatch = RegExp(contactInfoRegex.linkedin).exec(markdown);
+  const portfolioMatch = RegExp(contactInfoRegex.portfolio).exec(markdown);
+
+  if (nameMatch) fallbackFields.name = nameMatch[1];
+  if (emailMatch) fallbackFields.email = emailMatch[1];
+  if (phoneMatch) fallbackFields.phone = phoneMatch[1];
+  if (linkedinMatch) fallbackFields.linkedin = linkedinMatch[0];
+  if (portfolioMatch) fallbackFields.portfolio = portfolioMatch[0];
+
+  const resume: ParsedResume = {
+    name: fallbackFields.name || inputData.name || "",
+    email: fallbackFields.email || inputData.email || "",
+    phone: fallbackFields.phone || inputData.phone || "",
+    linkedin: fallbackFields.linkedin || inputData.linkedin || "",
+    portfolio: fallbackFields.portfolio || inputData.portfolio || "",
     summary: inputData.summary || "No summary provided.",
     experience: inputData.experience || [],
     education: inputData.education || [],
     skills: inputData.skills || ["No skills listed."],
-    certifications: inputData.certifications || ["No certifications listed."]
+    certifications: inputData.certifications || [{ name: "No certifications listed." }],
   };
 
-  // ✅ Extract sections from markdown if JSON parsing is unsuccessful
   const sections = markdown.split(/\n(?=## )/);
 
   for (const section of sections) {
@@ -67,7 +113,7 @@ export const parseResumeMarkdown = (markdown: string, inputData: any): Record<st
     let content = lines.slice(1).map(line => line.replace(/[*-]/g, "").trim()).filter(line => line.length > 0);
 
     switch (title.toLowerCase()) {
-      case "contact information": // ✅ ADDED
+      case "contact information":
         content.forEach((line) => {
           if (line.toLowerCase().includes("email:")) {
             resume.email = line.split(":")[1]?.trim() || inputData.email || "";
@@ -89,7 +135,7 @@ export const parseResumeMarkdown = (markdown: string, inputData: any): Record<st
         resume.skills = parseSkillsSection(content, inputData.skills || []) || ["No skills listed."];
         break;
       case "certifications":
-        resume.certifications = parseCertificationsSection(content, inputData.certifications || []) || ["No certifications listed."];
+        resume.certifications = parseCertificationsSection(content, inputData.certifications || []) || [{ name: "No certifications listed." }];
         break;
       default:
         break;
@@ -99,7 +145,6 @@ export const parseResumeMarkdown = (markdown: string, inputData: any): Record<st
   return resume;
 };
 
-// ✅ Function to Parse Experience Section
 const parseExperienceSection = (content: string[], inputExperience: any[]): any[] => {
   const experiences: any[] = [];
   let currentJob: any = null;
@@ -109,18 +154,15 @@ const parseExperienceSection = (content: string[], inputExperience: any[]): any[
       if (currentJob) experiences.push(currentJob);
       currentJob = { company: "", role: "", start_date: "", end_date: "", responsibilities: [] };
       currentJob.company = line.replace("### ", "").trim();
-    }
-    else if (currentJob && !currentJob.role) {
+    } else if (currentJob && !currentJob.role) {
       currentJob.role = line.trim();
-    }
-    else if (currentJob && !currentJob.start_date) {
+    } else if (currentJob && !currentJob.start_date) {
       const dates = line.split(" - ").map(d => d.trim());
       const startDate = formatDate(dates[0]);
       let endDate = dates.length > 1 ? dates[1] : "";
       currentJob.start_date = startDate;
       currentJob.end_date = endDate.toLowerCase() === "present" ? "Present" : formatDate(endDate);
-    }
-    else if (currentJob) {
+    } else if (currentJob) {
       currentJob.responsibilities.push(line.trim());
     }
   });
@@ -129,13 +171,11 @@ const parseExperienceSection = (content: string[], inputExperience: any[]): any[
   return experiences.length > 0 ? experiences : inputExperience;
 };
 
-// ✅ Function to Parse Skills Section
 const parseSkillsSection = (content: string[], inputSkills: string[]): string[] => {
   let skills: string[] = content.map(skill => skill.trim()).filter(skill => skill.length > 0);
   return skills.length > 0 ? skills : inputSkills;
 };
 
-// ✅ Function to Parse Certifications Section
 const parseCertificationsSection = (content: string[], inputCertifications: any[]): any[] => {
   const certifications = content.map(cert => {
     const parts = cert.split(",");
@@ -145,7 +185,6 @@ const parseCertificationsSection = (content: string[], inputCertifications: any[
   return certifications.length > 0 ? certifications : inputCertifications;
 };
 
-// ✅ Function to Parse Education Section
 const parseEducationSection = (content: string[], inputEducation: any[]): any[] => {
   const education: any[] = [];
   let currentEducation: any = {};
@@ -155,11 +194,9 @@ const parseEducationSection = (content: string[], inputEducation: any[]): any[] 
       currentEducation.graduation_year = line.replace("Graduation Year:", "").trim();
       education.push(currentEducation);
       currentEducation = {};
-    }
-    else if (!currentEducation?.degree) {
+    } else if (!currentEducation?.degree) {
       currentEducation.degree = line.trim();
-    }
-    else if (!currentEducation?.institution) {
+    } else if (!currentEducation?.institution) {
       currentEducation.institution = line.trim();
     }
   });
@@ -167,7 +204,6 @@ const parseEducationSection = (content: string[], inputEducation: any[]): any[] 
   return education.length > 0 ? education : inputEducation;
 };
 
-// ✅ Function to Format Dates
 const formatDate = (dateStr: string): string => {
   dateStr = dateStr.trim();
   const months: Record<string, string> = {
