@@ -38,28 +38,28 @@ export const generateResume = async (req: Request, res: Response): Promise<void>
 
     const aiResponse = await generateFromOpenAI(req.user.id, "resume", resumeData);
 
-    // // DEV MODE ONLY: override user ID manually
-    // const userId = req.user?.id ?? "dev-user-override-id";
-    // const aiResponse = await generateFromOpenAI(userId, "resume", resumeData);
-
-
     if (!aiResponse.success) {
       res.status(500).json({ error: aiResponse.message });
       return;
     }
 
-    // ✅ Convert Markdown to JSON before caching
-    const formattedResume = parseResumeMarkdown(aiResponse.message, req.body.resumeData);
+    // ✅ Strip code block if present
+    const cleanedMarkdown = aiResponse.message
+      .replace(/^```markdown\n/, "")
+      .replace(/\n```$/, "")
+      .trim();
+
+// ✅ Convert Markdown to JSON before caching
+    const formattedResume = parseResumeMarkdown(cleanedMarkdown, req.body.resumeData);
 
     console.log("✅ Parsed Resume JSON:", formattedResume);
 
-    // ✅ Store structured JSON in Redis
+// ✅ Store structured JSON in Redis
     await redisClient.set(cacheKey, JSON.stringify(formattedResume), { EX: 86400 });
     console.log("📝 Resume stored in Redis for future use.");
 
-    const resumeHash = crypto.createHash("sha256").update(aiResponse.message).digest("hex");
-    await saveToPostgreSQL(resumeHash, aiResponse.message, req.user?.id ?? "guest", formattedResume);
-
+    const resumeHash = crypto.createHash("sha256").update(cleanedMarkdown).digest("hex");
+    await saveToPostgreSQL(resumeHash, cleanedMarkdown, req.user?.id ?? "guest", formattedResume);
 
     res.status(200).json({ resume: formattedResume });
   } catch (error) {
