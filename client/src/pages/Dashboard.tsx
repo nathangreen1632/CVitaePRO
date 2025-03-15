@@ -5,10 +5,8 @@ import ResumeList from "../components/ResumeList.jsx";
 import ResumeActionsPanel from "../components/ResumeActionsPanel.jsx";
 import RecentActivityLog from "../components/RecentActivityLog.jsx";
 import { useDashboardState } from "../hooks/useDashboardState.js";
-import {
-  handleEnhanceResume,
-  handleScoreResume,
-} from "../helpers/resumeHandlers";
+import { handleEnhanceResume, handleScoreResume } from "../helpers/resumeHandlers";
+
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -169,7 +167,7 @@ const Dashboard: React.FC = () => {
             resumes={resumes}
             jobDescriptions={jobDescriptions}
             setJobDescriptions={setJobDescriptions}
-            handleScoreResume={(resumeId, resumeSnippet) =>
+            handleScoreResume={({ resumeId, resumeSnippet }: { resumeId: string; resumeSnippet: string }) =>
               handleScoreResume({
                 resumeId,
                 resumeSnippet,
@@ -178,8 +176,10 @@ const Dashboard: React.FC = () => {
               })
             }
             atsScores={atsScores}
+            setAtsScores={setAtsScores} // ✅ FINAL REQUIRED PROP
             refreshResumes={refreshResumes}
           />
+
 
         )}
       </main>
