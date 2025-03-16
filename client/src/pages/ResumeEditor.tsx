@@ -53,21 +53,99 @@ const ResumeEditor: React.FC = () => {
     }
   };
 
-  const handleDownload = () => {
-    const blob = new Blob([enhancedText], { type: "text/plain" });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "Enhanced_Resume.txt";
-    a.click();
-    window.URL.revokeObjectURL(url);
+  const handleDownloadPDF = async () => {
+    setError(null);
+
+    const payload = {
+      resume: enhancedText || resumeText,
+      name: "Resume", // Or add a name input if needed
+    };
+
+    const token = localStorage.getItem("token");
+
+    try {
+      const response = await fetch("/api/resume/download", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const contentType = response.headers.get("Content-Type");
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        setError(data?.error || "Failed to download PDF.");
+        return;
+      }
+
+      if (!contentType?.includes("application/pdf")) {
+        setError("Unexpected content. Expected a PDF.");
+        return;
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "Enhanced_Resume.pdf";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("PDF download error:", err);
+      setError("Could not download PDF.");
+    }
   };
+
+  const handleDownloadDocx = async () => {
+    setError(null);
+
+    const payload = {
+      resume: enhancedText || resumeText,
+      name: "Resume", // Optional
+    };
+
+    const token = localStorage.getItem("token");
+
+    try {
+      const response = await fetch("/api/resume/download-docx", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        setError(data?.error || "Failed to download DOCX.");
+        return;
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "Enhanced_Resume.docx";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("DOCX download error:", err);
+      setError("Could not download DOCX.");
+    }
+  };
+
 
   const handleClear = () => {
     setResumeText("");
     setEnhancedText("");
     setError(null);
   };
+
+  const sharedButtonClass = "min-w-[10rem] text-center font-semibold px-4 py-2 rounded-lg";
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-6">
@@ -78,19 +156,22 @@ const ResumeEditor: React.FC = () => {
 
         {/* Upload + Buttons */}
         <div className="flex justify-between flex-wrap gap-4 mb-4">
-        <ResumeUpload onParse={setResumeText} />
+
+          <ResumeUpload onParse={setResumeText} />
           <button
             onClick={handleClear}
-            className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
+            className={`${sharedButtonClass} bg-red-700 text-white hover:bg-red-900`}
           >
-            Clear Editor
+            {loading ? "Clearing..." : "Clear Editor"}
           </button>
+
           <button
             onClick={handleEnhance}
-            className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600"
+            className={`${sharedButtonClass} bg-green-700 text-white hover:bg-green-900`}
           >
             {loading ? "Enhancing..." : "Enhance"}
           </button>
+
         </div>
 
 
@@ -101,16 +182,25 @@ const ResumeEditor: React.FC = () => {
           className="w-full h-200 p-3 border rounded bg-gray-100 dark:bg-gray-700 text-black dark:text-white"
           value={enhancedText || resumeText}
           onChange={(e) => setEnhancedText(e.target.value)}
+          aria-label="Resume and cover letter editor. Enter or modify your content here."
         />
+
 
         {/* Download */}
         {enhancedText && (
-          <div className="text-center mt-4">
+          <div className="text-center mt-4 space-x-4">
             <button
-              onClick={handleDownload}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded"
+              onClick={handleDownloadPDF}
+              className="bg-blue-600 hover:bg-blue-800 text-white font-bold py-2 px-6 rounded"
             >
-              Download Enhanced
+              Download PDF
+            </button>
+
+            <button
+              onClick={handleDownloadDocx}
+              className="bg-purple-600 hover:bg-purple-800 text-white font-bold py-2 px-6 rounded"
+            >
+              Download DOCX
             </button>
           </div>
         )}
