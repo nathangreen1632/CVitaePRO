@@ -70,7 +70,7 @@ const Register = (): React.JSX.Element => {
           className="w-full p-2 mb-4 border border-black rounded focus:outline-none focus:ring-2 focus:ring-green-500"
         />
 
-        <button type="submit" className="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600 transition">
+        <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 transition">
           Register
         </button>
       </form>
