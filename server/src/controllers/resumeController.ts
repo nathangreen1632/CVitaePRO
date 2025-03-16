@@ -8,6 +8,7 @@ import { AuthenticatedRequest } from "../middleware/authMiddleware.js";
 import PDFDocument from "pdfkit"; // ✅ For resume PDF generation
 import { parseResumeMarkdown } from "../utils/parseResumeMarkdown.js";
 import {saveToPostgreSQL} from "../services/postgreSQLService.js"; // ✅ Adjust path if needed
+import { Document, Packer, Paragraph, TextRun } from "docx";
 
 
 
@@ -387,6 +388,67 @@ export const downloadResume = async (req: AuthenticatedRequest, res: Response): 
   } catch (error) {
     console.error("❌ Error downloading resume:", error);
     res.status(500).json({ error: "Failed to download resume." });
+  }
+};
+
+// ✅ Export this new simplified controller
+
+
+export const downloadEditorDocx: RequestHandler = async (req, res): Promise<void> => {
+  try {
+    const { resume, name } = req.body;
+
+    if (!resume || typeof resume !== "string") {
+      res.status(400).json({ error: "Missing or invalid resume text." });
+      return;
+    }
+
+    const doc = new Document({
+      sections: [
+        {
+          children: [
+            new Paragraph({
+              children: [new TextRun({ text: resume, font: "Arial", size: 24 })],
+            }),
+          ],
+        },
+      ],
+    });
+
+    const buffer = await Packer.toBuffer(doc);
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+    res.setHeader("Content-Disposition", `attachment; filename="${name || "Enhanced_Resume"}.docx"`);
+    res.send(buffer);
+  } catch (err) {
+    console.error("❌ DOCX Editor Download Error:", err);
+    res.status(500).json({ error: "Failed to generate DOCX from editor text." });
+  }
+};
+
+export const downloadEditorPdf: RequestHandler = async (req, res): Promise<void> => {
+  try {
+    const { resume, name } = req.body;
+
+    if (!resume || typeof resume !== "string") {
+      res.status(400).json({ error: "Missing or invalid resume text." });
+      return;
+    }
+
+    const doc = new PDFDocument();
+    const filename = `${name || "Enhanced_Resume"}.pdf`;
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+
+    doc.pipe(res);
+    doc.font("Helvetica").fontSize(12).text(resume, {
+      align: "left",
+      lineGap: 4,
+    });
+    doc.end();
+  } catch (err) {
+    console.error("❌ PDF Editor Download Error:", err);
+    res.status(500).json({ error: "Failed to generate PDF from editor text." });
   }
 };
 
