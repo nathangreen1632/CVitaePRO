@@ -14,11 +14,11 @@ const RecentActivityLog: React.FC<RecentActivityLogProps> = ({ activityLog }) =>
       el.scrollIntoView({ behavior: "smooth", block: "start" });
 
       // ✅ Add glow class
-      el.classList.add("ring-4", "ring-yellow-300", "animate-pulse");
+      el.classList.add("ring-10", "ring-blue-800", "animate-pulse");
 
       // ❌ Remove it after 1.5 seconds
       setTimeout(() => {
-        el.classList.remove("ring-4", "ring-yellow-300", "animate-pulse");
+        el.classList.remove("ring-10", "ring-blue-800", "animate-pulse");
       }, 1500);
     }
   };
@@ -38,11 +38,11 @@ const RecentActivityLog: React.FC<RecentActivityLogProps> = ({ activityLog }) =>
                 >
                   {item.includes("Generated") ? (
                     <>
-                      Generated Resume - <span className="text-green-500">{resumeName}</span>
+                      Generated Resume - <span className="text-green-400">{resumeName}</span>
                     </>
                   ) : (
                     <>
-                      Edited Resume - <span className="text-blue-500">{resumeName}</span>
+                      Edited Resume - <span className="text-blue-400">{resumeName}</span>
                     </>
                   )}
                 </button>
