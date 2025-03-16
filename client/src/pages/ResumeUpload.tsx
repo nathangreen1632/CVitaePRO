@@ -34,7 +34,7 @@ const ResumeUpload: React.FC<{ onParse: (text: string) => void }> = ({ onParse }
     formData.append("resume", file);
 
     try {
-      const response = await fetch("http://localhost:3000/api/resume/parse-pdf", {
+      const response = await fetch("/api/resume/parse-pdf", {
         method: "POST",
         body: formData,
       });
