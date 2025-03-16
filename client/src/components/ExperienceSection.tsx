@@ -167,7 +167,7 @@ const ExperienceSection: React.FC<Props> = ({ resumeData, setResumeData }) => {
             {exp.responsibilities.map((r) => (
               <span
                 key={r}
-                className="bg-blue-300 dark:bg-blue-700 text-black dark:text-white px-3 py-1 rounded flex items-center gap-2"
+                className="bg-blue-300 dark:bg-gray-900 text-black dark:text-white px-3 py-1 rounded flex items-center gap-2"
               >
                 {r}
                 <button
@@ -184,7 +184,7 @@ const ExperienceSection: React.FC<Props> = ({ resumeData, setResumeData }) => {
           <button
             type="button"
             onClick={() => removeExperience(exp.id)}
-            className="text-red-500 hover:text-red-700 text-sm"
+            className="text-red-300 hover:text-red-700 text-sm"
           >
             ❌ Remove Experience
           </button>
