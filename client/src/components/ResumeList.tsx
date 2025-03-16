@@ -107,7 +107,7 @@ const ResumeList: React.FC<ResumeListProps> = ({
                 onClick={() =>
                   handleScoreResume(resume.id, resume.resumeSnippet)
                 }
-                className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded mt-2"
+                className="bg-yellow-700 hover:bg-yellow-900 text-white px-4 py-2 rounded mt-2"
               >
                 Score Resume
               </button>
