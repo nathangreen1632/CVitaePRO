@@ -8,7 +8,7 @@ const cleanText = (input: string): string =>
     .replace(/```[\s\S]*?```/g, "")          // remove fenced code blocks
     .replace(/^#+\s*/gm, "")                 // remove heading markers (#, ##)
     .replace(/[*_~`>]/g, "")                 // remove symbols
-    .replace(/\[([^\]]+)]\([^)]+\)/g, "$1")  // convert markdown links to plain text
+    .replace(/\[([^\]]+)]\([^)]+\)/g, "$1")  // convert mark down links to plain text
     .replace(/^- /gm, "")                    // remove dashes from bullet lists
     .replace(/\n{2,}/g, "\n")                // normalize line breaks
     .trim();
@@ -55,7 +55,6 @@ export const convertResumeToHTML = (resume: {
       : `${cleanStart} – Present`;
   };
 
-  // ✅ Handle summary fallback
   const rawSummary = resume.summary || "";
   const cleanedSummary = cleanText(rawSummary);
   const summaryText = cleanedSummary.length > 0
@@ -126,8 +125,6 @@ export const convertResumeToHTML = (resume: {
   `;
 };
 
-
-
 export const handleGenerateResume = async ({
                                              resumeData,
                                              setLoading,
@@ -146,7 +143,7 @@ export const handleGenerateResume = async ({
 
   const formattedResumeData = {
     type: "resume",
-    jobDescription: resumeData.jobDescription || "", // ✅ Add job description to top-level request
+    jobDescription: resumeData.jobDescription || "",
     resumeData: {
       name: resumeData.name,
       email: resumeData.email,
@@ -175,7 +172,6 @@ export const handleGenerateResume = async ({
       })),
     },
   };
-
 
   try {
     const token = localStorage.getItem("token");
@@ -216,13 +212,11 @@ export const handleEnhanceResume = async ({
                                             setLoading,
                                             setError,
                                             setActivityLog,
-                                            fetchResumes,
                                           }: {
   resumeData: any;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   setError: React.Dispatch<React.SetStateAction<string | null>>;
   setActivityLog: React.Dispatch<React.SetStateAction<string[]>>;
-  fetchResumes: () => Promise<void>;
 }) => {
   setLoading(true);
   setError(null);
@@ -248,7 +242,6 @@ export const handleEnhanceResume = async ({
       return;
     }
 
-    // ✅ Parse OpenAI-enhanced markdown into structured resume object
     const enhancedResume = parseResumeMarkdown(data.resume, resumeData);
 
     const activityItem = `Enhanced Resume - ${enhancedResume.name || "Untitled Resume"}`;
@@ -258,8 +251,6 @@ export const handleEnhanceResume = async ({
     ];
     localStorage.setItem("activityLog", JSON.stringify(updatedLog));
     setActivityLog(updatedLog);
-
-    await fetchResumes();
   } catch (error) {
     console.error("❌ Error enhancing resume:", error);
     setError("Something went wrong while enhancing the resume.");
