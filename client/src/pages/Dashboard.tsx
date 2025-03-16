@@ -181,15 +181,15 @@ const Dashboard: React.FC = () => {
         <RecentActivityLog activityLog={activityLog} />
 
         <ResumeActionsPanel
-          onEnhance={() =>
-            handleEnhanceResume({
+          onEnhance={async () => {
+            await handleEnhanceResume({
               resumeData,
               setLoading,
               setError,
               setActivityLog,
-              fetchResumes,
-            })
-          }
+            });
+            await fetchResumes(); // ✅ Call refresh here manually after enhancement
+          }}
         />
 
         {error && <p className="text-red-500 text-center mb-4">{error}</p>}
