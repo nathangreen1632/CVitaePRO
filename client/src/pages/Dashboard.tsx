@@ -122,14 +122,14 @@ const Dashboard: React.FC = () => {
       localStorage.setItem("resumes", JSON.stringify(formattedResumes));
       setResumes(formattedResumes);
 
-      if (formattedResumes.length > resumes.length) {
-        const last = formattedResumes[formattedResumes.length - 1];
-        const scrollId = `resume-${last.id}-${last.name.replace(/\s+/g, "-")}`;
-        setTimeout(() => {
-          const el = document.getElementById(scrollId);
-          if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-        }, 200);
-      }
+      // if (formattedResumes.length > resumes.length) {
+      //   const last = formattedResumes[formattedResumes.length - 1];
+      //   const scrollId = `resume-${last.id}-${last.name.replace(/\s+/g, "-")}`;
+      //   setTimeout(() => {
+      //     const el = document.getElementById(scrollId);
+      //     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      //   }, 200);
+      // }
 
       const log = buildActivityLogFromResumes(formattedResumes);
       localStorage.setItem("activityLog", JSON.stringify(log));
@@ -173,9 +173,16 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-      <HeaderBar title="Dashboard" />
+      {/* Semantic landmark: Header */}
+      <header>
+        <HeaderBar title="Dashboard" />
+        <h1 className="sr-only" aria-label="Dashboard Page">
+          Dashboard
+        </h1>
+      </header>
 
-      <main className="flex-grow container mx-auto p-6">
+      {/* Semantic landmark: Main */}
+      <main className="flex-grow container mx-auto p-6" role="main">
         <h2 className="text-2xl font-semibold mb-4">Welcome to your Dashboard</h2>
 
         <RecentActivityLog activityLog={activityLog} />
@@ -214,6 +221,7 @@ const Dashboard: React.FC = () => {
         )}
       </main>
     </div>
+
   );
 };
 
