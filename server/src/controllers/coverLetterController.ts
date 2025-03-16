@@ -1,7 +1,9 @@
 import { Request, Response } from "express";
+import PDFDocument from "pdfkit";
 import { callOpenAI } from "../utils/openaiUtil.js";
 import { coverLetterPrompt, userCoverLetterDirections } from "../prompts/coverLetterDirections.js";
 import logger from "../register/logger.js"; // ✅ Use structured logging
+import { generateCoverLetterDocx } from "../utils/docxUtil.js";
 
 export const generateCoverLetter = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -69,3 +71,55 @@ export const generateCoverLetter = async (req: Request, res: Response): Promise<
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+// 📄 Cover Letter PDF Download Handler
+export const downloadCoverLetter = (req: Request, res: Response): void => {
+  const { coverLetter, name } = req.body;
+
+  if (!coverLetter || typeof coverLetter !== "string") {
+    logger.warn("⚠️ Missing or invalid cover letter text.");
+    res.status(400).json({ error: "Missing or invalid cover letter text." });
+    return;
+  }
+
+  logger.info("📄 Generating PDF for cover letter download...");
+
+  const doc = new PDFDocument();
+
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename=Cover_Letter_${name || "Applicant"}.pdf`
+  );
+
+  doc.pipe(res);
+  doc.font("Times-Roman").fontSize(12).text(coverLetter, {
+    align: "left",
+    lineGap: 4,
+  });
+  doc.end();
+};
+
+
+
+export const downloadCoverLetterDocx = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { coverLetter, name } = req.body;
+
+    if (!coverLetter || !name) {
+      res.status(400).json({ error: "Cover letter content and applicant name are required." });
+      return;
+    }
+
+    const buffer = await generateCoverLetterDocx(coverLetter);
+    const fileName = `Cover_Letter_${name.replace(/\s+/g, "_")}.docx`;
+
+    res.setHeader("Content-Disposition", `attachment; filename=${fileName}`);
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+    res.send(buffer);
+  } catch (error) {
+    console.error("❌ Error generating .docx file:", error);
+    res.status(500).json({ error: "Failed to generate .docx file." });
+  }
+};
+
