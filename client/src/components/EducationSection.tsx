@@ -70,7 +70,7 @@ const EducationSection: React.FC<Props> = ({ resumeData, setResumeData }) => {
           <button
             type="button"
             onClick={() => removeEducation(edu.id)}
-            className="mt-2 text-red-500 hover:text-red-700 text-sm"
+            className="mt-2 text-red-300 hover:text-red-700 text-sm"
           >
             ❌ Remove Education
           </button>
