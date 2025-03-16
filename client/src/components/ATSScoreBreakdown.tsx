@@ -54,8 +54,8 @@ const ATSScoreBreakdown: React.FC<ATSScoreBreakdownProps> = ({
         <div className="mt-6 bg-red-800/40 p-4 rounded-lg border border-red-500">
           <h3 className="text-red-400 font-semibold mb-2">Formatting Issues:</h3>
           <ul className="list-disc list-inside text-sm text-red-300">
-            {formattingErrors.map((error, idx) => (
-              <li key={idx}>{error}</li>
+            {formattingErrors.map((error) => (
+              <li key={crypto.randomUUID()}>{error}</li>
             ))}
           </ul>
         </div>
