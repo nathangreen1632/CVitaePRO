@@ -122,15 +122,6 @@ const Dashboard: React.FC = () => {
       localStorage.setItem("resumes", JSON.stringify(formattedResumes));
       setResumes(formattedResumes);
 
-      // if (formattedResumes.length > resumes.length) {
-      //   const last = formattedResumes[formattedResumes.length - 1];
-      //   const scrollId = `resume-${last.id}-${last.name.replace(/\s+/g, "-")}`;
-      //   setTimeout(() => {
-      //     const el = document.getElementById(scrollId);
-      //     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-      //   }, 200);
-      // }
-
       const log = buildActivityLogFromResumes(formattedResumes);
       localStorage.setItem("activityLog", JSON.stringify(log));
       setActivityLog(log);
@@ -196,7 +187,7 @@ const Dashboard: React.FC = () => {
               setActivityLog,
             });
             await fetchResumes(); // ✅ Call refresh here manually after enhancement
-          }}
+          }} onGenerate={() => navigate("/resume")}
         />
 
         {error && <p className="text-red-500 text-center mb-4">{error}</p>}
@@ -208,16 +199,12 @@ const Dashboard: React.FC = () => {
             resumes={resumes}
             jobDescriptions={jobDescriptions}
             setJobDescriptions={setJobDescriptions}
-            handleScoreResume={(resumeId) =>
-              handleScoreResume({
-                resumeId,
-                jobDescription: jobDescriptions[resumeId] || "",
-                setAtsScores,
-              })
-            }
             atsScores={atsScores}
-            refreshResumes={refreshResumes}
+            setAtsScores={setAtsScores}
+            refreshResumes={refreshResumes} // ✅ FIXED: now using your custom function
+            handleScoreResume={handleScoreResume}
           />
+
         )}
       </main>
     </div>

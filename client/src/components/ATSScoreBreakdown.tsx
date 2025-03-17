@@ -46,9 +46,9 @@ const ATSScoreBreakdown: React.FC<ATSScoreBreakdownProps> = ({
         <span className="text-5xl font-bold text-green-400">{Math.round(atsScore)}%</span>
       </div>
 
-      <ProgressBar label="Keyword Match" value={keywordMatch} max={100} />
-      <ProgressBar label="Soft Skills Match" value={softSkillsMatch} max={20} />
-      <ProgressBar label="Industry Terms Match" value={industryTermsMatch} max={25} />
+      <ProgressBar label="Keyword Match" value={keywordMatch} max={30} />
+      <ProgressBar label="Soft Skills Match" value={softSkillsMatch} max={28} />
+      <ProgressBar label="Industry Terms Match" value={industryTermsMatch} max={20} />
 
       {formattingErrors.length > 0 && (
         <div className="mt-6 bg-red-800/40 p-4 rounded-lg border border-red-500">

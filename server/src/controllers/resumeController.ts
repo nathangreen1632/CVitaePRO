@@ -1,14 +1,14 @@
 import { RequestHandler, Request, Response } from "express";
-import pool from "../db/pgClient.js"; // ✅ Import PostgreSQL client
+import pool from "../db/pgClient.js";
 import { parseResumeFromPDF } from "../services/pdfResumeParser.js";
 import { getCachedResponse, setCachedResponse, deleteCachedResponse } from "../services/cacheService.js";
-import { generateFromOpenAI } from "../services/openaiService.js"; // ✅ Import OpenAI processing
+import { generateFromOpenAI } from "../services/openaiService.js";
 import { validate as uuidValidate } from "uuid";
 import { AuthenticatedRequest } from "../middleware/authMiddleware.js";
-import PDFDocument from "pdfkit"; // ✅ For resume PDF generation
+import PDFDocument from "pdfkit";
 import { parseResumeMarkdown } from "../utils/parseResumeMarkdown.js";
-import {saveToPostgreSQL} from "../services/postgreSQLService.js"; // ✅ Adjust path if needed
-import { Document, Packer, Paragraph, TextRun } from "docx";
+import { saveToPostgreSQL } from "../services/postgreSQLService.js";
+import { Document, Packer, Paragraph, TextRun, HeadingLevel } from "docx";
 
 
 
@@ -270,10 +270,11 @@ export const deleteResume = async (req: Request, res: Response): Promise<void> =
 };
 
 // ✅ New - Download Resume as PDF
-export const downloadResume = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+export const downloadResume: RequestHandler = async (req, res) => {
   try {
     const { id: resumeId } = req.params;
-    const userId = req.user?.id;
+    const { format = "pdf" } = req.query;
+    const userId = (req as AuthenticatedRequest).user?.id;
 
     if (!resumeId || !uuidValidate(resumeId)) {
       res.status(400).json({ error: "Invalid resume ID." });
@@ -288,7 +289,6 @@ export const downloadResume = async (req: AuthenticatedRequest, res: Response): 
       [resumeId, userId]
     );
 
-
     if (result.rowCount === 0) {
       res.status(404).json({ error: "Resume not found." });
       return;
@@ -296,13 +296,12 @@ export const downloadResume = async (req: AuthenticatedRequest, res: Response): 
 
     const resume = result.rows[0];
 
-    // ✅ Strip markdown and get structured data
     const parsed = parseResumeMarkdown(resume.content, {
       name: resume.title,
-      email: resume.email || "",               // ✅ Pass fallback
-      phone: resume.phone || "",               // ✅ Pass fallback
-      linkedin: resume.linkedin || "",         // ✅ Optional: future-proof
-      portfolio: resume.portfolio || "",       // ✅ Optional: future-proof
+      email: resume.email || "",
+      phone: resume.phone || "",
+      linkedin: resume.linkedin || "",
+      portfolio: resume.portfolio || "",
       summary: resume.extracted_text,
       experience: resume.experience,
       education: resume.education,
@@ -311,85 +310,158 @@ export const downloadResume = async (req: AuthenticatedRequest, res: Response): 
     });
 
     const formatWorkDates = (start: string, end?: string): string => {
-      if (!start || start.trim() === "") {
-        return ""; // Don't throw here — handle silently server-side
-      }
-
+      if (!start || start.trim() === "") return "";
       const trimmedStart = start.trim();
       const trimmedEnd = end?.trim() ?? "";
-
-      if (trimmedStart && trimmedEnd) {
-        return `${trimmedStart} to ${trimmedEnd}`;
-      } else if (trimmedStart && !trimmedEnd) {
-        return `${trimmedStart} to Present`;
-      } else {
-        return "";
-      }
+      if (trimmedStart && trimmedEnd) return `${trimmedStart} to ${trimmedEnd}`;
+      if (trimmedStart && !trimmedEnd) return `${trimmedStart} to Present`;
+      return "";
     };
 
+    if (format === "docx") {
+      const doc = new Document({
+        sections: [
+          {
+            children: [
+              new Paragraph({
+                children: [
+                  new TextRun({ text: parsed.name, bold: true, size: 32, font: "Arial" }),
+                ],
+                spacing: { after: 300 },
+              }),
+              new Paragraph({
+                children: [
+                  new TextRun({ text: parsed.summary, font: "Arial" }),
+                ],
+                spacing: { after: 300 },
+              }),
+              new Paragraph({
+                text: "Experience",
+                heading: HeadingLevel.HEADING_2,
+              }),
+              ...parsed.experience.map((exp: any) =>
+                new Paragraph({
+                  children: [
+                    new TextRun({ text: `${exp.company} — ${exp.role}`, bold: true, font: "Arial" }),
+                    new TextRun({ text: "\n", break: 1 }),
+                    new TextRun({ text: formatWorkDates(exp.start_date, exp.end_date), font: "Arial" }),
+                    ...exp.responsibilities.map((r: string) =>
+                      new TextRun({ text: `\n• ${r}`, font: "Arial" })
+                    ),
+                  ],
+                  spacing: { after: 200 },
+                })
+              ),
+              new Paragraph({
+                text: "Education",
+                heading: HeadingLevel.HEADING_2,
+              }),
+              ...parsed.education.map((edu: any) =>
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: `${edu.degree} at ${edu.institution} (${edu.graduation_year})`,
+                      font: "Arial",
+                    }),
+                  ],
+                  spacing: { after: 200 },
+                })
+              ),
+              new Paragraph({ text: "Skills", heading: HeadingLevel.HEADING_2 }),
+              ...parsed.skills.map((skill: string) =>
+                new Paragraph({
+                  children: [new TextRun({ text: skill, font: "Arial" })],
+                  spacing: { after: 100 },
+                })
+              ),
+              new Paragraph({ text: "Certifications", heading: HeadingLevel.HEADING_2 }),
+              ...parsed.certifications.map((cert: any) =>
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: cert.year ? `${cert.name} (${cert.year})` : cert.name,
+                      font: "Arial",
+                    }),
+                  ],
+                  spacing: { after: 100 },
+                })
+              ),
+            ],
+          },
+        ],
+      });
 
+      const buffer = await Packer.toBuffer(doc);
+      res.setHeader("Content-Disposition", `attachment; filename=\"${parsed.name}-resume.docx\"`);
+      res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+      res.send(buffer);
+      return;
+    } else {
+      const doc = new PDFDocument();
+      const filename = `${parsed.name}-resume.pdf`;
 
-    // ✅ Create PDF
-    const doc = new PDFDocument();
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `attachment; filename="${resume.title || "resume"}.pdf"`);
+      res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+      res.setHeader("Content-Type", "application/pdf");
 
-    doc.pipe(res);
-    doc.fontSize(20).text(parsed.name || "Untitled Resume", { underline: true });
-    doc.moveDown();
+      doc.pipe(res);
+      doc.fontSize(20).text(parsed.name || "Untitled Resume", { underline: true });
+      doc.moveDown();
 
-    if (parsed.email) doc.fontSize(12).text(`Email: ${parsed.email}`);
-    if (parsed.phone) doc.text(`Phone: ${parsed.phone}`);
-    if (parsed.linkedin) doc.text(`LinkedIn: ${parsed.linkedin}`);
-    if (parsed.portfolio) doc.text(`Portfolio: ${parsed.portfolio}`);
-    doc.moveDown();
+      if (parsed.email) doc.fontSize(12).text(`Email: ${parsed.email}`);
+      if (parsed.phone) doc.text(`Phone: ${parsed.phone}`);
+      if (parsed.linkedin) doc.text(`LinkedIn: ${parsed.linkedin}`);
+      if (parsed.portfolio) doc.text(`Portfolio: ${parsed.portfolio}`);
+      doc.moveDown();
 
-    doc.fontSize(14).text("Summary", { underline: true });
-    doc.fontSize(12).text(parsed.summary);
-    doc.moveDown();
+      doc.fontSize(14).text("Summary", { underline: true });
+      doc.fontSize(12).text(parsed.summary);
+      doc.moveDown();
 
-    doc.fontSize(14).text("Experience", { underline: true });
-    parsed.experience.forEach((job: any) => {
-      doc.fontSize(12).text(`${job.company} — ${job.role}`);
-      doc.text(formatWorkDates(job.start_date, job.end_date));
-      job.responsibilities.forEach((r: string) => {
-        doc.text(`• ${r}`);
+      doc.fontSize(14).text("Experience", { underline: true });
+      parsed.experience.forEach((job: any) => {
+        doc.fontSize(12).text(`${job.company} — ${job.role}`);
+        doc.text(formatWorkDates(job.start_date, job.end_date));
+        job.responsibilities.forEach((r: string) => {
+          doc.text(`• ${r}`);
+        });
+        doc.moveDown();
+      });
+
+      doc.fontSize(14).text("Education", { underline: true });
+      parsed.education.forEach((edu: any) => {
+        doc.fontSize(12).text(`${edu.degree} at ${edu.institution} (${edu.graduation_year})`);
       });
       doc.moveDown();
-    });
 
-    doc.fontSize(14).text("Education", { underline: true });
-    parsed.education.forEach((edu: any) => {
-      doc.fontSize(12).text(`${edu.degree} at ${edu.institution} (${edu.graduation_year})`);
-    });
-    doc.moveDown();
+      doc.fontSize(14).text("Skills", { underline: true });
+      parsed.skills.forEach((line: string) => {
+        const [label, content] = line.split(":".trim());
+        if (label && content) {
+          doc.fontSize(12).text(`${label}: ${content}`);
+        } else {
+          doc.fontSize(12).text(line);
+        }
+      });
+      doc.moveDown();
 
-    doc.fontSize(14).text("Skills", { underline: true });
-    parsed.skills.forEach((line: string) => {
-      const [label, content] = line.split(":").map(str => str.trim());
-      if (label && content) {
-        doc.fontSize(12).text(`${label}: ${content}`);
-      } else {
+      doc.fontSize(14).text("Certifications", { underline: true });
+      parsed.certifications.forEach((cert: any) => {
+        const hasYear = cert.year && cert.year.trim().length > 0;
+        const line = hasYear ? `${cert.name} (${cert.year})` : `${cert.name}`;
         doc.fontSize(12).text(line);
-      }
-    });
-    doc.moveDown();
+      });
 
-
-    doc.fontSize(14).text("Certifications", { underline: true });
-    parsed.certifications.forEach((cert: any) => {
-      const hasYear = cert.year && cert.year.trim().length > 0;
-      const line = hasYear ? `${cert.name} (${cert.year})` : `${cert.name}`;
-      doc.fontSize(12).text(line);
-    });
-
-
-    doc.end();
+      doc.end();
+    }
   } catch (error) {
     console.error("❌ Error downloading resume:", error);
     res.status(500).json({ error: "Failed to download resume." });
   }
 };
+
+
+
+
 
 // ✅ Export this new simplified controller
 

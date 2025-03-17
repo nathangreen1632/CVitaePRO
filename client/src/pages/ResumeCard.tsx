@@ -61,19 +61,25 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showDownloadModal, setShowDownloadModal] = useState(false);
+
+
+
 
   const handleEdit = () => {
     window.location.href = `/edit-resume/${id}`;
   };
 
-  const handleDownload = async () => {
+
+
+  const handleDownload = async (format: "pdf" | "docx") => {
     setIsDownloading(true);
     setError(null);
 
     const token = localStorage.getItem("token");
 
     try {
-      const response = await fetch(`/api/resume/${id}/download`, {
+      const response = await fetch(`/api/resume/${id}/download?format=${format}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -88,17 +94,20 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", `${name}-resume.pdf`);
+      link.setAttribute("download", `${name}-resume.${format}`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     } catch (error) {
       console.error("Error downloading resume:", error);
       setError("Something went wrong while downloading.");
+    } finally {
+      setIsDownloading(false);
+      setShowDownloadModal(false); // Close modal after download
     }
-
-    setIsDownloading(false);
   };
+
+
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -145,11 +154,35 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
     setIsEnhancing(true);
     setError(null);
 
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      setError("You're not logged in.");
+      setIsEnhancing(false);
+      return;
+    }
+
+    const resumeData = {
+      name,
+      email,
+      phone,
+      linkedin,
+      portfolio,
+      summary,
+      experience,
+      education,
+      skills,
+      certifications,
+    };
+
     try {
       const response = await fetch("/api/openai/enhance-resume", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ resumeId: id, resumeText: resumeSnippet }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ resumeData }),
       });
 
       if (!response.ok) {
@@ -157,6 +190,19 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
         console.error("❌ Failed to enhance resume:", errorData);
         setError("Failed to enhance resume.");
         return;
+      }
+
+      const data = await response.json();
+      const enhancedResume = data.resume;
+
+      // ✅ Update localStorage with enhanced data
+      const stored = localStorage.getItem("resumes");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        const updated = parsed.map((r: { id: string }) =>
+          r.id === id ? { ...r, ...enhancedResume } : r
+        );
+        localStorage.setItem("resumes", JSON.stringify(updated));
       }
 
       refreshResumes();
@@ -167,6 +213,9 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
       setIsEnhancing(false);
     }
   };
+
+
+
 
   function formatWorkDates(startDate: string, endDate: string): string {
     const cleanStart = startDate?.trim();
@@ -341,12 +390,12 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
           Edit
         </button>
         <button
-          onClick={handleDownload}
-          disabled={isDownloading}
-          className="bg-green-700 px-4 py-2 rounded-lg hover:bg-green-800 transition"
+          onClick={() => setShowDownloadModal(true)}
+          className="bg-green-700 px-4 py-2 rounded-lg hover:bg-green-900 transition"
         >
-          {isDownloading ? "Downloading..." : "Download"}
+          Download
         </button>
+
         <button
           onClick={handleEnhance}
           disabled={isEnhancing}
@@ -362,6 +411,44 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
           {isDeleting ? "Deleting..." : "Delete"}
         </button>
       </div>
+      {showDownloadModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex justify-center items-center z-50">
+          <div className="bg-gray-800 text-white p-6 rounded-2xl shadow-2xl w-[320px] border border-gray-600">
+            <h3 className="text-xl font-semibold mb-5 text-center">Select Download Format</h3>
+
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => handleDownload("pdf")}
+                disabled={isDownloading}
+                className={`${
+                  isDownloading ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-900"
+                } bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition`}
+              >
+                {isDownloading ? "Downloading..." : "Download PDF"}
+              </button>
+
+              <button
+                onClick={() => handleDownload("docx")}
+                disabled={isDownloading}
+                className={`${
+                  isDownloading ? "opacity-50 cursor-not-allowed" : "hover:bg-purple-900"
+                } bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition`}
+              >
+                {isDownloading ? "Downloading..." : "Download DOCX"}
+              </button>
+
+
+              <button
+                onClick={() => setShowDownloadModal(false)}
+                className="text-sm text-gray-400 hover:text-white mt-4 text-center transition"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
