@@ -208,16 +208,12 @@ const Dashboard: React.FC = () => {
             resumes={resumes}
             jobDescriptions={jobDescriptions}
             setJobDescriptions={setJobDescriptions}
-            handleScoreResume={(resumeId) =>
-              handleScoreResume({
-                resumeId,
-                jobDescription: jobDescriptions[resumeId] || "",
-                setAtsScores,
-              })
-            }
             atsScores={atsScores}
-            refreshResumes={refreshResumes}
+            setAtsScores={setAtsScores}
+            refreshResumes={refreshResumes} // ✅ FIXED: now using your custom function
+            handleScoreResume={handleScoreResume}
           />
+
         )}
       </main>
     </div>
