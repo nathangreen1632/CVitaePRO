@@ -1,12 +1,15 @@
 import fetch from "node-fetch";
 import crypto from "crypto";
+import {RequestHandler} from "express"; // adjust path as needed
 import { OPENAI_KEY, OPENAI_URL } from "../config/env.js";
 import { resumePrompt, userResumeDirections } from "../prompts/resumeDirections.js";
 import { userCoverLetterDirections } from "../prompts/coverLetterDirections.js";
 import { getFromPostgreSQL, saveToPostgreSQL } from "./postgreSQLService.js";
 import { getCachedResponse, setCachedResponse} from "./cacheService.js";
 import {parseResumeMarkdown} from "../utils/parseResumeMarkdown.js";
-import logger from "../register/logger.js"; // ✅ Use centralized logger
+import logger from "../register/logger.js";
+import {callOpenAI} from "../utils/openaiUtil.js"; // ✅ Use centralized logger
+import { enhancePrompt } from "../prompts/enhancePrompt.js"; // ✅ Your requested import
 
 // ✅ Define strict types for OpenAI content
 interface CoverLetterContent {
@@ -141,3 +144,45 @@ export const generateFromOpenAI = async (
   }
 };
 
+export const expandResumeEditorContent: RequestHandler = async (req, res): Promise<void> => {
+  try {
+    const { rawText } = req.body;
+
+    if (!rawText || typeof rawText !== "string") {
+      res.status(400).json({ error: "Missing or invalid raw text." });
+      return;
+    }
+
+    const result = await expandResumeContent("editor", rawText);
+
+    if (!result.success) {
+      res.status(500).json({ error: result.message });
+      return;
+    }
+
+    res.status(200).json({ enhancedText: result.message });
+  } catch (error) {
+    logger.error("❌ Error expanding resume:", error);
+    res.status(500).json({ error: "Server error while enhancing resume content." });
+  }
+};
+
+export const expandResumeContent = async (
+  _userId: string,
+  rawText: string
+): Promise<{ success: boolean; message: string }> => {
+  try {
+    const fullPrompt = `${enhancePrompt}\n\n"""${rawText}"""`;
+
+    return await callOpenAI({
+      model: "gpt-4o",
+      messages: [
+        { role: "system", content: "You are a resume rewriting assistant." },
+        { role: "user", content: fullPrompt },
+      ],
+    });
+  } catch (error) {
+    logger.error("❌ expandResumeContent error:", error);
+    return { success: false, message: "Failed to enhance content." };
+  }
+};
