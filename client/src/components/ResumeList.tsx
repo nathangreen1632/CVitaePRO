@@ -64,8 +64,8 @@ const ResumeList: React.FC<ResumeListProps> = ({
       ) : (
         <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2">
           {resumes.map((resume) => (
-            <div key={resume.id}>
-              <ResumeCard
+            <div key={resume.id} id={`resume-${resume.id}-${resume.name.replace(/\s+/g, "-")}`}>
+            <ResumeCard
                 id={resume.id}
                 name={resume.name || "Untitled Resume"}
                 resumeSnippet={resume.resumeSnippet || ""}
@@ -82,10 +82,13 @@ const ResumeList: React.FC<ResumeListProps> = ({
               />
 
               <div className="mt-4">
-                <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label htmlFor={`job-description-${resume.id}`}
+                  className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
                   Job Description
                 </label>
                 <textarea
+                  id={`job-description-${resume.id}`}
                   className="w-full p-3 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   rows={4}
                   placeholder="Paste the job description here..."
@@ -97,13 +100,14 @@ const ResumeList: React.FC<ResumeListProps> = ({
                     }))
                   }
                 />
+
               </div>
 
               <button
                 onClick={() =>
                   handleScoreResume(resume.id, resume.resumeSnippet)
                 }
-                className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded mt-2"
+                className="bg-yellow-700 hover:bg-yellow-900 text-white px-4 py-2 rounded mt-2"
               >
                 Score Resume
               </button>
@@ -119,6 +123,7 @@ const ResumeList: React.FC<ResumeListProps> = ({
               )}
             </div>
           ))}
+
         </div>
       )}
     </div>

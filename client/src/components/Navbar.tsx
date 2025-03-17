@@ -42,9 +42,11 @@ const Navbar: React.FC = () => {
         <button
           className="md:hidden text-white text-3xl focus:outline-none"
           onClick={() => setMenuOpen(!menuOpen)}
+          aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
         >
           ☰
         </button>
+
       </div>
 
       {/* Mobile Dropdown Menu */}

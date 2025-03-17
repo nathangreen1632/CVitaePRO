@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 
 interface Education {
+  id: string;
   institution: string;
   degree: string;
   graduation_year: string;
@@ -14,13 +15,13 @@ interface Props {
 }
 
 const EducationSection: React.FC<Props> = ({ resumeData, setResumeData }) => {
-  const [currentEducation, setCurrentEducation] = useState<Education>({
+  const [currentEducation, setCurrentEducation] = useState<Omit<Education, "id">>({
     institution: "",
     degree: "",
     graduation_year: "",
   });
 
-  const handleChange = (field: keyof Education, value: string) => {
+  const handleChange = (field: keyof Omit<Education, "id">, value: string) => {
     setCurrentEducation((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -32,14 +33,24 @@ const EducationSection: React.FC<Props> = ({ resumeData, setResumeData }) => {
     ) {
       setResumeData((prev: any) => ({
         ...prev,
-        education: [...prev.education, { ...currentEducation }],
+        education: [
+          ...prev.education,
+          {
+            id: crypto.randomUUID(),
+            ...currentEducation,
+          },
+        ],
       }));
-      setCurrentEducation({ institution: "", degree: "", graduation_year: "" });
+      setCurrentEducation({
+        institution: "",
+        degree: "",
+        graduation_year: "",
+      });
     }
   };
 
-  const removeEducation = (index: number) => {
-    const updated = resumeData.education.filter((_, i) => i !== index);
+  const removeEducation = (id: string) => {
+    const updated = resumeData.education.filter((edu: Education) => edu.id !== id);
     setResumeData((prev: any) => ({ ...prev, education: updated }));
   };
 
@@ -48,9 +59,9 @@ const EducationSection: React.FC<Props> = ({ resumeData, setResumeData }) => {
       <h3 className="text-xl font-semibold text-white mb-2">Education</h3>
 
       {/* Render existing education entries */}
-      {resumeData.education.map((edu, idx) => (
+      {resumeData.education.map((edu) => (
         <div
-          key={`${edu.institution}-${edu.degree}-${idx}`}
+          key={edu.id}
           className="mb-4 p-4 bg-gray-700 rounded border border-gray-600"
         >
           <p className="text-white font-semibold">{edu.institution}</p>
@@ -58,8 +69,8 @@ const EducationSection: React.FC<Props> = ({ resumeData, setResumeData }) => {
           <p className="text-white text-sm">{edu.graduation_year}</p>
           <button
             type="button"
-            onClick={() => removeEducation(idx)}
-            className="mt-2 text-red-500 hover:text-red-700 text-sm"
+            onClick={() => removeEducation(edu.id)}
+            className="mt-2 text-red-300 hover:text-red-700 text-sm"
           >
             ❌ Remove Education
           </button>

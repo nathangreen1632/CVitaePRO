@@ -48,9 +48,25 @@ const ResumeDetailsForm: React.FC<ResumeDetailsFormProps> = ({
       <SkillsSection resumeData={resumeData} setResumeData={setResumeData} />
       <CertificationsSection resumeData={resumeData} setResumeData={setResumeData} />
 
+      {/* ✅ Job Description Textbox */}
+      <label className="block mb-3 mt-6">
+        <span className="text-gray-300">Job Description</span>
+        <textarea
+          name="jobDescription"
+          value={resumeData.jobDescription || ""}
+          onChange={handleChange}
+          placeholder="Paste the job description here to optimize your resume..."
+          rows={6}
+          className="w-full p-3 bg-gray-700 rounded-lg text-white"
+        />
+      </label>
+
       {/* ✅ Centered Generate Button */}
       <div className="flex justify-center mt-6">
-        <button onClick={handleGenerateResume} className="bg-green-500 text-white px-6 py-3 rounded-lg">
+        <button
+          onClick={handleGenerateResume}
+          className="bg-green-900 text-white px-6 py-3 rounded-lg"
+        >
           Generate Resume
         </button>
       </div>

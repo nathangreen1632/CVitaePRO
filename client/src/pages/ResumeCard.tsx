@@ -337,27 +337,27 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
       {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
 
       <div className="mt-4 flex flex-wrap gap-2 justify-between">
-        <button onClick={handleEdit} className="bg-blue-500 px-4 py-2 rounded-lg hover:bg-blue-600 transition">
+        <button onClick={handleEdit} className="bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-800 transition">
           Edit
         </button>
         <button
           onClick={handleDownload}
           disabled={isDownloading}
-          className="bg-green-500 px-4 py-2 rounded-lg hover:bg-green-600 transition"
+          className="bg-green-700 px-4 py-2 rounded-lg hover:bg-green-800 transition"
         >
           {isDownloading ? "Downloading..." : "Download"}
         </button>
         <button
           onClick={handleEnhance}
           disabled={isEnhancing}
-          className="bg-purple-500 px-4 py-2 rounded-lg hover:bg-purple-600 transition"
+          className="bg-purple-600 px-4 py-2 rounded-lg hover:bg-purple-800 transition"
         >
           {isEnhancing ? "Enhancing..." : "Enhance"}
         </button>
         <button
           onClick={handleDelete}
           disabled={isDeleting}
-          className="bg-red-500 px-4 py-2 rounded-lg hover:bg-red-600 transition"
+          className="bg-red-600 px-4 py-2 rounded-lg hover:bg-red-800 transition"
         >
           {isDeleting ? "Deleting..." : "Delete"}
         </button>

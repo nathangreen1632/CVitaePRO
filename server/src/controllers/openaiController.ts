@@ -4,6 +4,7 @@ import redisClient from "../services/cacheService.js";
 import { parseResumeMarkdown } from "../utils/parseResumeMarkdown.js"; // ✅ Correct Import
 import { saveToPostgreSQL } from "../services/postgreSQLService.js";
 import crypto from "crypto";
+export { expandResumeEditorContent } from "../services/openaiService.js"; // adjust path if needed
 
 
 /**

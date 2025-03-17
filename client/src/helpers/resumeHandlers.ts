@@ -1,6 +1,129 @@
-import { buildOpenAIPayload } from "./buildOpenAIPayload"; // ✅ adjust if path is different
+import { buildOpenAIPayload } from "./buildOpenAIPayload";
 import { parseResumeMarkdown } from "./parseResumeMarkdown";
-import React from "react"; // ✅ Adjust path if needed
+import React from "react";
+
+// ✅ Markdown sanitizer to strip unwanted formatting from OpenAI responses
+const cleanText = (input: string): string =>
+  input
+    .replace(/```[\s\S]*?```/g, "")          // remove fenced code blocks
+    .replace(/^#+\s*/gm, "")                 // remove heading markers (#, ##)
+    .replace(/[*_~`>]/g, "")                 // remove symbols
+    .replace(/\[([^\]]+)]\([^)]+\)/g, "$1")  // convert mark down links to plain text
+    .replace(/^- /gm, "")                    // remove dashes from bullet lists
+    .replace(/\n{2,}/g, "\n")                // normalize line breaks
+    .trim();
+
+// ✅ Convert structured resume into sanitized HTML for scoring
+export const convertResumeToHTML = (resume: {
+  name: string;
+  email: string;
+  phone: string;
+  linkedin: string;
+  portfolio: string;
+  summary: string;
+  experience: {
+    company: string;
+    role: string;
+    start_date: string;
+    end_date: string;
+    responsibilities: string[];
+  }[];
+  education: {
+    institution: string;
+    degree: string;
+    graduation_year: string;
+  }[];
+  skills: string[];
+  certifications: {
+    name: string;
+    year: string;
+  }[];
+}): string => {
+  const splitSkills = resume.skills.flatMap((group) => {
+    if (group.includes(":")) {
+      const [, list] = group.split(":");
+      return list.split(",").map((s) => s.trim());
+    }
+    return [group.trim()];
+  });
+
+  const formatDateRange = (start: string, end: string): string => {
+    const cleanStart = cleanText(start).replace(/\s+/g, " ").trim();
+    const cleanEnd = cleanText(end).replace(/\s+/g, " ").trim();
+    return cleanEnd && cleanEnd !== "Present"
+      ? `${cleanStart} – ${cleanEnd}`
+      : `${cleanStart} – Present`;
+  };
+
+  const rawSummary = resume.summary || "";
+  const cleanedSummary = cleanText(rawSummary);
+  const summaryText = cleanedSummary.length > 0
+    ? cleanedSummary
+    : "No summary provided.";
+
+  return `
+    <section>
+      <h2>Contact Information</h2>
+      <p><strong>Name:</strong> ${cleanText(resume.name)}</p>
+      <p><strong>Email:</strong> ${cleanText(resume.email)}</p>
+      <p><strong>Phone:</strong> ${cleanText(resume.phone)}</p>
+      <p><strong>LinkedIn:</strong> ${cleanText(resume.linkedin)}</p>
+      <p><strong>Portfolio:</strong> ${cleanText(resume.portfolio)}</p>
+
+      <h2>Professional Summary</h2>
+      <p>${summaryText}</p>
+
+      <h2>Experience</h2>
+      <ul>
+        ${resume.experience
+    .map(
+      (exp) => `
+              <li>
+                <strong>${cleanText(exp.role)}</strong> at ${cleanText(exp.company)}<br />
+                ${formatDateRange(exp.start_date, exp.end_date)}
+                <ul>
+                  ${exp.responsibilities
+        .map((r) => `<li>${cleanText(r)}</li>`)
+        .join("")}
+                </ul>
+              </li>
+            `
+    )
+    .join("")}
+      </ul>
+
+      <h2>Education</h2>
+      <ul>
+        ${resume.education
+    .map(
+      (edu) => `
+              <li>
+                ${cleanText(edu.degree)}, ${cleanText(edu.institution)} (${cleanText(
+        edu.graduation_year
+      )})
+              </li>
+            `
+    )
+    .join("")}
+      </ul>
+
+      <h2>Skills</h2>
+      <ul>
+        ${splitSkills.map((skill) => `<li>${cleanText(skill)}</li>`).join("")}
+      </ul>
+
+      <h2>Certifications</h2>
+      <ul>
+        ${resume.certifications
+    .map(
+      (cert) =>
+        `<li>${cleanText(cert.name)} (${cleanText(cert.year)})</li>`
+    )
+    .join("")}
+      </ul>
+    </section>
+  `;
+};
 
 export const handleGenerateResume = async ({
                                              resumeData,
@@ -20,6 +143,7 @@ export const handleGenerateResume = async ({
 
   const formattedResumeData = {
     type: "resume",
+    jobDescription: resumeData.jobDescription || "",
     resumeData: {
       name: resumeData.name,
       email: resumeData.email,
@@ -67,7 +191,10 @@ export const handleGenerateResume = async ({
     }
 
     const activityItem = `Generated Resume - ${resumeData.name || "Untitled Resume"}`;
-    const updatedLog = [activityItem, ...(JSON.parse(localStorage.getItem("activityLog") ?? "[]"))];
+    const updatedLog = [
+      activityItem,
+      ...(JSON.parse(localStorage.getItem("activityLog") ?? "[]")),
+    ];
     localStorage.setItem("activityLog", JSON.stringify(updatedLog));
     setActivityLog(updatedLog);
 
@@ -80,19 +207,16 @@ export const handleGenerateResume = async ({
   }
 };
 
-
 export const handleEnhanceResume = async ({
                                             resumeData,
                                             setLoading,
                                             setError,
                                             setActivityLog,
-                                            fetchResumes,
                                           }: {
   resumeData: any;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   setError: React.Dispatch<React.SetStateAction<string | null>>;
   setActivityLog: React.Dispatch<React.SetStateAction<string[]>>;
-  fetchResumes: () => Promise<void>;
 }) => {
   setLoading(true);
   setError(null);
@@ -100,7 +224,7 @@ export const handleEnhanceResume = async ({
   try {
     const token = localStorage.getItem("token");
 
-    const resumeText = buildOpenAIPayload(resumeData); // ✅ standardized formatter
+    const resumeText = buildOpenAIPayload(resumeData);
 
     const response = await fetch("/api/openai/enhance-resume", {
       method: "POST",
@@ -118,14 +242,15 @@ export const handleEnhanceResume = async ({
       return;
     }
 
-    const enhancedResume = data.resume;
+    const enhancedResume = parseResumeMarkdown(data.resume, resumeData);
 
     const activityItem = `Enhanced Resume - ${enhancedResume.name || "Untitled Resume"}`;
-    const updatedLog = [activityItem, ...(JSON.parse(localStorage.getItem("activityLog") ?? "[]"))];
+    const updatedLog = [
+      activityItem,
+      ...(JSON.parse(localStorage.getItem("activityLog") ?? "[]")),
+    ];
     localStorage.setItem("activityLog", JSON.stringify(updatedLog));
     setActivityLog(updatedLog);
-
-    await fetchResumes(); // ✅ refresh resume list
   } catch (error) {
     console.error("❌ Error enhancing resume:", error);
     setError("Something went wrong while enhancing the resume.");
@@ -134,14 +259,8 @@ export const handleEnhanceResume = async ({
   }
 };
 
-export const handleScoreResume = async ({
-                                          resumeId,
-                                          resumeSnippet,
-                                          jobDescription,
-                                          setAtsScores,
-                                        }: {
+interface ScoreResumeParams {
   resumeId: string;
-  resumeSnippet: string;
   jobDescription: string;
   setAtsScores: React.Dispatch<
     React.SetStateAction<
@@ -157,71 +276,37 @@ export const handleScoreResume = async ({
       >
     >
   >;
-}) => {
+}
+
+export const handleScoreResume = async ({
+                                          resumeId,
+                                          jobDescription,
+                                          setAtsScores,
+                                        }: ScoreResumeParams): Promise<void> => {
   if (!jobDescription || jobDescription.trim().length < 20) {
-    alert("Please enter a valid job description to compare with the resume.");
-    return;
-  }
-
-  const parsedResume = parseResumeMarkdown(resumeSnippet, {});
-
-  const resumeHtml = `
-    <section>
-      <h1>${parsedResume.name || "Untitled Resume"}</h1>
-      <p><strong>Email:</strong> ${parsedResume.email || "No email provided"}</p>
-      <p><strong>Phone:</strong> ${parsedResume.phone || "No phone provided"}</p>
-      <p>${parsedResume.summary || ""}</p>
-
-      <h3>Experience</h3>
-      <ul>
-        ${(parsedResume.experience || [])
-    .map(
-      (exp: { role?: string; company?: string; start_date?: string; end_date?: string; responsibilities?: string[] }) => `
-          <li>
-            <strong>${exp.role ?? ""}</strong> at ${exp.company ?? ""}<br />
-            ${exp.start_date ?? ""} – ${exp.end_date}<br />
-            <ul>
-              ${(exp.responsibilities || []).map((r) => `<li>${r}</li>`).join("")}
-            </ul>
-          </li>`
-    )
-    .join("")}
-      </ul>
-
-      <h3>Education</h3>
-      <ul>
-        ${(parsedResume.education || [])
-    .map(
-      (edu: { degree?: string; institution?: string; graduation_year?: string }) => `
-        <li>
-          ${edu.degree ?? ""} from ${edu.institution ?? ""}, ${edu.graduation_year ?? ""}
-        </li>`
-    )
-    .join("")}
-      </ul>
-
-      <h3>Skills</h3>
-      <p>${(parsedResume.skills || []).join(", ")}</p>
-
-      <h3>Certifications</h3>
-      <ul>
-        ${(parsedResume.certifications || [])
-    .map((cert: { name?: string; year?: string }) => `<li>${cert.name ?? ""} (${cert.year ?? ""})</li>`)
-    .join("")}
-      </ul>
-    </section>
-  `.trim();
-
-  if (!resumeHtml || resumeHtml.length < 50) {
-    alert("❌ Resume content is missing or too short to score.");
+    alert("⚠️ Please enter a valid job description with at least 20 characters.");
     return;
   }
 
   try {
+    const fullResume = JSON.parse(localStorage.getItem("resumes") ?? "[]").find(
+      (r: any) => r.id === resumeId
+    );
+
+    if (!fullResume) {
+      alert("⚠️ Could not find resume data for scoring.");
+      return;
+    }
+
+    const resumeHtml = convertResumeToHTML(fullResume);
+
     const response = await fetch("/api/ats/score-resume", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ htmlResume: resumeHtml, jobDescription }),
+      body: JSON.stringify({
+        htmlResume: resumeHtml,
+        jobDescription,
+      }),
     });
 
     if (!response.ok) {
@@ -234,11 +319,11 @@ export const handleScoreResume = async ({
     setAtsScores((prev) => ({
       ...prev,
       [resumeId]: {
-        atsScore: data.atsScore,
-        keywordMatch: data.keywordMatch,
-        softSkillsMatch: data.softSkillsMatch,
-        industryTermsMatch: data.industryTermsMatch,
-        formattingErrors: data.formattingErrors || [],
+        atsScore: data.atsScore ?? 0,
+        keywordMatch: data.keywordMatch ?? 0,
+        softSkillsMatch: data.softSkillsMatch ?? 0,
+        industryTermsMatch: data.industryTermsMatch ?? 0,
+        formattingErrors: data.formattingErrors ?? [],
       },
     }));
   } catch (error) {
