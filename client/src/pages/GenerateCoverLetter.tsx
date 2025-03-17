@@ -182,6 +182,12 @@ const GenerateCoverLetter: React.FC = () => {
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-6">
       <HeaderBar title="Generate Cover Letter" />
 
+      {loading && (
+        <div className="flex justify-center mt-10">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-green-500 border-opacity-50"></div>
+        </div>
+      )}
+
       <div className="max-w-3xl mx-auto bg-white dark:bg-gray-800 p-6 rounded shadow mt-4">
         <h2 className="text-2xl font-bold mb-4">Generate Cover Letter</h2>
 
