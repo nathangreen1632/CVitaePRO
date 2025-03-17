@@ -1,6 +1,7 @@
 import React from "react";
 import ResumeCard from "../pages/ResumeCard.jsx";
 import ATSScoreBreakdown from "./ATSScoreBreakdown.jsx";
+import { convertResumeToHTML } from "../helpers/convertResumeToHTML";
 
 interface ResumeListProps {
   resumes: {
@@ -33,7 +34,6 @@ interface ResumeListProps {
   }[];
   jobDescriptions: Record<string, string>;
   setJobDescriptions: React.Dispatch<React.SetStateAction<Record<string, string>>>;
-  handleScoreResume: (resumeId: string, resumeSnippet: string) => void;
   atsScores: Record<
     string,
     {
@@ -44,6 +44,39 @@ interface ResumeListProps {
       formattingErrors: string[];
     }
   >;
+  setAtsScores: React.Dispatch<
+    React.SetStateAction<
+      Record<
+        string,
+        {
+          atsScore: number;
+          keywordMatch: number;
+          softSkillsMatch: number;
+          industryTermsMatch: number;
+          formattingErrors: string[];
+        }
+      >
+    >
+  >;
+  handleScoreResume: (params: {
+    resumeId: string;
+    htmlResume: string;
+    jobDescription: string;
+    setAtsScores: React.Dispatch<
+      React.SetStateAction<
+        Record<
+          string,
+          {
+            atsScore: number;
+            keywordMatch: number;
+            softSkillsMatch: number;
+            industryTermsMatch: number;
+            formattingErrors: string[];
+          }
+        >
+      >
+    >;
+  }) => void;
   refreshResumes: () => void;
 }
 
@@ -53,6 +86,7 @@ const ResumeList: React.FC<ResumeListProps> = ({
                                                  setJobDescriptions,
                                                  handleScoreResume,
                                                  atsScores,
+                                                 setAtsScores,
                                                  refreshResumes,
                                                }) => {
   return (
@@ -65,7 +99,7 @@ const ResumeList: React.FC<ResumeListProps> = ({
         <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2">
           {resumes.map((resume) => (
             <div key={resume.id} id={`resume-${resume.id}-${resume.name.replace(/\s+/g, "-")}`}>
-            <ResumeCard
+              <ResumeCard
                 id={resume.id}
                 name={resume.name || "Untitled Resume"}
                 resumeSnippet={resume.resumeSnippet || ""}
@@ -82,7 +116,8 @@ const ResumeList: React.FC<ResumeListProps> = ({
               />
 
               <div className="mt-4">
-                <label htmlFor={`job-description-${resume.id}`}
+                <label
+                  htmlFor={`job-description-${resume.id}`}
                   className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
                   Job Description
@@ -100,13 +135,29 @@ const ResumeList: React.FC<ResumeListProps> = ({
                     }))
                   }
                 />
-
               </div>
 
               <button
-                onClick={() =>
-                  handleScoreResume(resume.id, resume.resumeSnippet)
-                }
+                onClick={() => {
+                  const html = convertResumeToHTML({
+                    name: resume.name,
+                    email: resume.email,
+                    phone: resume.phone,
+                    summary: resume.summary,
+                    experience: resume.experience,
+                    education: resume.education,
+                    skills: resume.skills,
+                    certifications: resume.certifications,
+                  });
+                  console.log("🧪 HTML SENT TO BACKEND:\n", html);
+
+                  handleScoreResume({
+                    resumeId: resume.id,
+                    htmlResume: html,
+                    jobDescription: jobDescriptions[resume.id] || "",
+                    setAtsScores,
+                  });
+                }}
                 className="bg-yellow-700 hover:bg-yellow-900 text-white px-4 py-2 rounded mt-2"
               >
                 Score Resume
@@ -123,7 +174,6 @@ const ResumeList: React.FC<ResumeListProps> = ({
               )}
             </div>
           ))}
-
         </div>
       )}
     </div>
