@@ -1,7 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, RefObject } from "react";
 import mammoth from "mammoth";
 
-const ResumeUpload: React.FC<{ onParse: (text: string) => void }> = ({ onParse }) => {
+interface ResumeUploadProps {
+  onParse: (text: string) => void;
+  inputRef?: RefObject<HTMLInputElement>; // ✅ Add this line
+}
+
+const ResumeUpload: React.FC<ResumeUploadProps> = ({ onParse, inputRef }) => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -22,7 +27,7 @@ const ResumeUpload: React.FC<{ onParse: (text: string) => void }> = ({ onParse }
         } catch {
           setError("Failed to parse DOCX. Please try again.");
         } finally {
-          setLoading(false); // ✅ resets here for .docx
+          setLoading(false);
         }
       };
       reader.readAsArrayBuffer(file);
@@ -30,11 +35,11 @@ const ResumeUpload: React.FC<{ onParse: (text: string) => void }> = ({ onParse }
       try {
         await uploadToBackend(file);
       } finally {
-        setLoading(false); // ✅ resets here for .pdf
+        setLoading(false);
       }
     } else {
       setError("Unsupported file format. Please upload a PDF or DOCX.");
-      setLoading(false); // ✅ fallback
+      setLoading(false);
     }
   };
 
@@ -53,12 +58,21 @@ const ResumeUpload: React.FC<{ onParse: (text: string) => void }> = ({ onParse }
     onParse(data.text);
   };
 
-
   return (
     <div className="flex flex-col items-center space-y-4">
-      <input type="file" accept=".pdf,.docx" onChange={handleFileUpload} className="hidden" id="resume-upload" />
-      <label htmlFor="resume-upload" className="cursor-pointer bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-800">
-        {loading ? "Parsing..." : "Upload Resume"}
+      <input
+        type="file"
+        accept=".pdf,.docx"
+        ref={inputRef} // ✅ Forward the ref
+        onChange={handleFileUpload}
+        className="hidden"
+        id="resume-upload"
+      />
+      <label
+        htmlFor="resume-upload"
+        className="cursor-pointer bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-800"
+      >
+        {loading ? "Parsing..." : "Upload Document"}
       </label>
       {error && <p className="text-red-500">{error}</p>}
     </div>
