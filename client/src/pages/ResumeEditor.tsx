@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import ResumeUpload from "../components/ResumeUpload.jsx";
 import HeaderBar from "../components/HeaderBar.jsx"; // ✅ Centralized Logout & Title
 
@@ -7,6 +7,7 @@ const ResumeEditor: React.FC = () => {
   const [enhancedText, setEnhancedText] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const uploadRef = useRef<HTMLInputElement>(null);
 
   const handleEnhance = async () => {
     if (!resumeText.trim()) {
@@ -46,6 +47,43 @@ const ResumeEditor: React.FC = () => {
       }
 
       setEnhancedText(data.resume?.summary || "");
+    } catch (err) {
+      setError("Server error or network issue.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleExpand = async () => {
+    if (!resumeText.trim()) {
+      setError("Please upload and parse a resume first.");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setEnhancedText("");
+
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await fetch("/api/openai/expand-editor", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ rawText: resumeText }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "Failed to expand resume.");
+        return;
+      }
+
+      setEnhancedText(data.enhancedText || "");
     } catch (err) {
       setError("Server error or network issue.");
     } finally {
@@ -143,6 +181,7 @@ const ResumeEditor: React.FC = () => {
     setResumeText("");
     setEnhancedText("");
     setError(null);
+    if (uploadRef.current) uploadRef.current.value = ""; // ✅ clear file input
   };
 
   const sharedButtonClass = "min-w-[10rem] text-center font-semibold px-4 py-2 rounded-lg";
@@ -157,7 +196,8 @@ const ResumeEditor: React.FC = () => {
         {/* Upload + Buttons */}
         <div className="flex justify-between flex-wrap gap-4 mb-4">
 
-          <ResumeUpload onParse={setResumeText} />
+          <ResumeUpload onParse={setResumeText} inputRef={uploadRef as React.RefObject<HTMLInputElement>} /> {/* ✅ Pass ref here */}
+
           <button
             onClick={handleClear}
             className={`${sharedButtonClass} bg-red-700 text-white hover:bg-red-900`}
@@ -169,15 +209,19 @@ const ResumeEditor: React.FC = () => {
             onClick={handleEnhance}
             className={`${sharedButtonClass} bg-green-700 text-white hover:bg-green-900`}
           >
-            {loading ? "Enhancing..." : "Enhance"}
+            {loading ? "Summarizing..." : "Summarize"}
+          </button>
+          <button
+            onClick={handleExpand}
+            className={`${sharedButtonClass} bg-yellow-600 text-white hover:bg-yellow-800`}
+          >
+            {loading ? "Expanding..." : "Enhance"}
           </button>
 
         </div>
 
-
         {error && <p className="text-red-500 mb-4">{error}</p>}
 
-        {/* Editor */}
         <textarea
           className="w-full h-200 p-3 border rounded bg-gray-100 dark:bg-gray-700 text-black dark:text-white"
           value={enhancedText || resumeText}
@@ -185,8 +229,6 @@ const ResumeEditor: React.FC = () => {
           aria-label="Resume and cover letter editor. Enter or modify your content here."
         />
 
-
-        {/* Download */}
         {enhancedText && (
           <div className="text-center mt-4 space-x-4">
             <button
