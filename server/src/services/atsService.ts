@@ -13,13 +13,15 @@ export function parseResume(htmlResume: string) {
   const nameRegex = /Name:\s*([A-Za-z\s-]+)/i;
 
   let name: string | null =
+    $("section#contact h1").first().text().trim() ?? // ✅ Try extracting from <h1>
     extractText("p:has(strong:contains('Name'))") ??
     extractText("div:has(strong:contains('Name'))") ??
     extractText("span:has(strong:contains('Name'))") ??
     extractText("p:contains('Name:')").replace(/Name:\s?/i, "").trim() ??
     extractText("div:contains('Name:')").replace(/Name:\s?/i, "").trim() ??
     nameRegex.exec($("body").text())?.[1]?.trim() ??
-    null; // ✅ Fallback to `null` instead of an empty string
+    null;
+
 
   // ✅ Final cleanup to ensure it's a valid name
   if (name) {
@@ -40,9 +42,10 @@ export function parseResume(htmlResume: string) {
     $("p:contains('-')").first().text().replace(/Phone:\s?/i, "").trim() ??
     null;
 
-  const experience = extractText("h2:contains('Experience')") || extractText("section:contains('Experience')");
-  const education = extractText("h2:contains('Education')") || extractText("section:contains('Education')");
-  const skills = extractText("h2:contains('Skills')") || extractText("section:contains('Skills')");
+  const experience = $("section#experience").text().trim();
+  const education = $("section#education").text().trim();
+  const skills = $("section#skills").text().trim();
+
 
 
   return { name, email, phone, experience, education, skills };
@@ -202,32 +205,52 @@ const industryTerms: string[] = [
 // ✅ Keyword Matching with Synonyms, Fuzzy & Partial Matching
 // ✅ Matching Logic
 function countMatches(resumeTokens: string[], jobKeywords: string[]): number {
+  const seen = new Set<string>();
   let matchCount = 0;
 
-  for (const jobWord of jobKeywords) {
-    const stemmedJobWord = stemmer.stem(jobWord);
+  const isNewMatch = (token: string): boolean => !seen.has(token);
+  const registerMatch = (token: string, weight: number): number => {
+    seen.add(token);
+    return weight;
+  };
 
-    if (resumeTokens.includes(stemmedJobWord)) {
-      matchCount += 1;
+  const getAllStemmedSynonyms = (keyword: string): string[] => {
+    const entry = synonyms[keyword];
+    if (!entry) return [];
+    return [keyword, ...entry].map(term => stemmer.stem(term.toLowerCase()));
+  };
+
+  for (const jobWord of jobKeywords) {
+    const stemmedJobWord = stemmer.stem(jobWord.toLowerCase());
+
+    // ✅ Direct match
+    if (resumeTokens.includes(stemmedJobWord) && isNewMatch(stemmedJobWord)) {
+      matchCount += registerMatch(stemmedJobWord, 1);
       continue;
     }
 
-    for (const [key, synonymsList] of Object.entries(synonyms)) {
-      if (synonymsList.includes(jobWord) || key === jobWord) {
-        if (resumeTokens.includes(key) || resumeTokens.some(word => synonymsList.includes(word))) {
-          matchCount += 0.85; // Higher weight for synonyms
-          break;
-        }
-      }
+    // ✅ Fuzzy match
+    const fuzzyToken = resumeTokens.find(token => fuzzyMatch(stemmedJobWord, token) && isNewMatch(token));
+    if (fuzzyToken) {
+      matchCount += registerMatch(fuzzyToken, 0.85);
+      continue;
     }
 
-    if (resumeTokens.some(word => fuzzyMatch(word, stemmedJobWord))) {
-      matchCount += 0.75;
+    // ✅ Synonym match
+    const synonymTerms = getAllStemmedSynonyms(stemmedJobWord);
+    const matchedSyn = resumeTokens.find(token =>
+      (synonymTerms.includes(token) || fuzzyMatch(token, stemmedJobWord)) && isNewMatch(token)
+    );
+
+    if (matchedSyn) {
+      matchCount += registerMatch(matchedSyn, 0.9);
     }
   }
 
   return matchCount;
 }
+
+
 
 // ✅ Main Matching Function
 export function matchKeywords(resumeText: string, jobDescription: string): {
@@ -240,17 +263,43 @@ export function matchKeywords(resumeText: string, jobDescription: string): {
 
   const keywordCount = countMatches(resumeTokens, jobKeywords);
 
-  let softSkillsCount = softSkills.reduce((count, skill) => {
-    if (resumeTokens.includes(stemmer.stem(skill.toLowerCase()))) return count + 4.0;
-    if (resumeTokens.some(word => fuzzyMatch(word, skill))) return count + 3.5;
-    return count;
-  }, 0);
+  let softSkillsCount = 0;
 
-  let industryTermsCount = industryTerms.reduce((count, term) => {
-    if (resumeTokens.includes(stemmer.stem(term.toLowerCase()))) return count + 4.0;
-    if (resumeTokens.some(word => fuzzyMatch(word, term))) return count + 3.5;
-    return count;
-  }, 0);
+  for (const skill of softSkills) {
+    const stemmedSkill = stemmer.stem(skill.toLowerCase());
+
+    for (const token of resumeTokens) {
+      if (token === stemmedSkill) {
+        softSkillsCount += 4.0;
+        break;
+      }
+
+      if (fuzzyMatch(token, skill)) {
+        softSkillsCount += 3.5;
+        break;
+      }
+    }
+  }
+
+
+  let industryTermsCount = 0;
+
+  for (const term of industryTerms) {
+    const stemmedTerm = stemmer.stem(term.toLowerCase());
+
+    for (const token of resumeTokens) {
+      if (token === stemmedTerm) {
+        industryTermsCount += 4.0;
+        break;
+      }
+
+      if (fuzzyMatch(token, term)) {
+        industryTermsCount += 3.5;
+        break;
+      }
+    }
+  }
+
 
   const keywordMatch = (keywordCount / jobKeywords.length) * 100;
   const softSkillsMatch = Math.min((softSkillsCount / softSkills.length) * 100, 20); // Cap at 25%
