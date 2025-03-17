@@ -65,7 +65,7 @@ const ResumeDetailsForm: React.FC<ResumeDetailsFormProps> = ({
       <div className="flex justify-center mt-6">
         <button
           onClick={handleGenerateResume}
-          className="bg-green-900 text-white px-6 py-3 rounded-lg"
+          className="bg-green-700 text-white px-6 py-3 rounded-lg hover:bg-green-900 transition"
         >
           Generate Resume
         </button>
