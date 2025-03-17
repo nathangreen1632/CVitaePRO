@@ -8,6 +8,9 @@ const ResumeEditor: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const uploadRef = useRef<HTMLInputElement>(null);
+  const [isDownloading, setIsDownloading] = useState<boolean>(false);
+  const [downloadMessage, setDownloadMessage] = useState<string>("Downloading...");
+
 
   const handleEnhance = async () => {
     if (!resumeText.trim()) {
@@ -93,6 +96,8 @@ const ResumeEditor: React.FC = () => {
 
   const handleDownloadPDF = async () => {
     setError(null);
+    setIsDownloading(true);
+    setDownloadMessage("Downloading PDF...");
 
     const payload = {
       resume: enhancedText || resumeText,
@@ -135,10 +140,13 @@ const ResumeEditor: React.FC = () => {
       console.error("PDF download error:", err);
       setError("Could not download PDF.");
     }
+    setIsDownloading(false);
   };
 
   const handleDownloadDocx = async () => {
     setError(null);
+    setIsDownloading(true);
+    setDownloadMessage("Downloading DOCX...");
 
     const payload = {
       resume: enhancedText || resumeText,
@@ -174,6 +182,7 @@ const ResumeEditor: React.FC = () => {
       console.error("DOCX download error:", err);
       setError("Could not download DOCX.");
     }
+    setIsDownloading(false);
   };
 
 
@@ -189,6 +198,63 @@ const ResumeEditor: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-6">
       <HeaderBar title="Editor Page" />
+
+      {loading && (
+        <div className="fixed inset-0 bg-gray-800 bg-opacity-60 backdrop-blur-sm flex justify-center items-center z-50">
+          <div className="flex flex-col items-center space-y-4">
+            <svg
+              className="animate-spin h-10 w-10 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v8H4z"
+              ></path>
+            </svg>
+            <p className="text-white font-medium text-lg">Working. Please wait...</p>
+          </div>
+        </div>
+      )}
+
+      {isDownloading && (
+        <div className="fixed inset-0 bg-gray-800 bg-opacity-60 backdrop-blur-sm flex justify-center items-center z-50">
+          <div className="flex flex-col items-center space-y-4">
+            <svg
+              className="animate-spin h-10 w-10 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v8H4z"
+              ></path>
+            </svg>
+            <p className="text-white font-medium text-lg">{downloadMessage}</p>
+          </div>
+        </div>
+      )}
+
 
       <div className="max-w-3xl mx-auto bg-white dark:bg-gray-800 p-6 shadow-lg rounded-lg mt-4">
         <h2 className="text-2xl font-bold mb-4">Editor</h2>
@@ -228,6 +294,7 @@ const ResumeEditor: React.FC = () => {
           onChange={(e) => setEnhancedText(e.target.value)}
           aria-label="Resume and cover letter editor. Enter or modify your content here."
         />
+
 
         {enhancedText && (
           <div className="text-center mt-4 space-x-4">
