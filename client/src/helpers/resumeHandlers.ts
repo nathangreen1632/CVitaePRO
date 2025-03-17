@@ -261,6 +261,7 @@ export const handleEnhanceResume = async ({
 
 interface ScoreResumeParams {
   resumeId: string;
+  htmlResume: string;
   jobDescription: string;
   setAtsScores: React.Dispatch<
     React.SetStateAction<
@@ -280,9 +281,11 @@ interface ScoreResumeParams {
 
 export const handleScoreResume = async ({
                                           resumeId,
+                                          htmlResume,
                                           jobDescription,
                                           setAtsScores,
-                                        }: ScoreResumeParams): Promise<void> => {
+                                        }: ScoreResumeParams)
+: Promise<void> => {
   if (!jobDescription || jobDescription.trim().length < 20) {
     alert("⚠️ Please enter a valid job description with at least 20 characters.");
     return;
@@ -298,13 +301,11 @@ export const handleScoreResume = async ({
       return;
     }
 
-    const resumeHtml = convertResumeToHTML(fullResume);
-
     const response = await fetch("/api/ats/score-resume", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        htmlResume: resumeHtml,
+        htmlResume,
         jobDescription,
       }),
     });
