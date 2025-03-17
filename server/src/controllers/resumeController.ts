@@ -403,14 +403,18 @@ export const downloadEditorDocx: RequestHandler = async (req, res): Promise<void
       return;
     }
 
+    // ✅ Split into paragraphs
+    const lines = resume.split("\n").map((line) => line.trim());
+
     const doc = new Document({
       sections: [
         {
-          children: [
+          children: lines.map((line) =>
             new Paragraph({
-              children: [new TextRun({ text: resume, font: "Arial", size: 24 })],
-            }),
-          ],
+              children: [new TextRun({ text: line, font: "Arial", size: 24 })],
+              spacing: { after: 200 }, // ✅ adds space after each paragraph
+            })
+          ),
         },
       ],
     });
