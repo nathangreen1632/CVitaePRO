@@ -60,10 +60,20 @@ export const getATSScore: RequestHandler = async (req, res): Promise<void> => {
 
 
     // Step 3: Match keywords, soft skills, and industry terms
+    const resumeText = [
+      parsedResume.name,
+      parsedResume.email,
+      parsedResume.phone,
+      parsedResume.experience,
+      parsedResume.education,
+      parsedResume.skills
+    ].filter(Boolean).join(" ");
+
     const { keywordMatch, softSkillsMatch, industryTermsMatch } = matchKeywords(
-      `${parsedResume.experience} ${parsedResume.education} ${parsedResume.skills}`,
+      resumeText,
       jobDescription
     );
+
 
     // Step 4: Calculate ATS score
     const atsScore = calculateATSScore(keywordMatch, formattingErrors, softSkillsMatch, industryTermsMatch);
