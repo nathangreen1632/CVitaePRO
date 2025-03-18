@@ -1,6 +1,7 @@
 # <span id="top"> CVitaePRO </span>
 
-[![CVitaePRO](https://img.shields.io/badge/CVitae-PRO-black?style=for-the-badge&labelColor=black&color=darkred&logo=none&logoColor=white)](http://cvitaepro.onrender.com)
+[![CVitaePRO](../CVitaePRO/client/src/assets/cvitaepro-badge.svg)](http://cvitaepro.onrender.com)
+
 
 
 [![License](https://img.shields.io/badge/License-none-darkred.svg)](docs/LICENSE.md)
