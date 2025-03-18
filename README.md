@@ -1,6 +1,4 @@
-# <span id="top"> CVitaePRO </span>
-
-[![CVitaePRO](../CVitaePRO/client/src/assets/cvitaepro-badge.svg)](http://cvitaepro.onrender.com)
+<span id=top>[![CVitaePRO](../CVitaePRO/client/src/assets/cvitaepro-badge-large.svg)](http://cvitaepro.onrender.com)</span>
 
 
 
