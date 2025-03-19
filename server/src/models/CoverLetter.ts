@@ -1,10 +1,10 @@
 import { DataTypes, Model } from "sequelize";
 import { sequelize } from "../config/database.js";
-import User from "./User.js"; // ✅ Import User model
+import User from "./User.js";
 
 export interface ICoverLetter extends Model {
   id: string;
-  user_id: string; // ✅ UUID reference to users.id
+  user_id: string;
   content: string;
   created_at?: Date;
   updated_at?: Date;
@@ -14,12 +14,12 @@ const CoverLetter = sequelize.define<ICoverLetter>(
   "CoverLetter",
   {
     id: {
-      type: DataTypes.UUID, // ✅ Matches schema.sql
+      type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
     user_id: {
-      type: DataTypes.UUID, // ✅ Foreign key reference to users.id
+      type: DataTypes.UUID,
       allowNull: false,
       references: {
         model: User,
@@ -43,12 +43,11 @@ const CoverLetter = sequelize.define<ICoverLetter>(
     },
   },
   {
-    tableName: "cover_letters", // ✅ Matches database table
+    tableName: "cover_letters",
     timestamps: true,
   }
 );
 
-// ✅ Define Association
 CoverLetter.belongsTo(User, { foreignKey: "user_id" });
 User.hasMany(CoverLetter, { foreignKey: "user_id", onDelete: "CASCADE" });
 
