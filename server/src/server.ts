@@ -21,14 +21,13 @@ app.use(express.json());
 app.use("/api", routes);
 app.use(express.static("../client/dist"));
 
-// ✅ Start Server
 const startServer = async () => {
   try {
     await connectDatabase();
-    Logger.info("✅ Database connected successfully.");
-    app.listen(PORT, () => Logger.info(`✅ Server is running on port ${PORT}`));
+    Logger.info("Database connected successfully.");
+    app.listen(PORT, () => Logger.info(`Server is running on port ${PORT}`));
   } catch (error) {
-    Logger.error("❌ Database connection failed:", error);
+    Logger.error("Database connection failed:", error);
     process.exit(1); // Stop execution on fatal error
   }
 };
