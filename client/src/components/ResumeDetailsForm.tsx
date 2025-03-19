@@ -11,12 +11,7 @@ interface ResumeDetailsFormProps {
   handleGenerateResume: () => void;
 }
 
-const ResumeDetailsForm: React.FC<ResumeDetailsFormProps> = ({
-                                                               resumeData,
-                                                               setResumeData,
-                                                               handleChange,
-                                                               handleGenerateResume
-                                                             }) => {
+const ResumeDetailsForm: React.FC<ResumeDetailsFormProps> = ({ resumeData, setResumeData, handleChange, handleGenerateResume }) => {
   return (
     <div className="bg-gray-800 p-6 rounded-lg w-full max-w-3xl shadow-lg mx-auto mb-12">
       <h2 className="text-2xl font-semibold mb-4 text-center text-white">Resume Details</h2>
@@ -48,7 +43,6 @@ const ResumeDetailsForm: React.FC<ResumeDetailsFormProps> = ({
       <SkillsSection resumeData={resumeData} setResumeData={setResumeData} />
       <CertificationsSection resumeData={resumeData} setResumeData={setResumeData} />
 
-      {/* ✅ Job Description Textbox */}
       <label className="block mb-3 mt-6">
         <span className="text-gray-300">Job Description</span>
         <textarea
@@ -61,11 +55,10 @@ const ResumeDetailsForm: React.FC<ResumeDetailsFormProps> = ({
         />
       </label>
 
-      {/* ✅ Centered Generate Button */}
       <div className="flex justify-center mt-6">
         <button
           onClick={handleGenerateResume}
-          className="bg-green-700 text-white px-6 py-3 rounded-lg hover:bg-green-900 transition"
+          className="bg-blue-600 text-white font-medium px-6 py-3 rounded-lg hover:bg-blue-800 transition"
         >
           Generate Resume
         </button>
