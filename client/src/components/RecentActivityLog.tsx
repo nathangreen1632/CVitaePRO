@@ -13,10 +13,8 @@ const RecentActivityLog: React.FC<RecentActivityLogProps> = ({ activityLog }) =>
     if (el instanceof HTMLElement) {
       el.scrollIntoView({ behavior: "smooth", block: "start" });
 
-      // ✅ Add glow class
       el.classList.add("ring-10", "ring-blue-800", "animate-pulse");
 
-      // ❌ Remove it after 1.5 seconds
       setTimeout(() => {
         el.classList.remove("ring-10", "ring-blue-800", "animate-pulse");
       }, 1500);
