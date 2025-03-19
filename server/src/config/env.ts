@@ -1,6 +1,5 @@
 import dotenv from "dotenv";
 
-// Load environment variables from .env file
 dotenv.config();
 
 export const OPENAI_URL: string = process.env.OPENAI_URL ?? "https://api.openai.com/v1/chat/completions";
