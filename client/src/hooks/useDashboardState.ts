@@ -67,21 +67,5 @@ export const useDashboardState = () => {
     setResumeData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  return {
-    resumes,
-    setResumes,
-    activityLog,
-    setActivityLog,
-    loading,
-    setLoading,
-    error,
-    setError,
-    atsScores,
-    setAtsScores,
-    jobDescriptions,
-    setJobDescriptions,
-    resumeData,
-    setResumeData,
-    handleChange,
-  };
+  return {resumes, setResumes, activityLog, setActivityLog, loading, setLoading, error, setError, atsScores, setAtsScores, jobDescriptions, setJobDescriptions, resumeData, setResumeData, handleChange};
 };
