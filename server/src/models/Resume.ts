@@ -11,15 +11,15 @@ Resume.init(
     },
     user_id: {
       type: DataTypes.UUID,
-      allowNull: true,  // ‼️ Allow null values for user_id during development
+      allowNull: true,
     },
     extracted_text: {
       type: DataTypes.TEXT,
-      allowNull: true,  // ‼️ Allow null values for extracted_text during development
+      allowNull: true,
     },
     updated_at: {
       type: DataTypes.DATE,
-      allowNull: true,  // ‼️ Allow null values for updated_at during development
+      allowNull: true,
       defaultValue: DataTypes.NOW,
     },
   },
@@ -31,5 +31,4 @@ Resume.init(
   }
 );
 
-// ✅ Associations are handled in models/index.ts
 export default Resume;

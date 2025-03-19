@@ -17,7 +17,7 @@ export const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASS, {
 
 async function syncDatabase() {
   try {
-    await sequelize.sync({ force: true }); // ‼️ Set to false for production ‼️
+    await sequelize.sync({ force: false });
     console.log('Database synchronized');
   } catch (error) {
     console.error('Error synchronizing the database:', error);
@@ -33,6 +33,5 @@ export const connectDatabase = async (): Promise<void> => {
   }
 };
 
-// Connect to the database first, then sync the tables
 await connectDatabase();
 await syncDatabase();
