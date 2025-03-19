@@ -6,7 +6,7 @@ import { handleGenerateResume } from "../helpers/resumeHandlers.js";
 
 const GenerateResumeForm: React.FC = () => {
   const navigate = useNavigate();
-  const [isGenerating, setIsGenerating] = useState(false); // ✅ New state for spinner
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const {
     resumeData,
@@ -22,7 +22,7 @@ const GenerateResumeForm: React.FC = () => {
   };
 
   const handleSubmit = async () => {
-    setIsGenerating(true); // ✅ Show spinner
+    setIsGenerating(true);
 
     await handleGenerateResume({
       resumeData,
@@ -32,8 +32,8 @@ const GenerateResumeForm: React.FC = () => {
       fetchResumes,
     });
 
-    setIsGenerating(false); // ✅ Hide spinner
-    navigate("/dashboard"); // ✅ Redirect
+    setIsGenerating(false);
+    navigate("/dashboard");
   };
 
   return (
