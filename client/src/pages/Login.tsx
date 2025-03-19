@@ -1,13 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth.jsx";
 
-
 const Login = (): React.JSX.Element => {
-  const { login } = useAuth();
+  const { login, token } = useAuth();
   const navigate = useNavigate();
-
-  // State for username & password
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [error, setError] = useState<string>("");
@@ -20,9 +17,7 @@ const Login = (): React.JSX.Element => {
 
     try {
       const success: boolean = await login(username, password);
-      if (success) {
-        navigate("/dashboard");
-      } else {
+      if (!success) {
         setError("Invalid credentials. Please try again.");
       }
     } catch (err) {
@@ -32,10 +27,14 @@ const Login = (): React.JSX.Element => {
     }
   };
 
+  useEffect(() => {
+    if (token) {
+      navigate("/dashboard");
+    }
+  }, [token, navigate]);
 
   return (
     <div className="flex items-center justify-center h-screen bg-gray-900">
-
       {loading && (
         <div className="fixed inset-0 bg-gray-800 bg-opacity-60 backdrop-blur-sm flex justify-center items-center z-50">
           <div className="flex flex-col items-center space-y-4">
@@ -64,7 +63,6 @@ const Login = (): React.JSX.Element => {
         </div>
       )}
 
-      {/* 🔹 Dark background applied to full screen */}
       <form className="bg-white p-8 rounded-lg shadow-md w-96" onSubmit={handleSubmit}>
         <h2 className="text-2xl font-bold mb-4 text-center text-gray-900">Login</h2>
         {error && <p className="text-red-500 text-sm mb-3 text-center">{error}</p>}
