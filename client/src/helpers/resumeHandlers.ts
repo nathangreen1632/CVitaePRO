@@ -2,18 +2,16 @@ import { buildOpenAIPayload } from "./buildOpenAIPayload";
 import { parseResumeMarkdown } from "./parseResumeMarkdown";
 import React from "react";
 
-// ✅ Markdown sanitizer to strip unwanted formatting from OpenAI responses
 const cleanText = (input: string): string =>
   input
-    .replace(/```[\s\S]*?```/g, "")          // remove fenced code blocks
-    .replace(/^#+\s*/gm, "")                 // remove heading markers (#, ##)
-    .replace(/[*_~`>]/g, "")                 // remove symbols
-    .replace(/\[([^\]]+)]\([^)]+\)/g, "$1")  // convert mark down links to plain text
-    .replace(/^- /gm, "")                    // remove dashes from bullet lists
-    .replace(/\n{2,}/g, "\n")                // normalize line breaks
+    .replace(/```[\s\S]*?```/g, "")
+    .replace(/^#+\s*/gm, "")
+    .replace(/[*_~`>]/g, "")
+    .replace(/\[([^\]]+)]\([^)]+\)/g, "$1")
+    .replace(/^- /gm, "")
+    .replace(/\n{2,}/g, "\n")
     .trim();
 
-// ✅ Convert structured resume into sanitized HTML for scoring
 export const convertResumeToHTML = (resume: {
   name: string;
   email: string;
@@ -125,13 +123,7 @@ export const convertResumeToHTML = (resume: {
   `;
 };
 
-export const handleGenerateResume = async ({
-                                             resumeData,
-                                             setLoading,
-                                             setError,
-                                             setActivityLog,
-                                             fetchResumes,
-                                           }: {
+export const handleGenerateResume = async ({resumeData, setLoading, setError, setActivityLog, fetchResumes}: {
   resumeData: any;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   setError: React.Dispatch<React.SetStateAction<string | null>>;
@@ -207,12 +199,7 @@ export const handleGenerateResume = async ({
   }
 };
 
-export const handleEnhanceResume = async ({
-                                            resumeData,
-                                            setLoading,
-                                            setError,
-                                            setActivityLog,
-                                          }: {
+export const handleEnhanceResume = async ({resumeData, setLoading, setError, setActivityLog}: {
   resumeData: any;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   setError: React.Dispatch<React.SetStateAction<string | null>>;
@@ -252,7 +239,6 @@ export const handleEnhanceResume = async ({
     localStorage.setItem("activityLog", JSON.stringify(updatedLog));
     setActivityLog(updatedLog);
   } catch (error) {
-    console.error("❌ Error enhancing resume:", error);
     setError("Something went wrong while enhancing the resume.");
   } finally {
     setLoading(false);
@@ -279,13 +265,7 @@ interface ScoreResumeParams {
   >;
 }
 
-export const handleScoreResume = async ({
-                                          resumeId,
-                                          htmlResume,
-                                          jobDescription,
-                                          setAtsScores,
-                                        }: ScoreResumeParams)
-: Promise<void> => {
+export const handleScoreResume = async ({resumeId, htmlResume, jobDescription, setAtsScores}: ScoreResumeParams): Promise<void> => {
   if (!jobDescription || jobDescription.trim().length < 20) {
     alert("⚠️ Please enter a valid job description with at least 20 characters.");
     return;
@@ -311,7 +291,6 @@ export const handleScoreResume = async ({
     });
 
     if (!response.ok) {
-      console.error("❌ Failed to fetch ATS score");
       return;
     }
 
