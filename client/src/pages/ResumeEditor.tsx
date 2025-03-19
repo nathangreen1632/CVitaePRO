@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 import ResumeUpload from "../components/ResumeUpload.jsx";
-import HeaderBar from "../components/HeaderBar.jsx"; // ✅ Centralized Logout & Title
+import HeaderBar from "../components/HeaderBar.jsx";
 
 const ResumeEditor: React.FC = () => {
   const [resumeText, setResumeText] = useState<string>("");
@@ -101,7 +101,7 @@ const ResumeEditor: React.FC = () => {
 
     const payload = {
       resume: enhancedText || resumeText,
-      name: "Resume", // Or add a name input if needed
+      name: "Resume",
     };
 
     const token = localStorage.getItem("token");
@@ -150,7 +150,7 @@ const ResumeEditor: React.FC = () => {
 
     const payload = {
       resume: enhancedText || resumeText,
-      name: "Resume", // Optional
+      name: "Resume",
     };
 
     const token = localStorage.getItem("token");
@@ -190,7 +190,7 @@ const ResumeEditor: React.FC = () => {
     setResumeText("");
     setEnhancedText("");
     setError(null);
-    if (uploadRef.current) uploadRef.current.value = ""; // ✅ clear file input
+    if (uploadRef.current) uploadRef.current.value = "";
   };
 
   const sharedButtonClass = "min-w-[10rem] text-center font-semibold px-4 py-2 rounded-lg";
@@ -259,27 +259,26 @@ const ResumeEditor: React.FC = () => {
       <div className="max-w-3xl mx-auto bg-white dark:bg-gray-800 p-6 shadow-lg rounded-lg mt-4">
         <h2 className="text-2xl font-bold mb-4">Editor</h2>
 
-        {/* Upload + Buttons */}
         <div className="flex justify-between flex-wrap gap-4 mb-4">
 
           <ResumeUpload onParse={setResumeText} inputRef={uploadRef as React.RefObject<HTMLInputElement>} /> {/* ✅ Pass ref here */}
 
           <button
             onClick={handleClear}
-            className={`${sharedButtonClass} bg-red-700 text-white hover:bg-red-900`}
+            className={`${sharedButtonClass} bg-red-600 text-white font-medium hover:bg-red-800`}
           >
             {loading ? "Clearing..." : "Clear Editor"}
           </button>
 
           <button
             onClick={handleEnhance}
-            className={`${sharedButtonClass} bg-green-700 text-white hover:bg-green-900`}
+            className={`${sharedButtonClass} bg-yellow-600 text-white font-medium hover:bg-yellow-800`}
           >
             {loading ? "Summarizing..." : "Summarize"}
           </button>
           <button
             onClick={handleExpand}
-            className={`${sharedButtonClass} bg-yellow-600 text-white hover:bg-yellow-800`}
+            className={`${sharedButtonClass} bg-indigo-600 text-white hover:bg-indigo-800`}
           >
             {loading ? "Expanding..." : "Enhance"}
           </button>
@@ -300,14 +299,14 @@ const ResumeEditor: React.FC = () => {
           <div className="text-center mt-4 space-x-4">
             <button
               onClick={handleDownloadPDF}
-              className="bg-blue-600 hover:bg-blue-800 text-white font-bold py-2 px-6 rounded"
+              className="bg-gray-800 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded"
             >
               Download PDF
             </button>
 
             <button
               onClick={handleDownloadDocx}
-              className="bg-purple-600 hover:bg-purple-800 text-white font-bold py-2 px-6 rounded"
+              className="bg-gray-800 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded"
             >
               Download DOCX
             </button>
