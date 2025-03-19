@@ -1,57 +1,66 @@
+import { buildFallbackResume } from "./buildFallbackResume.ts";
+
 export const parseResumeMarkdown = (markdown: string, inputData: any): Record<string, any> => {
-  // ✅ Remove leading/trailing backticks (if OpenAI wraps in ```markdown ... ```)
-  markdown = markdown.replace(/^```[a-zA-Z]*\n/, "").replace(/\n```$/, "").trim();
+  if (!markdown) return buildFallbackResume(inputData);
 
-  // ✅ Extract JSON block from markdown if OpenAI returned structured data
-  const jsonMatch = RegExp(/```json\n([\s\S]*?)\n```/).exec(markdown);
-  if (jsonMatch) {
-    try {
-      const parsedJson = JSON.parse(jsonMatch[1]);
+  try {
+    markdown = markdown.replace(/^```[a-zA-Z]*\n/, "").replace(/\n```$/, "").trim();
 
-      // ✅ FIXED: Clean summary parsing from markdown blob
-      let summary = "No summary provided.";
-      if (typeof parsedJson.summary === "string") {
-        const summarySection = parsedJson.summary
-          .split(/\n(?=## )/)
-          .find((s: string) => s.toLowerCase().startsWith("## summary"));
-
-        if (summarySection) {
-          summary = summarySection
-            .replace(/## summary/i, "")
-            .replace(/[*_~`>#-]/g, "")
-            .trim();
-        }
-      } else if (typeof inputData.summary === "string") {
-        summary = inputData.summary;
-      }
-
-      let certifications: any[] = [];
-      if (Array.isArray(parsedJson.certifications)) {
-        certifications = parsedJson.certifications;
-      } else if (Array.isArray(inputData.certifications)) {
-        certifications = inputData.certifications;
-      }
-
-      return {
-        name: parsedJson.name || inputData.name,
-        email: parsedJson.email || inputData.email,
-        phone: parsedJson.phone || inputData.phone,
-        linkedin: parsedJson.linkedin || inputData.linkedin,
-        portfolio: parsedJson.portfolio || inputData.portfolio,
-        summary,
-        experience: parsedJson.experience || inputData.experience || [],
-        education: parsedJson.education || inputData.education || [],
-        skills: parsedJson.skills || inputData.skills || ["No skills listed."],
-        certifications,
-      };
-    } catch (error) {
-      console.error("❌ Failed to parse JSON from markdown:", error);
+    const jsonMatch = /```json\n([\s\S]*?)\n```/.exec(markdown);
+    if (jsonMatch?.[1]) {
+      const parsed = tryParseJsonMarkdown(jsonMatch[1], inputData);
+      if (parsed) return parsed;
     }
+
+    return parseStructuredMarkdown(markdown, inputData);
+  } catch (err) {
+    return buildFallbackResume(inputData);
   }
+};
 
-  console.warn("⚠️ No JSON block found in markdown. Falling back to section-based parsing.");
+const tryParseJsonMarkdown = (jsonBlock: string, inputData: any): Record<string, any> | null => {
+  try {
+    const parsedJson = JSON.parse(jsonBlock);
 
-  // ✅ Default resume structure (if JSON extraction fails)
+    let summary = "No summary provided.";
+    if (typeof parsedJson.summary === "string") {
+      const summarySection = parsedJson.summary
+        .split(/\n(?=## )/)
+        .find((s: string) => s.toLowerCase().startsWith("## summary"));
+
+      summary = summarySection
+        ? summarySection.replace(/## summary/i, "").replace(/[*_~`>#-]/g, "").trim()
+        : parsedJson.summary;
+    } else if (typeof inputData.summary === "string") {
+      summary = inputData.summary;
+    }
+
+    let certifications: any[] = [];
+    if (Array.isArray(parsedJson.certifications)) {
+      certifications = parsedJson.certifications;
+    } else if (Array.isArray(inputData.certifications)) {
+      certifications = inputData.certifications;
+    }
+
+    return {
+      name: parsedJson.name || inputData.name,
+      email: parsedJson.email || inputData.email,
+      phone: parsedJson.phone || inputData.phone,
+      linkedin: parsedJson.linkedin || inputData.linkedin,
+      portfolio: parsedJson.portfolio || inputData.portfolio,
+      summary,
+      experience: parsedJson.experience || inputData.experience || [],
+      education: parsedJson.education || inputData.education || [],
+      skills: parsedJson.skills || inputData.skills || ["No skills listed."],
+      certifications,
+    };
+  } catch (error) {
+    console.error("❌ Failed to parse JSON from markdown:", error);
+    return null;
+  }
+};
+
+const parseStructuredMarkdown = (markdown: string, inputData: any): Record<string, any> => {
   const resume: Record<string, any> = {
     name: inputData.name || "",
     email: inputData.email || "",
@@ -65,15 +74,14 @@ export const parseResumeMarkdown = (markdown: string, inputData: any): Record<st
     certifications: inputData.certifications || ["No certifications listed."]
   };
 
-  // ✅ Extract sections from markdown if JSON parsing is unsuccessful
   const sections = markdown.split(/\n(?=## )/);
 
   for (const section of sections) {
     const lines = section.trim().split("\n");
     if (lines.length === 0) continue;
 
-    let title = lines[0].replace(/[*#]/g, "").trim();
-    let content = lines.slice(1).map(line => line.replace(/[*-]/g, "").trim()).filter(line => line.length > 0);
+    const title = lines[0].replace(/[*#]/g, "").trim();
+    const content = lines.slice(1).map(line => line.replace(/[*-]/g, "").trim()).filter(line => line.length > 0);
 
     switch (title.toLowerCase()) {
       case "contact information":
@@ -108,7 +116,6 @@ export const parseResumeMarkdown = (markdown: string, inputData: any): Record<st
   return resume;
 };
 
-// ✅ Function to Parse Experience Section
 const parseExperienceSection = (content: string[], inputExperience: any[]): any[] => {
   const experiences: any[] = [];
   let currentJob: any = null;
@@ -135,13 +142,11 @@ const parseExperienceSection = (content: string[], inputExperience: any[]): any[
   return experiences.length > 0 ? experiences : inputExperience;
 };
 
-// ✅ Function to Parse Skills Section
 const parseSkillsSection = (content: string[], inputSkills: string[]): string[] => {
   let skills: string[] = content.map(skill => skill.trim()).filter(skill => skill.length > 0);
   return skills.length > 0 ? skills : inputSkills;
 };
 
-// ✅ Function to Parse Certifications Section
 const parseCertificationsSection = (content: string[], inputCertifications: any[]): any[] => {
   const certifications = content.map(cert => {
     const parts = cert.split(",");
@@ -151,7 +156,6 @@ const parseCertificationsSection = (content: string[], inputCertifications: any[
   return certifications.length > 0 ? certifications : inputCertifications;
 };
 
-// ✅ Function to Parse Education Section
 const parseEducationSection = (content: string[], inputEducation: any[]): any[] => {
   const education: any[] = [];
   let currentEducation: any = {};
@@ -171,7 +175,6 @@ const parseEducationSection = (content: string[], inputEducation: any[]): any[] 
   return education.length > 0 ? education : inputEducation;
 };
 
-// ✅ Function to Format Dates
 const formatDate = (dateStr: string): string => {
   dateStr = dateStr.trim();
   const months: Record<string, string> = {
