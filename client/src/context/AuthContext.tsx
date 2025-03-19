@@ -27,13 +27,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({})); // Handle JSON parsing failure
         console.error("❌ Registration failed:", errorData?.error || "Unknown error");
-        return false; // ✅ Return `false` instead of throwing an error
+        return false;
       }
 
       return true;
     } catch (error) {
       console.error("❌ Unexpected registration error:", error instanceof Error ? error.message : error);
-      return false; // ✅ Return `false` so the UI knows registration failed
+      return false;
     }
   };
 
@@ -51,7 +51,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (!response.ok) {
         console.error("❌ Login failed:", data?.error || "Unknown error");
-        return false; // ✅ Return `false` instead of throwing an error
+        return false;
       }
 
       setUser(username);
@@ -61,7 +61,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return true;
     } catch (error) {
       console.error("❌ Unexpected login error:", error instanceof Error ? error.message : error);
-      return false; // ✅ Return `false` so the UI knows login failed
+      return false;
     }
   };
 
@@ -71,7 +71,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem("token");
   };
 
-  // ✅ Use `useMemo` to optimize re-renders
   const authContextValue = useMemo(
     () => ({ user, token, register, login, logout }),
     [user, token]
