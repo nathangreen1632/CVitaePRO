@@ -25,7 +25,6 @@ const Navbar: React.FC = () => {
           CVitae<span className="text-red-500">PRO</span>
         </Link>
 
-        {/* Desktop Navigation Links */}
         <div className="hidden md:flex space-x-6">
           {visiblePages.map((item) => (
             <Link
@@ -38,7 +37,6 @@ const Navbar: React.FC = () => {
           ))}
         </div>
 
-        {/* Mobile Menu Button */}
         <button
           className="md:hidden text-white text-3xl focus:outline-none"
           onClick={() => setMenuOpen(!menuOpen)}
@@ -49,7 +47,6 @@ const Navbar: React.FC = () => {
 
       </div>
 
-      {/* Mobile Dropdown Menu */}
       {menuOpen && (
         <div className="md:hidden bg-gray-800 py-4 px-6">
           {visiblePages.map((item) => (
