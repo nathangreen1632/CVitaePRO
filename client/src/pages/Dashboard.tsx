@@ -1,30 +1,18 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth.jsx";
 import HeaderBar from "../components/HeaderBar.jsx";
 import ResumeList from "../components/ResumeList.jsx";
 import ResumeActionsPanel from "../components/ResumeActionsPanel.jsx";
 import RecentActivityLog from "../components/RecentActivityLog.jsx";
 import { useDashboardState } from "../hooks/useDashboardState.js";
-import { handleEnhanceResume, handleScoreResume } from "../helpers/resumeHandlers";
+import { handleEnhanceResume, handleScoreResume } from "../helpers/resumeHandlers.js";
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+  const { token } = useAuth();
 
-  const {
-    resumes,
-    setResumes,
-    activityLog,
-    setActivityLog,
-    loading,
-    setLoading,
-    error,
-    setError,
-    atsScores,
-    setAtsScores,
-    jobDescriptions,
-    setJobDescriptions,
-    resumeData,
-  } = useDashboardState();
+  const {resumes, setResumes, activityLog, setActivityLog, loading, setLoading, error, setError, atsScores, setAtsScores, jobDescriptions, setJobDescriptions, resumeData} = useDashboardState();
 
   const isTokenExpired = (token: string): boolean => {
     try {
@@ -37,13 +25,11 @@ const Dashboard: React.FC = () => {
   };
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-
-    if (!token || isTokenExpired(token)) {
-      console.warn("🔒 No valid token found. Redirecting to login...");
+    if (!token) {
+      console.warn("🔒 No valid token found in context. Redirecting to login...");
       navigate("/login");
     }
-  }, []);
+  }, [token, navigate]);
 
   const buildActivityLogFromResumes = (resumeList: typeof resumes): string[] => {
     return resumeList.map((resume) => {
@@ -164,7 +150,6 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-      {/* Semantic landmark: Header */}
       <header>
         <HeaderBar title="Dashboard" />
         <h1 className="sr-only" aria-label="Dashboard Page">
@@ -172,7 +157,6 @@ const Dashboard: React.FC = () => {
         </h1>
       </header>
 
-      {/* Semantic landmark: Main */}
       <main className="flex-grow container mx-auto p-6" role="main">
         <h2 className="text-2xl font-semibold mb-4">Welcome to your Dashboard</h2>
 
@@ -186,7 +170,7 @@ const Dashboard: React.FC = () => {
               setError,
               setActivityLog,
             });
-            await fetchResumes(); // ✅ Call refresh here manually after enhancement
+            await fetchResumes();
           }} onGenerate={() => navigate("/resume")}
         />
 
@@ -201,14 +185,12 @@ const Dashboard: React.FC = () => {
             setJobDescriptions={setJobDescriptions}
             atsScores={atsScores}
             setAtsScores={setAtsScores}
-            refreshResumes={refreshResumes} // ✅ FIXED: now using your custom function
+            refreshResumes={refreshResumes}
             handleScoreResume={handleScoreResume}
           />
-
         )}
       </main>
     </div>
-
   );
 };
 
