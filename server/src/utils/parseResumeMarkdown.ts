@@ -1,53 +1,65 @@
 export const parseResumeMarkdown = (markdown: string, inputData: any): Record<string, any> => {
-  // ✅ Remove leading/trailing backticks (if OpenAI wraps in ```markdown ... ```)
-  markdown = markdown.replace(/^```[a-zA-Z]*\n/, "").replace(/\n```$/, "").trim();
+  if (!markdown) return buildFallbackResume(inputData);
 
-  // ✅ Extract JSON block from markdown if OpenAI returned structured data
-  const jsonMatch = RegExp(/```json\n([\s\S]*?)\n```/).exec(markdown);
-  if (jsonMatch) {
-    try {
-      const parsedJson = JSON.parse(jsonMatch[1]);
+  try {
+    markdown = markdown.replace(/^```[a-zA-Z]*\n/, "").replace(/\n```$/, "").trim();
 
-      let summary = "No summary provided.";
-      if (typeof parsedJson.summary === "string") {
-        summary = parsedJson.summary;
-      } else if (typeof inputData.summary === "string") {
-        summary = inputData.summary;
-      }
-
-      let certifications: any[] = [];
-      if (Array.isArray(parsedJson.certifications)) {
-        certifications = parsedJson.certifications;
-      } else if (Array.isArray(inputData.certifications)) {
-        certifications = inputData.certifications;
-      }
-
-      return {
-        name: parsedJson.name || inputData.name,
-        email: parsedJson.email || inputData.email,
-        phone: parsedJson.phone || inputData.phone,
-        linkedin: parsedJson.linkedin || inputData.linkedin,
-        portfolio: parsedJson.portfolio || inputData.portfolio,
-        summary,
-        experience: parsedJson.experience || inputData.experience || [],
-        education: parsedJson.education || inputData.education || [],
-        skills: parsedJson.skills || inputData.skills || ["No skills listed."],
-        certifications,
-      };
-    } catch (error) {
-      console.error("❌ Failed to parse JSON from markdown:", error);
+    const jsonMatch = /```json\n([\s\S]*?)\n```/.exec(markdown);
+    if (jsonMatch?.[1]) {
+      const parsed = tryParseJson(jsonMatch[1], inputData);
+      if (parsed) return parsed;
     }
+
+    console.warn("⚠️ No JSON block found in markdown. Falling back to section-based parsing.");
+    return parseMarkdownSections(markdown, inputData);
+  } catch (error) {
+    console.error("❌ Unexpected error during resume parsing:", error);
+    return buildFallbackResume(inputData);
   }
+};
 
+const tryParseJson = (jsonBlock: string, inputData: any): Record<string, any> | null => {
+  try {
+    const parsedJson = JSON.parse(jsonBlock);
 
-  console.warn("⚠️ No JSON block found in markdown. Falling back to section-based parsing.");
+    let summary = "No summary provided.";
+    if (typeof parsedJson.summary === "string") {
+      summary = parsedJson.summary;
+    } else if (typeof inputData.summary === "string") {
+      summary = inputData.summary;
+    }
 
-  // ✅ Default resume structure (if JSON extraction fails)
+    let certifications: any[] = [];
+    if (Array.isArray(parsedJson.certifications)) {
+      certifications = parsedJson.certifications;
+    } else if (Array.isArray(inputData.certifications)) {
+      certifications = inputData.certifications;
+    }
+
+    return {
+      name: parsedJson.name || inputData.name,
+      email: parsedJson.email || inputData.email,
+      phone: parsedJson.phone || inputData.phone,
+      linkedin: parsedJson.linkedin || inputData.linkedin,
+      portfolio: parsedJson.portfolio || inputData.portfolio,
+      summary,
+      experience: parsedJson.experience || inputData.experience || [],
+      education: parsedJson.education || inputData.education || [],
+      skills: parsedJson.skills || inputData.skills || ["No skills listed."],
+      certifications,
+    };
+  } catch (error) {
+    console.error("❌ Failed to parse JSON from markdown:", error);
+    return null;
+  }
+};
+
+const parseMarkdownSections = (markdown: string, inputData: any): Record<string, any> => {
   const resume: Record<string, any> = {
     name: inputData.name || "",
     email: inputData.email || "",
     phone: inputData.phone || "",
-    linkedin: inputData.linkedin || "",     // ✅ Add this
+    linkedin: inputData.linkedin || "",
     portfolio: inputData.portfolio || "",
     summary: inputData.summary || "No summary provided.",
     experience: inputData.experience || [],
@@ -56,18 +68,17 @@ export const parseResumeMarkdown = (markdown: string, inputData: any): Record<st
     certifications: inputData.certifications || ["No certifications listed."]
   };
 
-  // ✅ Extract sections from markdown if JSON parsing is unsuccessful
   const sections = markdown.split(/\n(?=## )/);
 
   for (const section of sections) {
     const lines = section.trim().split("\n");
     if (lines.length === 0) continue;
 
-    let title = lines[0].replace(/[*#]/g, "").trim();
-    let content = lines.slice(1).map(line => line.replace(/[*-]/g, "").trim()).filter(line => line.length > 0);
+    const title = lines[0].replace(/[*#]/g, "").trim();
+    const content = lines.slice(1).map(line => line.replace(/[*-]/g, "").trim()).filter(Boolean);
 
     switch (title.toLowerCase()) {
-      case "contact information": // ✅ ADDED
+      case "contact information":
         content.forEach((line) => {
           if (line.toLowerCase().includes("email:")) {
             resume.email = line.split(":")[1]?.trim() || inputData.email || "";
@@ -99,7 +110,7 @@ export const parseResumeMarkdown = (markdown: string, inputData: any): Record<st
   return resume;
 };
 
-// ✅ Function to Parse Experience Section
+// ✅ Already working helpers
 const parseExperienceSection = (content: string[], inputExperience: any[]): any[] => {
   const experiences: any[] = [];
   let currentJob: any = null;
@@ -109,18 +120,15 @@ const parseExperienceSection = (content: string[], inputExperience: any[]): any[
       if (currentJob) experiences.push(currentJob);
       currentJob = { company: "", role: "", start_date: "", end_date: "", responsibilities: [] };
       currentJob.company = line.replace("### ", "").trim();
-    }
-    else if (currentJob && !currentJob.role) {
+    } else if (currentJob && !currentJob.role) {
       currentJob.role = line.trim();
-    }
-    else if (currentJob && !currentJob.start_date) {
+    } else if (currentJob && !currentJob.start_date) {
       const dates = line.split(" - ").map(d => d.trim());
       const startDate = formatDate(dates[0]);
       let endDate = dates.length > 1 ? dates[1] : "";
       currentJob.start_date = startDate;
       currentJob.end_date = endDate.toLowerCase() === "present" ? "Present" : formatDate(endDate);
-    }
-    else if (currentJob) {
+    } else if (currentJob) {
       currentJob.responsibilities.push(line.trim());
     }
   });
@@ -129,13 +137,11 @@ const parseExperienceSection = (content: string[], inputExperience: any[]): any[
   return experiences.length > 0 ? experiences : inputExperience;
 };
 
-// ✅ Function to Parse Skills Section
 const parseSkillsSection = (content: string[], inputSkills: string[]): string[] => {
-  let skills: string[] = content.map(skill => skill.trim()).filter(skill => skill.length > 0);
+  const skills: string[] = content.map(skill => skill.trim()).filter(Boolean);
   return skills.length > 0 ? skills : inputSkills;
 };
 
-// ✅ Function to Parse Certifications Section
 const parseCertificationsSection = (content: string[], inputCertifications: any[]): any[] => {
   const certifications = content.map(cert => {
     const parts = cert.split(",");
@@ -145,7 +151,6 @@ const parseCertificationsSection = (content: string[], inputCertifications: any[
   return certifications.length > 0 ? certifications : inputCertifications;
 };
 
-// ✅ Function to Parse Education Section
 const parseEducationSection = (content: string[], inputEducation: any[]): any[] => {
   const education: any[] = [];
   let currentEducation: any = {};
@@ -155,11 +160,9 @@ const parseEducationSection = (content: string[], inputEducation: any[]): any[] 
       currentEducation.graduation_year = line.replace("Graduation Year:", "").trim();
       education.push(currentEducation);
       currentEducation = {};
-    }
-    else if (!currentEducation?.degree) {
+    } else if (!currentEducation?.degree) {
       currentEducation.degree = line.trim();
-    }
-    else if (!currentEducation?.institution) {
+    } else if (!currentEducation?.institution) {
       currentEducation.institution = line.trim();
     }
   });
@@ -167,7 +170,6 @@ const parseEducationSection = (content: string[], inputEducation: any[]): any[] 
   return education.length > 0 ? education : inputEducation;
 };
 
-// ✅ Function to Format Dates
 const formatDate = (dateStr: string): string => {
   dateStr = dateStr.trim();
   const months: Record<string, string> = {
@@ -182,3 +184,16 @@ const formatDate = (dateStr: string): string => {
   }
   return dateStr;
 };
+
+const buildFallbackResume = (inputData: any): Record<string, any> => ({
+  name: inputData.name || "",
+  email: inputData.email || "",
+  phone: inputData.phone || "",
+  linkedin: inputData.linkedin || "",
+  portfolio: inputData.portfolio || "",
+  summary: inputData.summary || "No summary provided.",
+  experience: inputData.experience || [],
+  education: inputData.education || [],
+  skills: inputData.skills || ["No skills listed."],
+  certifications: inputData.certifications || ["No certifications listed."]
+});

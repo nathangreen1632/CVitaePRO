@@ -26,10 +26,10 @@ interface ResumeCardProps {
   name: string;
   resumeSnippet: string;
   summary: string;
-  email: string;          // ✅ Add this
-  phone: string;          // ✅ Add this
-  linkedin: string;       // ✅ Add this
-  portfolio: string;      // ✅ Add this
+  email: string;
+  phone: string;
+  linkedin: string;
+  portfolio: string;
   experience?: Experience[];
   education?: Education[];
   skills?: string[];
@@ -37,40 +37,30 @@ interface ResumeCardProps {
   refreshResumes: () => void;
 }
 
+const ResumeCard: React.FC<ResumeCardProps> = ({id, name, resumeSnippet, summary, email, phone, experience = [], education = [], skills = [], certifications = [], portfolio, linkedin, refreshResumes}) => {
+  let parsedSummary = summary;
 
-const ResumeCard: React.FC<ResumeCardProps> = ({
-                                                 id,
-                                                 name,
-                                                 resumeSnippet,
-                                                 summary,
-                                                 email,        // ✅ Add this
-                                                 phone,        // ✅ Add this
-                                                 experience = [],
-                                                 education = [],
-                                                 skills = [],
-                                                 certifications = [],
-                                                 portfolio,
-                                                 linkedin,
-                                                 refreshResumes,
-                                               }) => {
+  try {
+    if (resumeSnippet) {
+      const parsed = parseResumeMarkdown(resumeSnippet, summary);
+      parsedSummary = parsed.summary || summary;
+    }
+  } catch (e) {
+    console.warn("⚠️ Failed to parse resume markdown:", e);
+  }
+
+  const cleanSummary: string = parsedSummary || "No summary provided.";
 
 
-  const parsed = parseResumeMarkdown(resumeSnippet, summary);
-  const cleanSummary: string = parsed.summary || summary || "No summary provided.";
   const [isDownloading, setIsDownloading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showDownloadModal, setShowDownloadModal] = useState(false);
 
-
-
-
   const handleEdit = () => {
     window.location.href = `/edit-resume/${id}`;
   };
-
-
 
   const handleDownload = async (format: "pdf" | "docx") => {
     setIsDownloading(true);
@@ -103,11 +93,9 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
       setError("Something went wrong while downloading.");
     } finally {
       setIsDownloading(false);
-      setShowDownloadModal(false); // Close modal after download
+      setShowDownloadModal(false);
     }
   };
-
-
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -162,18 +150,7 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
       return;
     }
 
-    const resumeData = {
-      name,
-      email,
-      phone,
-      linkedin,
-      portfolio,
-      summary,
-      experience,
-      education,
-      skills,
-      certifications,
-    };
+    const resumeData = {name, email, phone, linkedin, portfolio, summary, experience, education, skills, certifications};
 
     try {
       const response = await fetch("/api/openai/enhance-resume", {
@@ -195,7 +172,6 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
       const data = await response.json();
       const enhancedResume = data.resume;
 
-      // ✅ Update localStorage with enhanced data
       const stored = localStorage.getItem("resumes");
       if (stored) {
         const parsed = JSON.parse(stored);
@@ -214,9 +190,6 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
     }
   };
 
-
-
-
   function formatWorkDates(startDate: string, endDate: string): string {
     const cleanStart = startDate?.trim();
     const cleanEnd = endDate?.trim();
@@ -234,10 +207,6 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
 
     return "N/A";
   }
-
-
-
-
 
   return (
     <div className="bg-gray-800 text-white p-6 rounded-lg shadow-lg w-full">
@@ -292,14 +261,12 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
         <strong>Summary:</strong> {cleanSummary}
       </p>
 
-
       {resumeSnippet?.includes("{") || resumeSnippet?.includes("[") ? null : (
         <div
           className="text-sm text-gray-300 mb-4 whitespace-pre-line"
           dangerouslySetInnerHTML={{ __html: parseResumeMarkdown(resumeSnippet, "") }}
         />
       )}
-
 
       <div className="mb-4">
         <h4 className="font-semibold text-lg py-3">Experience</h4>
@@ -320,7 +287,6 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
         ) : (
           <p className="text-gray-400 text-sm">No experience data available.</p>
         )}
-
       </div>
 
       <div className="mb-4">
@@ -371,7 +337,7 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
                 key={`${cert.name}-${cert.year}`}
                 className="text-sm text-gray-300 mt-1"
               >
-                ✅ {cert.name}
+                 {cert.name}
                 {cert.year && cert.year.trim().length > 0 ? ` (${cert.year})` : ""}
               </div>
 
@@ -380,18 +346,17 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
         ) : (
           <p className="text-gray-400 text-sm">No certifications listed.</p>
         )}
-
       </div>
 
       {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
 
       <div className="mt-4 flex flex-wrap gap-2 justify-between">
-        <button onClick={handleEdit} className="bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-800 transition">
+        <button onClick={handleEdit} className="bg-indigo-600 px-4 py-2 rounded-lg font-medium hover:bg-indgio-800 transition">
           Edit
         </button>
         <button
           onClick={() => setShowDownloadModal(true)}
-          className="bg-green-700 px-4 py-2 rounded-lg hover:bg-green-900 transition"
+          className="bg-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-900 transition"
         >
           Download
         </button>
@@ -399,14 +364,14 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
         <button
           onClick={handleEnhance}
           disabled={isEnhancing}
-          className="bg-purple-600 px-4 py-2 rounded-lg hover:bg-purple-800 transition"
+          className="bg-indigo-600 px-4 py-2 rounded-lg font-medium hover:bg-indigo-800 transition"
         >
           {isEnhancing ? "Enhancing..." : "Enhance"}
         </button>
         <button
           onClick={handleDelete}
           disabled={isDeleting}
-          className="bg-red-600 px-4 py-2 rounded-lg hover:bg-red-800 transition"
+          className="bg-red-600 px-4 py-2 rounded-lg font-medium hover:bg-red-800 transition"
         >
           {isDeleting ? "Deleting..." : "Delete"}
         </button>
@@ -431,12 +396,11 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
                 onClick={() => handleDownload("docx")}
                 disabled={isDownloading}
                 className={`${
-                  isDownloading ? "opacity-50 cursor-not-allowed" : "hover:bg-purple-900"
-                } bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition`}
+                  isDownloading ? "opacity-50 cursor-not-allowed" : "hover:bg-indigo-900"
+                } bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition`}
               >
                 {isDownloading ? "Downloading..." : "Download DOCX"}
               </button>
-
 
               <button
                 onClick={() => setShowDownloadModal(false)}
@@ -448,7 +412,6 @@ const ResumeCard: React.FC<ResumeCardProps> = ({
           </div>
         </div>
       )}
-
     </div>
   );
 };

@@ -18,7 +18,6 @@ interface Props {
 }
 
 const ExperienceSection: React.FC<Props> = ({ resumeData, setResumeData }) => {
-  // Ensure at least one experience with an ID
   useEffect(() => {
     if (resumeData.experience.length === 0) {
       setResumeData((prev: any) => ({
@@ -45,9 +44,9 @@ const ExperienceSection: React.FC<Props> = ({ resumeData, setResumeData }) => {
   ) => {
     setResumeData((prev: any) => {
       const updated = prev.experience.map((exp: Experience) =>
-        exp.id === id ? { ...exp, [field]: value } : exp
+        exp.id === id ? {...exp, [field]: value} : exp
       );
-      return { ...prev, experience: updated };
+      return {...prev, experience: updated};
     });
   };
 
@@ -71,7 +70,7 @@ const ExperienceSection: React.FC<Props> = ({ resumeData, setResumeData }) => {
 
   const removeExperience = (id: string) => {
     const updated = resumeData.experience.filter((exp) => exp.id !== id);
-    setResumeData((prev: any) => ({ ...prev, experience: updated }));
+    setResumeData((prev: any) => ({...prev, experience: updated}));
   };
 
   const updateResponsibility = (id: string, text: string) => {
@@ -85,7 +84,7 @@ const ExperienceSection: React.FC<Props> = ({ resumeData, setResumeData }) => {
           }
           : exp
       );
-      return { ...prev, experience: updated };
+      return {...prev, experience: updated};
     });
   };
 
@@ -99,16 +98,16 @@ const ExperienceSection: React.FC<Props> = ({ resumeData, setResumeData }) => {
           }
           : exp
       );
-      return { ...prev, experience: updated };
+      return {...prev, experience: updated};
     });
   };
 
   const updateCurrentResponsibility = (id: string, text: string) => {
     setResumeData((prev: any) => {
       const updated = prev.experience.map((exp: Experience) =>
-        exp.id === id ? { ...exp, currentResponsibility: text } : exp
+        exp.id === id ? {...exp, currentResponsibility: text} : exp
       );
-      return { ...prev, experience: updated };
+      return {...prev, experience: updated};
     });
   };
 
@@ -118,50 +117,74 @@ const ExperienceSection: React.FC<Props> = ({ resumeData, setResumeData }) => {
 
       {resumeData.experience.map((exp) => (
         <div key={exp.id} className="bg-gray-700 p-4 rounded-lg mb-4 shadow-md">
-          <input
-            type="text"
-            placeholder="Company"
-            value={exp.company}
-            onChange={(e) => handleExperienceChange(exp.id, "company", e.target.value)}
-            className="w-full mb-2 p-2 rounded bg-gray-800 text-white"
-          />
-          <input
-            type="text"
-            placeholder="Role"
-            value={exp.role}
-            onChange={(e) => handleExperienceChange(exp.id, "role", e.target.value)}
-            className="w-full mb-2 p-2 rounded bg-gray-800 text-white"
-          />
-          <div className="flex gap-2 mb-2">
+
+          <div className="mb-2">
+            <label htmlFor={`company-${exp.id}`} className="text-white block mb-1">Company</label>
             <input
+              id={`company-${exp.id}`}
               type="text"
-              placeholder="Start Date"
-              value={exp.start_date}
-              onChange={(e) => handleExperienceChange(exp.id, "start_date", e.target.value)}
-              className="w-1/2 p-2 rounded bg-gray-800 text-white"
-            />
-            <input
-              type="text"
-              placeholder="End Date"
-              value={exp.end_date}
-              onChange={(e) => handleExperienceChange(exp.id, "end_date", e.target.value)}
-              className="w-1/2 p-2 rounded bg-gray-800 text-white"
+              placeholder="Company name"
+              value={exp.company}
+              onChange={(e) => handleExperienceChange(exp.id, "company", e.target.value)}
+              className="w-full p-2 rounded bg-gray-800 text-white"
             />
           </div>
 
-          <input
-            type="text"
-            placeholder="Responsibility (press Enter to add)"
-            value={exp.currentResponsibility ?? ""}
-            onChange={(e) => updateCurrentResponsibility(exp.id, e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && exp.currentResponsibility?.trim()) {
-                e.preventDefault();
-                updateResponsibility(exp.id, exp.currentResponsibility.trim());
-              }
-            }}
-            className="w-full mb-2 p-2 rounded bg-gray-800 text-white"
-          />
+          <div className="mb-2">
+            <label htmlFor={`role-${exp.id}`} className="text-white block mb-1">Role</label>
+            <input
+              id={`role-${exp.id}`}
+              type="text"
+              placeholder="Your Job Title"
+              value={exp.role}
+              onChange={(e) => handleExperienceChange(exp.id, "role", e.target.value)}
+              className="w-full p-2 rounded bg-gray-800 text-white"
+            />
+          </div>
+
+          <div className="flex gap-2 mb-2">
+            <div className="w-1/2">
+              <label htmlFor={`start-${exp.id}`} className="text-white block mb-1">Start Date</label>
+              <input
+                id={`start-${exp.id}`}
+                type="text"
+                placeholder="Start Date"
+                value={exp.start_date}
+                onChange={(e) => handleExperienceChange(exp.id, "start_date", e.target.value)}
+                className="w-full p-2 rounded bg-gray-800 text-white"
+              />
+            </div>
+
+            <div className="w-1/2">
+              <label htmlFor={`end-${exp.id}`} className="text-white block mb-1">End Date</label>
+              <input
+                id={`end-${exp.id}`}
+                type="text"
+                placeholder="End Date"
+                value={exp.end_date}
+                onChange={(e) => handleExperienceChange(exp.id, "end_date", e.target.value)}
+                className="w-full p-2 rounded bg-gray-800 text-white"
+              />
+            </div>
+          </div>
+
+          <div className="mb-2">
+            <label htmlFor={`resp-${exp.id}`} className="text-white block mb-1">Responsibility</label>
+            <input
+              id={`resp-${exp.id}`}
+              type="text"
+              placeholder="Responsibility (press Enter to add)"
+              value={exp.currentResponsibility ?? ""}
+              onChange={(e) => updateCurrentResponsibility(exp.id, e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && exp.currentResponsibility?.trim()) {
+                  e.preventDefault();
+                  updateResponsibility(exp.id, exp.currentResponsibility.trim());
+                }
+              }}
+              className="w-full p-2 rounded bg-gray-800 text-white"
+            />
+          </div>
 
           <div className="flex flex-wrap gap-2 mb-2">
             {exp.responsibilities.map((r) => (
@@ -169,22 +192,22 @@ const ExperienceSection: React.FC<Props> = ({ resumeData, setResumeData }) => {
                 key={r}
                 className="bg-blue-300 dark:bg-gray-900 text-black dark:text-white px-3 py-1 rounded flex items-center gap-2"
               >
-                {r}
+              {r}
                 <button
                   type="button"
-                  className="text-sm hover:text-red-500"
+                  className="text-sm hover:text-red-600"
                   onClick={() => removeResponsibility(exp.id, r)}
                 >
-                  ❌
-                </button>
-              </span>
+                ❌
+              </button>
+            </span>
             ))}
           </div>
 
           <button
             type="button"
             onClick={() => removeExperience(exp.id)}
-            className="text-red-300 hover:text-red-700 text-sm"
+            className="text-red-200 shadow-red-200 hover:text-red-600 text-sm"
           >
             ❌ Remove Experience
           </button>
@@ -195,13 +218,13 @@ const ExperienceSection: React.FC<Props> = ({ resumeData, setResumeData }) => {
         <button
           type="button"
           onClick={addExperience}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          className="px-4 py-2 bg-indigo-600 text-white font-medium rounded hover:bg-indigo-800"
         >
           ➕ Add Experience
         </button>
       </div>
     </div>
   );
-};
+}
 
 export default ExperienceSection;

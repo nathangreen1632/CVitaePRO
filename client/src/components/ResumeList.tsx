@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import ResumeCard from "../pages/ResumeCard.jsx";
 import ATSScoreBreakdown from "./ATSScoreBreakdown.jsx";
 import { convertResumeToHTML } from "../helpers/convertResumeToHTML";
@@ -76,7 +76,7 @@ interface ResumeListProps {
         >
       >
     >;
-  }) => void;
+  }) => Promise<void>;
   refreshResumes: () => void;
 }
 
@@ -89,6 +89,21 @@ const ResumeList: React.FC<ResumeListProps> = ({
                                                  setAtsScores,
                                                  refreshResumes,
                                                }) => {
+  const [loadingScore, setLoadingScore] = useState<Record<string, boolean>>({});
+
+  const handleScore = async (resumeId: string, htmlResume: string, jobDescription: string) => {
+    setLoadingScore((prev) => ({ ...prev, [resumeId]: true }));
+
+    await handleScoreResume({
+      resumeId,
+      htmlResume,
+      jobDescription,
+      setAtsScores,
+    });
+
+    setLoadingScore((prev) => ({ ...prev, [resumeId]: false }));
+  };
+
   return (
     <div className="mt-8">
       <h3 className="text-xl font-semibold mb-4 text-center">Your Resumes</h3>
@@ -149,21 +164,24 @@ const ResumeList: React.FC<ResumeListProps> = ({
                     skills: resume.skills,
                     certifications: resume.certifications,
                   });
-                  console.log("🧪 HTML SENT TO BACKEND:\n", html);
 
-                  handleScoreResume({
-                    resumeId: resume.id,
-                    htmlResume: html,
-                    jobDescription: jobDescriptions[resume.id] || "",
-                    setAtsScores,
-                  });
+                  void handleScore(resume.id, html, jobDescriptions[resume.id] || "");
                 }}
-                className="bg-yellow-700 hover:bg-yellow-900 text-white px-4 py-2 rounded mt-2"
+                disabled={loadingScore[resume.id]}
+                className={`bg-yellow-600 hover:bg-yellow-800 text-black font-medium px-4 py-2 rounded mt-2 transition ${
+                  loadingScore[resume.id] ? "opacity-60 cursor-not-allowed" : ""
+                }`}
               >
-                Score Resume
+                {loadingScore[resume.id] ? "Scoring..." : "Score Resume"}
               </button>
 
-              {atsScores[resume.id] && (
+              {loadingScore[resume.id] && (
+                <div className="text-center mt-2 text-sm text-indigo-500 animate-pulse">
+                  ⏳ Getting your score...
+                </div>
+              )}
+
+              {atsScores[resume.id] && !loadingScore[resume.id] && (
                 <ATSScoreBreakdown
                   atsScore={atsScores[resume.id].atsScore}
                   keywordMatch={atsScores[resume.id].keywordMatch}

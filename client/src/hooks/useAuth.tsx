@@ -1,7 +1,6 @@
 import { useContext } from "react";
 import { AuthContext, AuthContextType } from "../context/AuthContext.jsx";
 
-// ✅ Create a fallback to prevent crashes
 const defaultAuth: AuthContextType = {
   user: null,
   token: null,

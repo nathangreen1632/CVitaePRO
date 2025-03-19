@@ -1,4 +1,3 @@
-// helpers/convertResumeToHTML.ts
 export function convertResumeToHTML(resume: {
   name: string;
   email: string;

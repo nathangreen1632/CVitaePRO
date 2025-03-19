@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
-import { loginUser, registerUser } from "../services/userService.js"; // ✅ Included registerUser
-import { validateUserCredentials } from "../services/authService.js"; // ✅ Included validateUserCredentials
+import { loginUser, registerUser } from "../services/userService.js";
+import { validateUserCredentials } from "../services/authService.js";
+import pool from "../db/pgClient.js";
+import bcrypt from "bcrypt";
 import logger from "../register/logger.js";
 
 export async function register(req: Request, res: Response): Promise<void> {
@@ -13,26 +15,21 @@ export async function register(req: Request, res: Response): Promise<void> {
     }
 
     const userRole = role === "admin" ? "admin" : "user";
-    const { user: newUser } = await registerUser({
-      username,
-      password,  // Pass plain text password
-      role: userRole
-    }) || { user: null, token: null };
-
-
+    const { user: newUser } =
+    (await registerUser({ username, password, role: userRole })) ||
+    { user: null, token: null };
 
     if (!newUser) {
       logger.error(`❌ Registration failed for '${username}'. User object is null.`);
       res.status(500).json({ error: "User registration failed. Please try again." });
-      return;  // ✅ Prevent further execution if newUser is null
+      return;
     }
 
     logger.info(`✅ New user registered: '${username}' with role '${userRole}'`);
     res.status(201).json({
       message: "User registered successfully",
-      userId: newUser?.getDataValue("id")
+      userId: newUser?.getDataValue("id"),
     });
-
   } catch (error) {
     logger.error(`❌ Registration Error: ${error instanceof Error ? error.message : "Unknown error"}`);
     res.status(400).json({ error: error instanceof Error ? error.message : "Unknown error" });
@@ -42,29 +39,58 @@ export async function register(req: Request, res: Response): Promise<void> {
 export async function login(req: Request, res: Response): Promise<void> {
   try {
     const { username, password } = req.body;
-
-    // ✅ You can still call loginUser if needed
     const token = await loginUser({ username, password });
 
     if (!token) {
-      // ✅ If loginUser fails, we attempt the password validation process via validateUserCredentials
       const result = await validateUserCredentials(username, password);
       if (result.error) {
         res.status(401).json({ error: result.error });
         return;
       }
-      // ✅ Send token from validateUserCredentials if validation is successful
       res.status(200).json({ token: result.token });
       return;
     }
 
-    res.status(200).json({ token }); // ✅ Send token directly if loginUser works fine
-    return;
+    res.status(200).json({ token });
   } catch (error) {
     console.error("Login Error:", error);
     res.status(500).json({ error: "Internal server error" });
-    return;
   }
 }
 
+export async function changePassword(req: Request, res: Response): Promise<void> {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.user?.id;
 
+    if (!userId || !currentPassword || !newPassword) {
+      res.status(400).json({ error: "Missing user ID or passwords." });
+      return;
+    }
+
+    const result = await pool.query("SELECT passwordhash FROM users WHERE id = $1", [userId]);
+
+    if (result.rowCount === 0) {
+      res.status(404).json({ error: "User not found." });
+      return;
+    }
+
+    const isValid = await bcrypt.compare(currentPassword, result.rows[0].passwordhash);
+
+    if (!isValid) {
+      res.status(401).json({ error: "Incorrect current password." });
+      return;
+    }
+
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+    await pool.query("UPDATE users SET passwordhash = $1 WHERE id = $2", [hashedPassword, userId]);
+
+    logger.info(`🔑 Password changed for user ${userId}`);
+    res.status(200).json({ message: "Password changed successfully." });
+  } catch (error) {
+    console.error("❌ Password Change Error:", error);
+    res.status(500).json({ error: "Something went wrong while updating password." });
+  }
+}

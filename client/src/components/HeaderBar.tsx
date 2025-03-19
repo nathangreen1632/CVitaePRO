@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { AuthContext } from "../context/AuthContext"; // ✅ Uses logout from context
+import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 interface HeaderBarProps {
@@ -11,12 +11,12 @@ const HeaderBar: React.FC<HeaderBarProps> = ({ title }) => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    logout(); // ✅ Calls context logout (clears state and localStorage)
+    logout();
     navigate("/home");
   };
 
   const handleSettings = () => {
-    navigate("/settings"); // ✅ Navigate to settings page
+    navigate("/settings");
   };
 
   return (
@@ -26,14 +26,14 @@ const HeaderBar: React.FC<HeaderBarProps> = ({ title }) => {
       <div className="flex gap-4">
         <button
           onClick={handleSettings}
-          className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded"
+          className="bg-gray-600 hover:bg-gray-700 text-white font-medium px-4 py-2 rounded"
         >
           Settings
         </button>
 
         <button
           onClick={handleLogout}
-          className="bg-red-600 hover:bg-red-600 text-white px-4 py-2 rounded"
+          className="bg-red-600 hover:bg-red-600 text-white font-medium px-4 py-2 rounded"
         >
           Logout
         </button>

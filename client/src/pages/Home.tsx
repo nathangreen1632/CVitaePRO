@@ -5,7 +5,6 @@ import { Link } from "react-router-dom";
 const Home = (): React.JSX.Element => {
   return (
     <div className="relative w-full h-screen bg-black flex flex-col items-center justify-center">
-      {/* ✅ Spline 3D Scene */}
       <Spline
         scene="https://prod.spline.design/ebUc8RxpXDIysAET/scene.splinecode"
         onLoad={() => console.log("Spline loaded successfully")}
@@ -13,7 +12,6 @@ const Home = (): React.JSX.Element => {
         className="absolute inset-0 w-full h-full"
       />
 
-      {/* ✅ Hero Section */}
       <div className="absolute top-1/3 text-center">
         <h1 className="text-white text-5xl font-bold mb-6">
           Build Your Perfect Resume
@@ -21,10 +19,9 @@ const Home = (): React.JSX.Element => {
         <p className="text-gray-300 text-lg mb-8">
           AI-powered resume creation to land your dream job.
         </p>
-        
-        {/* ✅ Call-to-Action (CTA) Button */}
+
         <Link to="/register">
-          <button className="bg-red-500 text-white text-lg font-semibold px-8 py-4 rounded-lg shadow-lg hover:bg-red-600 transition mt-30">
+          <button className="bg-red-500 text-white text-lg font-medium px-8 py-4 rounded-lg shadow-lg hover:bg-red-600 transition mt-30">
             Get Started
           </button>
         </Link>
