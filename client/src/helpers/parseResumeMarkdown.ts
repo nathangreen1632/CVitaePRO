@@ -1,4 +1,4 @@
-import { buildFallbackResume } from "./buildFallbackResume.ts";
+import { buildFallbackResume } from "./buildFallbackResume.js";
 
 export const parseResumeMarkdown = (markdown: string, inputData: any): Record<string, any> => {
   if (!markdown) return buildFallbackResume(inputData);
