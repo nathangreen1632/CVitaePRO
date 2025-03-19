@@ -1,4 +1,3 @@
-// Handles skills as a comma-separated list input
 import React from 'react';
 
 interface Props {
@@ -39,7 +38,7 @@ const SkillsSection: React.FC<Props> = ({ resumeData, setResumeData }) => {
         />
         <button
           type="button"
-          className="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          className="px-3 py-2 bg-gray-800 text-white font-medium rounded hover:bg-gray-600"
           onClick={() => {
             if (resumeData.currentSkill?.trim()) {
               setResumeData((prev: any) => ({
