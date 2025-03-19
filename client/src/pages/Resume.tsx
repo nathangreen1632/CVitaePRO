@@ -6,10 +6,8 @@ import GenerateResumeForm from "../components/GenerateResumeForm.jsx";
 const Resume: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      {/* Wrap the header in a semantic landmark */}
       <header>
         <HeaderBar title="Generate Resume" />
-        {/* Add screen reader-only heading inside header landmark */}
         <h1 className="sr-only" aria-label="Generate Resume">
           Generate Resume
         </h1>
