@@ -66,7 +66,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }): React
     localStorage.removeItem("token");
     setUser(null);
     setToken(null);
-    navigate("/login");
+    navigate("/home");
   };
 
   const value = useMemo(
