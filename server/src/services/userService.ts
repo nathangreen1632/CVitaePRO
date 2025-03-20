@@ -22,7 +22,7 @@ export const generateAccessToken = (user: InstanceType<typeof User>): string => 
       role: user.getDataValue("role"),
     },
     JWT_SECRET,
-    { expiresIn: "5h" }
+    { expiresIn: "90m" }
   );
 };
 

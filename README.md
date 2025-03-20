@@ -9,8 +9,6 @@
 ![Development](https://img.shields.io/badge/Development-Active-limegreen.svg)
 ![Build](https://img.shields.io/badge/Build-Passing-limegreen.svg)
 ![Deps](https://img.shields.io/badge/Deps-Up%20to%20date-limegreen.svg)
-![Last Commit](https://img.shields.io/github/last-commit/nathangreen1632/CVitaePRO.svg)
-![Issues](https://img.shields.io/github/issues/nathangreen1632/CVitaePRO.svg)
 
 **Badges**
 
@@ -210,38 +208,38 @@ CVitaePRO’s ATS scoring logic works in three phases:
 
 **1. Resume Parsing**
 ```
-import cheerio from 'cheerio';
+import parserTool from 'parser-lib';
 
-function parseResume(htmlResume: string) {
-  const $ = cheerio.load(htmlResume);
+function extractFieldsFromHTML(htmlInput: string) {
+  const dom = parserTool.load(htmlInput);
   return {
-    name: $('h1').text(),
-    email: $('a[href^="mailto:"]').text(),
-    phone: $('a[href^="tel:"]').text(),
-    experience: $('section#experience').text(),
-    education: $('section#education').text(),
-    skills: $('section#skills').text()
+    fullName: dom('header.title').text(),
+    contactEmail: dom('a[href^="mailto:"]').text(),
+    contactPhone: dom('a[href^="tel:"]').text(),
+    jobHistory: dom('div#work-history').text(),
+    schoolInfo: dom('div#academics').text(),
+    techStack: dom('div#abilities').text()
   };
 }
 ```
 
 **2. Keyword Matching**
 ```
-function matchKeywords(resumeText: string, jobDescription: string): number {
-  const jobKeywords = jobDescription.toLowerCase().match(/\b\w+\b/g) || [];
-  const resumeWords = resumeText.toLowerCase().match(/\b\w+\b/g) || [];
+function compareTerms(textA: string, textB: string): number {
+  const termsA = textA.toLowerCase().match(/\b\w+\b/g) || [];
+  const termsB = textB.toLowerCase().match(/\b\w+\b/g) || [];
 
-  let matches = jobKeywords.filter(word => resumeWords.includes(word)).length;
-  return (matches / jobKeywords.length) * 100;
+  const overlapCount = termsA.filter(term => termsB.includes(term)).length;
+  return (overlapCount / termsA.length) * 100;
 }
 ```
 
 **3. ATS Score Calculation**
 ```
-function calculateATSScore(keywordMatch: number, formattingErrors: string[]): number {
-  let score = keywordMatch * 0.90;
-  score -= formattingErrors.length * 5;
-  return Math.max(0, Math.min(score, 100));
+function computeScore(matchPercent: number, issues: string[]): number {
+  let baseScore = matchPercent * 0.9;
+  baseScore -= issues.length * 5;
+  return Math.max(0, Math.min(baseScore, 100));
 }
 ```
 
@@ -353,6 +351,22 @@ function calculateATSScore(keywordMatch: number, formattingErrors: string[]): nu
 </div>
 
 ---
+## Contact
+
+**Nathan Green**  
+
+[![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](http://www.github.com/nathangreen1632)  
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/jgreen1632)  
+[![Email](https://img.shields.io/badge/Email-000000?style=for-the-badge&logo=gmail)](mailto:ngreen1632@gmail.com)
+
+<div style="text-align: right;">
+  <a href="#top">
+    <img src="https://img.shields.io/badge/Back%20to%20Top-%E2%86%91-royalblue" alt="Back to Top">
+  </a>
+</div>
+
+___ 
+
 
 ## 🎯 Conclusion
 
@@ -364,3 +378,4 @@ CVitaePRO is redefining how people write resumes. With intelligent automation, r
   </a>
 </div>
 
+---
