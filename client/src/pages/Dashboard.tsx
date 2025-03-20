@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth.jsx";
 import HeaderBar from "../components/HeaderBar.jsx";
@@ -12,7 +12,24 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { token } = useAuth();
 
-  const {resumes, setResumes, activityLog, setActivityLog, loading, setLoading, error, setError, atsScores, setAtsScores, jobDescriptions, setJobDescriptions, resumeData} = useDashboardState();
+  // ✅ Add hydration guard
+  const [tokenHydrated, setTokenHydrated] = useState(false);
+
+  const {
+    resumes,
+    setResumes,
+    activityLog,
+    setActivityLog,
+    loading,
+    setLoading,
+    error,
+    setError,
+    atsScores,
+    setAtsScores,
+    jobDescriptions,
+    setJobDescriptions,
+    resumeData,
+  } = useDashboardState();
 
   const isTokenExpired = (token: string): boolean => {
     try {
@@ -24,12 +41,17 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  // ✅ Handle hydration delay and only redirect if still no token
   useEffect(() => {
-    if (!token) {
-      console.warn("🔒 No valid token found in context. Redirecting to login...");
-      navigate("/login");
+    if (token === null) {
+      const storedToken = localStorage.getItem("token");
+      if (!storedToken) {
+        navigate("/login");
+      }
     }
+    setTokenHydrated(true);
   }, [token, navigate]);
+
 
   const buildActivityLogFromResumes = (resumeList: typeof resumes): string[] => {
     return resumeList.map((resume) => {
@@ -147,6 +169,18 @@ const Dashboard: React.FC = () => {
       console.error("❌ Error loading resumes:", error)
     );
   }, []);
+
+  if (!tokenHydrated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-gray-600 dark:border-gray-300" />
+          <p className="text-lg font-medium">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
