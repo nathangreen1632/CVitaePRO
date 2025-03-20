@@ -5,6 +5,7 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: "/",
   plugins: [react(), tailwindcss()],
   server: {
     port: 3000,
@@ -22,16 +23,16 @@ export default defineConfig({
     },
   },
   build: {
-    chunkSizeWarningLimit: 6000, // ✅ Increased limit to prevent warnings
+    chunkSizeWarningLimit: 6000,
     rollupOptions: {
       output: {
         // @ts-ignore
         manualChunks(id) {
           if (id.includes("node_modules")) {
             if (id.includes("@splinetool/react-spline")) {
-              return "spline"; // ✅ Moves Spline into its own chunk
+              return "spline";
             }
-            return "vendor"; // ✅ Moves all other dependencies into a "vendor" chunk
+            return "vendor";
           }
         },
       },
