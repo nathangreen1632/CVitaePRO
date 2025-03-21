@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { AuthContext } from "../context/AuthContext.jsx";
-import { useActivityDetector } from "../hooks/useActivityDetector.jsx";
+import { useActivityDetector } from "../hooks/useActivityDetector.js";
 import SessionWarningModal from "./SessionWarningModal.jsx";
 import { refreshToken } from "../utils/refreshToken.js";
 
