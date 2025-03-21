@@ -4,6 +4,8 @@ import { validateUserCredentials } from "../services/authService.js";
 import pool from "../db/pgClient.js";
 import bcrypt from "bcrypt";
 import logger from "../register/logger.js";
+import { verifyToken, generateToken } from "../utils/jwtUtils.js";
+
 
 export async function register(req: Request, res: Response): Promise<void> {
   try {
@@ -92,5 +94,31 @@ export async function changePassword(req: Request, res: Response): Promise<void>
   } catch (error) {
     console.error("❌ Password Change Error:", error);
     res.status(500).json({ error: "Something went wrong while updating password." });
+  }
+}
+
+export async function refreshToken(req: Request, res: Response): Promise<void> {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader?.startsWith("Bearer ")) {
+      res.status(401).json({ error: "No token provided" });
+      return;
+    }
+
+    const token = authHeader.split(" ")[1];
+    const decoded = verifyToken(token);
+
+    if (!decoded?.userId) {
+      res.status(403).json({ error: "Invalid token" });
+      return;
+    }
+
+    const newToken = generateToken(decoded.userId, decoded.role);
+
+    res.status(200).json({ token: newToken });
+  } catch (error) {
+    console.error("❌ Error refreshing token:", error);
+    res.status(500).json({ error: "Token refresh failed" });
   }
 }

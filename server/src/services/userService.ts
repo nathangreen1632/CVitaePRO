@@ -68,10 +68,6 @@ export async function loginUser(credentials: UserData): Promise<string | null> {
       return null;
     }
 
-    // ✅ Add debug logs before checking password
-    console.log(`🔍 Stored hash for '${credentials.username}': ${user.passwordhash}`);
-    console.log(`🔍 Password entered: ${credentials.password}`);
-
     const isMatch = await comparePassword(credentials.password, user.passwordhash);
 
     // ✅ Log password comparison result

@@ -10,7 +10,8 @@ import Login from "../pages/Login.jsx";
 import Features from "../pages/Features.jsx";
 import NotFound from "../pages/NotFound.jsx";
 import Home from "../pages/Home.jsx";
-import ProtectedRoute from "../components/ProtectedRoutes.jsx"; // ✅ NEW
+import ProtectedRoute from "../components/ProtectedRoutes.jsx";
+import ActivityWatcher from "../components/ActivityWatcher.jsx";
 
 const AppRoutes = (): React.JSX.Element => {
   return (
@@ -21,12 +22,13 @@ const AppRoutes = (): React.JSX.Element => {
       <Route path="/register" element={<Register />} />
       <Route path="/features" element={<Features />} />
 
-      {/* ✅ Protected Routes */}
       <Route
         path="/dashboard"
         element={
           <ProtectedRoute>
-            <Dashboard />
+            <ActivityWatcher>
+              <Dashboard />
+            </ActivityWatcher>
           </ProtectedRoute>
         }
       />
@@ -34,7 +36,9 @@ const AppRoutes = (): React.JSX.Element => {
         path="/generate-cover-letter"
         element={
           <ProtectedRoute>
-            <GenerateCoverLetter />
+            <ActivityWatcher>
+              <GenerateCoverLetter />
+            </ActivityWatcher>
           </ProtectedRoute>
         }
       />
@@ -42,7 +46,9 @@ const AppRoutes = (): React.JSX.Element => {
         path="/resume"
         element={
           <ProtectedRoute>
-            <Resume />
+            <ActivityWatcher>
+              <Resume />
+            </ActivityWatcher>
           </ProtectedRoute>
         }
       />
@@ -50,7 +56,9 @@ const AppRoutes = (): React.JSX.Element => {
         path="/resume-editor"
         element={
           <ProtectedRoute>
-            <ResumeEditor />
+            <ActivityWatcher>
+              <ResumeEditor />
+            </ActivityWatcher>
           </ProtectedRoute>
         }
       />
@@ -58,7 +66,9 @@ const AppRoutes = (): React.JSX.Element => {
         path="/settings"
         element={
           <ProtectedRoute>
-            <Settings />
+            <ActivityWatcher>
+              <Settings />
+            </ActivityWatcher>
           </ProtectedRoute>
         }
       />
