@@ -70,6 +70,7 @@ const Login = (): React.JSX.Element => {
         <input
           type="text"
           placeholder="Username"
+          autoComplete="username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           required
