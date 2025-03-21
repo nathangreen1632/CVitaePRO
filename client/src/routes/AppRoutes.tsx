@@ -1,6 +1,5 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth.jsx";
 import Dashboard from "../pages/Dashboard.jsx";
 import GenerateCoverLetter from "../pages/GenerateCoverLetter.jsx";
 import Resume from "../pages/Resume.jsx";
@@ -11,11 +10,9 @@ import Login from "../pages/Login.jsx";
 import Features from "../pages/Features.jsx";
 import NotFound from "../pages/NotFound.jsx";
 import Home from "../pages/Home.jsx";
+import ProtectedRoute from "../components/ProtectedRoutes.jsx"; // ✅ NEW
 
 const AppRoutes = (): React.JSX.Element => {
-  const { token } = useAuth();
-  const isAuthenticated = !!token;
-
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/home" replace />} />
@@ -23,11 +20,49 @@ const AppRoutes = (): React.JSX.Element => {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/features" element={<Features />} />
-      <Route path="/dashboard" element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" replace />} />
-      <Route path="/generate-cover-letter" element={isAuthenticated ? <GenerateCoverLetter /> : <Navigate to="/login" replace />} />
-      <Route path="/resume" element={isAuthenticated ? <Resume /> : <Navigate to="/login" replace />} />
-      <Route path="/resume-editor" element={isAuthenticated ? <ResumeEditor /> : <Navigate to="/login" replace />} />
-      <Route path="/settings" element={isAuthenticated ? <Settings /> : <Navigate to="/login" replace />} />
+
+      {/* ✅ Protected Routes */}
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/generate-cover-letter"
+        element={
+          <ProtectedRoute>
+            <GenerateCoverLetter />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/resume"
+        element={
+          <ProtectedRoute>
+            <Resume />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/resume-editor"
+        element={
+          <ProtectedRoute>
+            <ResumeEditor />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <Settings />
+          </ProtectedRoute>
+        }
+      />
+
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
