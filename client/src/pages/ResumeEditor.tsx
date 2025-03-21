@@ -196,9 +196,13 @@ const ResumeEditor: React.FC = () => {
   const sharedButtonClass = "min-w-[10rem] text-center font-semibold px-4 py-2 rounded-lg";
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-6">
-      <HeaderBar title="Editor Page" />
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+      <header>
+        <HeaderBar title="Resume Editor" />
+        <h1 className="sr-only" aria-label="Editor Page">Editor Page</h1>
+      </header>
 
+      <main className="container mx-auto p-6">
       {loading && (
         <div className="fixed inset-0 bg-gray-800 bg-opacity-60 backdrop-blur-sm flex justify-center items-center z-50">
           <div className="flex flex-col items-center space-y-4">
@@ -313,6 +317,7 @@ const ResumeEditor: React.FC = () => {
           </div>
         )}
       </div>
+      </main>
     </div>
   );
 };
