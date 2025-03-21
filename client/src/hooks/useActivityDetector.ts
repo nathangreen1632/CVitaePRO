@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { getTokenExpirationTime } from "../utils/tokenUtils";
 
 interface UseActivityDetectorOptions {
   inactiveLimit?: number;
   countdownLimit?: number;
   onLogout: () => void;
-  onExtendSession: () => void;
+  onExtendSession: () => void | Promise<void>;
 }
 
 export const useActivityDetector = ({
@@ -20,13 +21,12 @@ export const useActivityDetector = ({
   useEffect(() => {
     let inactivityTimer: NodeJS.Timeout;
     let countdownTimer: NodeJS.Timeout;
+    let expirationTimeout: NodeJS.Timeout;
 
     const handleInactivity = () => {
-      console.warn("⚠️ Inactivity threshold reached — showing modal.");
       setShowWarning(true);
 
       countdownTimer = setTimeout(() => {
-        console.warn("⛔ Auto-logging out after countdown.");
         sessionStorage.removeItem("intentionalLogout");
         onLogout();
         navigate("/login");
@@ -47,21 +47,37 @@ export const useActivityDetector = ({
       clearTimeout(inactivityTimer);
       clearTimeout(countdownTimer);
 
-      onExtendSession(); // optional backend ping
-      console.log("🖱️ Activity detected — resetting inactivity timer.");
-
+      onExtendSession();
       inactivityTimer = setTimeout(handleInactivity, inactiveLimit);
     }, 2000);
+
+    const scheduleTokenExpirationWarning = () => {
+      const token = localStorage.getItem("token");
+      const expirationTime = token ? getTokenExpirationTime(token) : null;
+
+      if (expirationTime) {
+        const warningTime = expirationTime - 15 * 60 * 1000;
+        const msUntilWarning = warningTime - Date.now();
+
+        if (msUntilWarning > 0) {
+          expirationTimeout = setTimeout(() => {
+            handleInactivity();
+          }, msUntilWarning);
+        }
+      }
+    };
 
     window.addEventListener("mousemove", resetInactivityTimer);
     window.addEventListener("keydown", resetInactivityTimer);
     window.addEventListener("scroll", resetInactivityTimer);
 
-    inactivityTimer = setTimeout(handleInactivity, inactiveLimit);
+    resetInactivityTimer();
+    scheduleTokenExpirationWarning();
 
     return () => {
       clearTimeout(inactivityTimer);
       clearTimeout(countdownTimer);
+      clearTimeout(expirationTimeout);
       window.removeEventListener("mousemove", resetInactivityTimer);
       window.removeEventListener("keydown", resetInactivityTimer);
       window.removeEventListener("scroll", resetInactivityTimer);
@@ -69,7 +85,6 @@ export const useActivityDetector = ({
   }, [inactiveLimit, countdownLimit, onLogout, onExtendSession, navigate, showWarning]);
 
   const acknowledgeActivity = () => {
-    console.log("✅ User clicked 'I'm still here' — session extended.");
     setShowWarning(false);
     onExtendSession();
   };
