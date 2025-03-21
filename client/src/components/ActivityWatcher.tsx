@@ -1,15 +1,16 @@
 import React, { useContext } from "react";
-import { AuthContext } from "../context/AuthContext";
-import { useActivityDetector } from "../hooks/useActivityDetector";
-import SessionWarningModal from "./SessionWarningModal";
+import { AuthContext } from "../context/AuthContext.jsx";
+import { useActivityDetector } from "../hooks/useActivityDetector.jsx";
+import SessionWarningModal from "./SessionWarningModal.jsx";
+import { refreshToken } from "../utils/refreshToken.js";
 
 const ActivityWatcher: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { logout, token } = useContext(AuthContext)!;
+  const { logout } = useContext(AuthContext)!;
 
-  // 🔁 Simulated session extension (swap with real refresh if needed)
-  const refreshSession = () => {
-    if (token) {
-      localStorage.setItem("token", token); // Simulate refreshing the JWT
+  const refreshSession = async () => {
+    const success = await refreshToken();
+    if (!success) {
+      logout();
     }
   };
 
@@ -22,7 +23,6 @@ const ActivityWatcher: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
   return (
     <>
-      {/* ⚠️ Show modal when inactivity timeout is reached */}
       {showWarning && (
         <SessionWarningModal
           onStayLoggedIn={acknowledgeActivity}
