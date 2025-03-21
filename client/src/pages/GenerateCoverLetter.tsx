@@ -187,9 +187,15 @@ const GenerateCoverLetter: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-6">
-      <HeaderBar title="Generate Cover Letter" />
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+      <header>
+        <HeaderBar title="Generate Cover Letter" />
+        <h1 className="sr-only" aria-label="Generate Cover Letter">
+          Generate Cover Letter
+        </h1>
+      </header>
 
+      <main className="container mx-auto p-6">
       {downloadLoading && (
         <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex justify-center items-center z-50">
           <div className="flex flex-col items-center space-y-4">
@@ -317,6 +323,7 @@ const GenerateCoverLetter: React.FC = () => {
           </>
         )}
       </div>
+      </main>
     </div>
   );
 };
