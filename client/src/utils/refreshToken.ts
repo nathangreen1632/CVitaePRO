@@ -23,7 +23,6 @@ export const refreshToken = async (): Promise<boolean> => {
     const data = await response.json();
     if (data.token) {
       localStorage.setItem("token", data.token);
-      console.log("✅ Token successfully refreshed");
       return true;
     }
 
