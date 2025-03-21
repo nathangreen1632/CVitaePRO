@@ -12,20 +12,31 @@ const SessionWarningModal: React.FC<SessionWarningModalProps> = ({
                                                                    countdownLimit = 2 * 60 * 1000,
                                                                  }) => {
   const [remainingTime, setRemainingTime] = useState(countdownLimit);
+  const [buttonsDisabled, setButtonsDisabled] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setRemainingTime((prev) => {
-        if (prev <= 1000) {
+        const next = prev - 1000;
+
+        // Auto-disable buttons at 1s remaining
+        if (next === 1000 && !buttonsDisabled) {
+          setButtonsDisabled(true);
+        }
+
+        // Auto logout at 0
+        if (next <= 0) {
           clearInterval(interval);
+          onLogout();
           return 0;
         }
-        return prev - 1000;
+
+        return next;
       });
     }, 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [onLogout, buttonsDisabled]);
 
   const formatTime = (ms: number) => {
     const totalSeconds = Math.floor(ms / 1000);
@@ -51,13 +62,19 @@ const SessionWarningModal: React.FC<SessionWarningModalProps> = ({
         <div className="flex justify-center gap-4">
           <button
             onClick={onStayLoggedIn}
-            className="bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded"
+            disabled={buttonsDisabled}
+            className={`${
+              buttonsDisabled ? "bg-gray-400 cursor-not-allowed" : "bg-green-600 hover:bg-green-700"
+            } text-white font-medium px-4 py-2 rounded`}
           >
             I'm still here
           </button>
           <button
             onClick={onLogout}
-            className="bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2 rounded"
+            disabled={buttonsDisabled}
+            className={`${
+              buttonsDisabled ? "bg-gray-400 cursor-not-allowed" : "bg-red-600 hover:bg-red-700"
+            } text-white font-medium px-4 py-2 rounded`}
           >
             Log me out
           </button>
