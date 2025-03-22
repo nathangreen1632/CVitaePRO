@@ -19,12 +19,10 @@ const SessionWarningModal: React.FC<SessionWarningModalProps> = ({
       setRemainingTime((prev) => {
         const next = prev - 1000;
 
-        // Auto-disable buttons at 1s remaining
         if (next === 1000 && !buttonsDisabled) {
           setButtonsDisabled(true);
         }
 
-        // Auto logout at 0
         if (next <= 0) {
           clearInterval(interval);
           onLogout();
