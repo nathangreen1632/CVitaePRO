@@ -10,7 +10,7 @@ const Navbar: React.FC = () => {
   useEffect(() => {
     const token = localStorage.getItem("token");
     setIsAuthenticated(!!token);
-  }, [location]); // Run again when route changes
+  }, [location]);
 
   const publicPages = ["Home", "Login", "Register", "Features"];
   const privatePages = ["Dashboard", "Resume", "Resume-Editor", "Generate-Cover-Letter"];
@@ -20,7 +20,7 @@ const Navbar: React.FC = () => {
   return (
     <nav className="bg-gray-900 text-white py-4 shadow-md">
       <div className="container mx-auto flex justify-between items-center px-6">
-        {/* Logo */}
+
         <Link to="/" className="text-xl font-bold tracking-wide">
           CVitae<span className="text-red-500">PRO</span>
         </Link>
