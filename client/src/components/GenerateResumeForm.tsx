@@ -18,7 +18,6 @@ const GenerateResumeForm: React.FC = () => {
   } = useDashboardState();
 
   const fetchResumes = async () => {
-    console.warn("⚠️ fetchResumes called from fallback. You should pass this down if needed.");
   };
 
   const handleSubmit = async () => {

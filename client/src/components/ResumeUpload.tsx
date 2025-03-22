@@ -92,7 +92,7 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({ onParse, inputRef }) => {
       <input
         type="file"
         accept=".pdf,.docx"
-        ref={inputRef} // ✅ Forward the ref
+        ref={inputRef}
         onChange={handleFileUpload}
         className="hidden"
         id="resume-upload"

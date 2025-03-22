@@ -7,8 +7,6 @@ const Home = (): React.JSX.Element => {
     <div className="relative w-full h-screen bg-black flex flex-col items-center justify-center">
       <Spline
         scene="https://prod.spline.design/ebUc8RxpXDIysAET/scene.splinecode"
-        onLoad={() => console.log("Spline loaded successfully")}
-        onError={(error) => console.error("Spline failed to load:", error)}
         className="absolute inset-0 w-full h-full"
       />
 

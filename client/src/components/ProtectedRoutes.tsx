@@ -10,7 +10,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { token } = useAuth();
   const location = useLocation();
 
-  // ✅ If token is missing AND not already on home, redirect to /login
   if (!token && location.pathname !== "/home") {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }

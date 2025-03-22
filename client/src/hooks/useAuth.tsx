@@ -13,8 +13,7 @@ export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
 
   if (!context) {
-    console.warn("⚠️ Warning: useAuth was called outside of AuthProvider. Using default values.");
-    return defaultAuth; // ✅ Return safe fallback instead of crashing
+    return defaultAuth;
   }
 
   return context;

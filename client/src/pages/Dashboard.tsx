@@ -66,7 +66,6 @@ const Dashboard: React.FC = () => {
 
     const token = localStorage.getItem("token");
     if (!token || isTokenExpired(token)) {
-      console.error("❌ Token expired. Please log in again.");
       setError("Session expired. Please log in again.");
       setLoading(false);
       return;
