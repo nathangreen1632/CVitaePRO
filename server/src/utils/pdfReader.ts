@@ -1,10 +1,6 @@
 import pdf2json from "pdf2json";
 import logger from "../register/logger.js";
-/**
- * Extracts text from a PDF file using pdf2json.
- * @param {string} filePath - Path to the uploaded PDF file.
- * @returns {Promise<string>} - Extracted raw text.
- */
+
 export async function extractTextFromPDF(filePath: string): Promise<string> {
   return new Promise((resolve, reject) => {
     const pdfParser = new pdf2json();
@@ -15,7 +11,6 @@ export async function extractTextFromPDF(filePath: string): Promise<string> {
     });
 
     pdfParser.on("pdfParser_dataReady", (pdfData) => {
-      // Extract text from the PDF JSON structure
       const extractedText = pdfData.Pages.map((page) =>
         page.Texts.map((t) => decodeURIComponent(t.R[0].T)).join(" ")
       ).join("\n");
@@ -23,7 +18,6 @@ export async function extractTextFromPDF(filePath: string): Promise<string> {
       resolve(extractedText);
     });
 
-    // Load the PDF file
     pdfParser.loadPDF(filePath);
   });
 }
