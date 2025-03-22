@@ -1,8 +1,7 @@
-<span id=top>[![CVitaePRO](../CVitaePRO/client/src/assets/cvitaepro-badge-large.svg)](http://cvitaepro.onrender.com)</span>
+# <span id="top">CVitae<span style="color:#fa2c37">PRO</span>: Resume & Cover Letter Builder for Modern Careers</span>
 
 
-
-[![License](https://img.shields.io/badge/License-none-darkred.svg)](docs/LICENSE.md)
+[![License](https://img.shields.io/badge/License-none-fa2c37.svg)](docs/LICENSE.md)
 
 **Project Status**
 
@@ -60,7 +59,7 @@
   </a>
 </div>
 
-## 🧾 Synopsis
+## Synopsis
 
 CVitaePRO is a next-generation, AI-powered platform that empowers job seekers to generate polished, professional, and recruiter-ready resumes and cover letters in minutes — not hours. Built to bridge the gap between human potential and hiring system algorithms, CVitaePRO streamlines the document creation process using GPT-4o, the most advanced natural language model available from OpenAI.
 
@@ -78,6 +77,9 @@ Whether you’re a first-time applicant or a seasoned professional tailoring doc
 
 In an age where AI-written resumes are the new normal, CVitaePRO ensures yours is better written, better structured, and built to be seen.
 
+<img src="./client/src/assets/CVitaePRO_WireFrame.png" width="900px" height="480px" alt="CVitaePRO Wireframe" />
+ 
+
 <div style="text-align: right;">
   <a href="#top">
     <img src="https://img.shields.io/badge/Back%20to%20Top-%E2%86%91-royalblue" alt="Back to Top">
@@ -86,7 +88,7 @@ In an age where AI-written resumes are the new normal, CVitaePRO ensures yours i
 
 ---
 
-## 📘 About
+## About
 
 Writing a resume shouldn’t feel like an impossible task — but for many job seekers, it is. From figuring out the right structure to choosing the right words and meeting recruiter expectations, most people struggle to present their experience in a way that’s clear, compelling, and competitive. On top of that, automated Applicant Tracking Systems (ATS) filter out poorly formatted or keyword-weak resumes before they’re ever seen by a human.
 
@@ -108,7 +110,7 @@ Whether you’re applying to your first job or your fiftieth, CVitaePRO empowers
 
 ---
 
-## 💡 Use Case
+## Use Case
 
 CVitaePRO is designed for:
 - Job-seekers applying to roles online
@@ -124,6 +126,21 @@ The platform solves:
 - Impersonal or low-impact cover letters
 - Manual re-editing of documents for each new job
 
+<img src="./client/src/assets/homepage.png" width="900px" height="480px" alt="CVitaePRO Wireframe" />
+<img src="./client/src/assets/register-page.png" width="900px" height="480px" alt="CVitaePRO Wireframe" />
+<img src="./client/src/assets/login-page.png" width="900px" height="480px" alt="CVitaePRO Wireframe" />
+<img src="./client/src/assets/features-page.png" width="900px" height="480px" alt="CVitaePRO Wireframe" />
+<img src="./client/src/assets/dashboard-page.png" width="900px" height="480px" alt="CVitaePRO Wireframe" />
+<img src="./client/src/assets/resume-page.png" width="900px" height="480px" alt="CVitaePRO Wireframe" />
+<img src="./client/src/assets/resume-editor.png" width="900px" height="480px" alt="CVitaePRO Wireframe" />
+<img src="./client/src/assets/cover-letter-page.png" width="900px" height="480px" alt="CVitaePRO Wireframe" />
+
+
+
+
+
+
+
 <div style="text-align: right;">
   <a href="#top">
     <img src="https://img.shields.io/badge/Back%20to%20Top-%E2%86%91-royalblue" alt="Back to Top">
@@ -132,7 +149,7 @@ The platform solves:
 
 ---
 
-## ❗ Problems It Solves
+## Problems It Solves
 
 - ❌ Inconsistent resume formatting that fails to impress recruiters
 - ❌ Poor keyword optimization resulting in ATS rejection
@@ -156,7 +173,7 @@ CVitaePRO addresses all of the above by combining intelligent AI-driven content 
 
 ---
 
-## 🔑 Key Features
+## Key Features
 
 ### AI-Powered Resume & Cover Letter Generation
 - Users input work experience, skills, and goals
@@ -202,7 +219,7 @@ CVitaePRO addresses all of the above by combining intelligent AI-driven content 
 
 ---
 
-## 🧠 ATS Algorithm Overview
+## ATS Algorithm Overview
 
 CVitaePRO’s ATS scoring logic works in three phases:
 
@@ -251,7 +268,7 @@ function computeScore(matchPercent: number, issues: string[]): number {
 
 ---
 
-## 🧰 Technologies Used
+## Technologies Used
 
 **Frontend**
 
@@ -292,7 +309,7 @@ function computeScore(matchPercent: number, issues: string[]): number {
 
 ---
 
-## 📚 Supplemental Docs
+## Supplemental Docs
 
 [License](docs/LICENSE.md) — Legal terms and conditions for using this project
 
@@ -316,7 +333,7 @@ function computeScore(matchPercent: number, issues: string[]): number {
 
 ---
 
-## 🗺 Future Enhancements
+## Future Enhancements
 
 - Multi-language support for resumes and cover letters
 - Resume performance tracking analytics
@@ -368,7 +385,7 @@ function computeScore(matchPercent: number, issues: string[]): number {
 ___ 
 
 
-## 🎯 Conclusion
+## Conclusion
 
 CVitaePRO is redefining how people write resumes. With intelligent automation, recruiter-focused formatting, and ATS testing built-in, job seekers can apply smarter and faster. Whether you’re just getting started or updating your resume for a specific role, CVitaePRO gives you the tools to stand out, backed by AI.
 
