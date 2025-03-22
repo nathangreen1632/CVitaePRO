@@ -4,14 +4,13 @@ import { verifyToken } from "../utils/jwtUtils.js";
 export interface AuthenticatedRequest extends Omit<Request, "user"> {
   user?: {
     userId: string;
-    id?: string; // ✅ Alias for `id` to prevent breaking other files
+    id?: string;
     role?: string | undefined;
     iat: number;
     exp: number;
   };
 }
 
-// Middleware to validate JWT
 export const validateToken = (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
   const authHeader = req.headers.authorization;
 
@@ -28,11 +27,10 @@ export const validateToken = (req: AuthenticatedRequest, res: Response, next: Ne
     return;
   }
 
-  req.user = decoded; // ✅ Fully typed
+  req.user = decoded;
   next();
 };
 
-// Middleware to require admin access
 export const requireAdmin = (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
   if (!req.user || req.user.role !== "admin") {
     res.status(403).json({ error: "Forbidden - Admins only" });
