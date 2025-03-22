@@ -1,5 +1,3 @@
-// ‼️Rerun Database Migration after updating this file‼️
-
 import pkg from 'pg';
 import { v4 as uuidv4, validate as uuidValidate } from 'uuid';
 
@@ -26,40 +24,24 @@ export const saveToPostgreSQL = async (
     certifications?: { name: string; year: string }[];
   }
 ): Promise<{ success: boolean; message: string }> => {
-  console.log("🛠 Debug: Entering saveToPostgreSQL...");
-  console.log("📌 Debug: userId received in saveToPostgreSQL:", userId);
-
   if (!userId || !uuidValidate(userId)) {
-    console.error("❌ Invalid UUID for user_id:", userId);
     return { success: false, message: `Invalid UUID for user_id: ${userId}` };
   }
 
   try {
-    // ✅ Step 1: Confirm user exists
-    console.log(`🔍 Checking if user ${userId} exists in database...`);
     const userCheckResult = await pool.query('SELECT id FROM "users" WHERE id = $1', [userId]);
-
     if (userCheckResult.rowCount === 0) {
-      console.warn(`⚠️ User with ID ${userId} does not exist in 'users' table.`);
       return { success: false, message: `User with ID ${userId} does not exist.` };
     }
 
-    console.log(`✅ User ${userId} exists.`);
-
-    // ✅ Step 2: Prepare resume content
     const resumeContent = extractedText || (process.env.NODE_ENV !== "production" ? "Placeholder resume content" : null);
-
     if (!resumeContent) {
-      console.error("❌ Resume content is empty. Aborting save.");
       return { success: false, message: "Resume content is empty." };
     }
 
     const resumeId = uuidv4();
     const title = resumeData.name ?? "Untitled Resume";
 
-    console.log(`🛠 Inserting resume with ID ${resumeId} for user ${userId}...`);
-
-    // ✅ Step 3: Insert resume into DB
     const insertQuery = `
         INSERT INTO "Resumes" (
             id, file_hash, extracted_text, user_id,
@@ -92,15 +74,11 @@ export const saveToPostgreSQL = async (
     ]);
 
     if (insertResult.rowCount === 0) {
-      console.error("❌ Failed to insert resume into database.");
       return { success: false, message: "Failed to insert resume into database." };
     }
 
-    console.log(`✅ Resume successfully saved with ID: ${resumeId}`);
     return { success: true, message: "Resume saved successfully." };
-
   } catch (error) {
-    console.error("❌ Database error in saveToPostgreSQL:", error);
     return { success: false, message: "An error occurred while saving the resume. Please try again." };
   }
 };
