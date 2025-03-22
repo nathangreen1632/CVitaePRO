@@ -3,7 +3,7 @@ import React from "react";
 
 interface ResumeActionsPanelProps {
   onGenerate: () => void | Promise<void>;
-  onEnhance: () => void | Promise<void>; // ✅ ADD THIS LINE
+  onEnhance: () => void | Promise<void>;
 }
 
 const ResumeActionsPanel: React.FC<ResumeActionsPanelProps> = ({ onGenerate, onEnhance }) => {
