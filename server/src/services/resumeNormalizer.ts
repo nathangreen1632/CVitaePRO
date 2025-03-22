@@ -1,10 +1,5 @@
 import { ResumeData } from "../types/resumeTypes.js";
 
-/**
- * Converts raw text into a structured resume format.
- * @param {string} rawText - Extracted text from a resume file.
- * @returns {ResumeData} - Structured resume object.
- */
 export function normalizeResume(rawText: string): ResumeData {
   const lines = rawText.split("\n").map((line) => line.trim()).filter(Boolean);
 
