@@ -1,4 +1,4 @@
-# 🎨 CVitaePRO Frontend
+# CVitaePRO Frontend
 
 ## Overview
 
@@ -13,7 +13,7 @@ The frontend serves as the user-facing interface for:
 
 ---
 
-## 🧱 Tech Stack
+## Tech Stack
 
 - **React** (Vite)
 - **TypeScript**
@@ -25,7 +25,7 @@ The frontend serves as the user-facing interface for:
 
 ---
 
-## 📁 Folder Structure
+## Folder Structure
 
 ```
 /client
@@ -42,7 +42,7 @@ The frontend serves as the user-facing interface for:
 
 ---
 
-## 🔐 Authentication Strategy
+## Authentication Strategy
 
 - JWT token is stored in memory via AuthContext
 - Login and registration handled through `/api/auth/*` endpoints
@@ -51,7 +51,7 @@ The frontend serves as the user-facing interface for:
 
 ---
 
-## 📄 Form Architecture
+## Form Architecture
 
 - Built using `React Hook Form` for data binding, validation, and error handling
 - Form sections for resume creation include:
@@ -65,7 +65,7 @@ The frontend serves as the user-facing interface for:
 
 ---
 
-## 📥 API Integration
+## API Integration
 
 All external requests are handled through `/client/services/api.ts`, which includes:
 
@@ -85,7 +85,7 @@ Each function:
 
 ---
 
-## 🌓 UI/UX Features
+## UI/UX Features
 
 - Clean, modern layout with dark/light mode toggle
 - Responsive mobile-first design
@@ -95,7 +95,7 @@ Each function:
 
 ---
 
-## 🧪 Testing & Validation
+## Testing & Validation
 
 Frontend testing is minimal but scoped for:
 - Basic form validation rules
@@ -106,7 +106,7 @@ Frontend testing is minimal but scoped for:
 
 ---
 
-## 🧠 Developer Notes
+## Developer Notes
 
 - Use `AuthContext` for all token-aware logic
 - Avoid using localStorage directly (except for autosave flows)
@@ -116,7 +116,7 @@ Frontend testing is minimal but scoped for:
 
 ---
 
-## 🚧 In Progress
+## In Progress
 
 - Template switching system for resumes
 - Resume preview mode
@@ -126,7 +126,7 @@ Frontend testing is minimal but scoped for:
 
 ---
 
-## 🧾 Frontend Entry Point
+## Frontend Entry Point
 
 ```
 src/main.tsx → Renders App.tsx
@@ -135,7 +135,7 @@ App.tsx → Handles routes, layout, and protected route logic
 
 ---
 
-## 📦 Running Locally
+## Running Locally
 
 To run the frontend in development mode:
 
@@ -153,7 +153,7 @@ http://localhost:5173
 
 ---
 
-## 🧼 Linting
+## Linting
 
 All frontend code must conform to the project’s ESLint + Prettier rules.
 
@@ -163,7 +163,7 @@ npm run lint
 
 ---
 
-## 💬 Need Help?
+## Need Help?
 
 - Review `/docs/API_REFERENCE.md` to see what endpoints are available
 - See `/docs/RESUME_STRUCTURE.md` for required object shapes

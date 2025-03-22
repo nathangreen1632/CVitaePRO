@@ -1,4 +1,4 @@
-# 🤝 CONTRIBUTING
+# CONTRIBUTING
 
 ## Welcome
 
@@ -8,7 +8,7 @@ This guide outlines the standards, practices, and workflow required to contribut
 
 ---
 
-## 🧱 Project Structure
+## Project Structure
 
 ```
 CVitaePRO/
@@ -21,7 +21,7 @@ CVitaePRO/
 
 ---
 
-## 📌 Contribution Workflow
+## Contribution Workflow
 
 1. **Fork the repository**
 
@@ -72,7 +72,7 @@ git push origin feature/my-feature-name
 
 ---
 
-## 🔐 Rules for Authenticated Routes
+## Rules for Authenticated Routes
 
 - All protected routes must verify JWT tokens via middleware
 - Never leak sensitive data (e.g., passwords, API keys)
@@ -80,7 +80,7 @@ git push origin feature/my-feature-name
 
 ---
 
-## ✅ Code Style
+## Code Style
 
 - Tabs: 2 spaces
 - Language: TypeScript (strict mode)
@@ -91,7 +91,7 @@ git push origin feature/my-feature-name
 
 ---
 
-## 📂 Docs & Markdown
+## Docs & Markdown
 
 - All new features must be documented in `/docs/`
 - Use 110% Markdown only (no syntax highlighting, no mixed formats)
@@ -100,13 +100,13 @@ git push origin feature/my-feature-name
 
 ---
 
-## 📞 Contact
+## Contact
 
 For major features or architecture discussions, please open a GitHub Discussion or tag `@nathangreen1632` directly in your PR.
 
 ---
 
-## 💬 Feedback
+## Feedback
 
 - Bugs? → Open an Issue
 - Suggestions? → Use Discussions
