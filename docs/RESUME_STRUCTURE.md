@@ -1,4 +1,4 @@
-# 📐 RESUME STRUCTURE
+# RESUME STRUCTURE
 
 ## Overview
 
@@ -8,7 +8,7 @@ This document outlines the expected structure for all resume objects passed thro
 
 ---
 
-## 🧾 Resume Object Schema
+## Resume Object Schema
 
 Each resume follows this structure:
 
@@ -29,7 +29,7 @@ Each resume follows this structure:
 
 ---
 
-## 🧑‍💼 ExperienceEntry[]
+## ExperienceEntry[]
 
 ```ts
 {
@@ -49,7 +49,7 @@ Each resume follows this structure:
 
 ---
 
-## 🎓 EducationEntry[]
+## EducationEntry[]
 
 ```ts
 {
@@ -70,7 +70,7 @@ Each resume follows this structure:
 
 ---
 
-## 🛠 Skills
+## Skills
 
 ```ts
 [
@@ -88,7 +88,7 @@ Each resume follows this structure:
 
 ---
 
-## 📜 Certifications
+## Certifications
 
 ```ts
 [
@@ -103,7 +103,7 @@ Each resume follows this structure:
 
 ---
 
-## 🧠 Notes
+## Notes
 
 - Every resume is converted to and from Markdown for OpenAI enhancements.
 - The structure is maintained during parsing, enhancement, and export.
@@ -112,7 +112,7 @@ Each resume follows this structure:
 
 ---
 
-## 🧩 Integration Points
+## Integration Points
 
 - Used in `/api/resume/generate`
 - Parsed from OpenAI markdown via `parseResumeMarkdown.ts`
