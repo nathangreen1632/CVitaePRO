@@ -1,7 +1,7 @@
 import { RequestHandler } from "express";
 import { parseResume, matchKeywords, calculateATSScore } from "../services/atsService.js";
 import { getCachedResponse, setCachedResponse } from "../services/cacheService.js";
-import logger from "../register/logger.js"; // ✅ Use structured logging
+import logger from "../register/logger.js";
 
 export const getATSScore: RequestHandler = async (req, res): Promise<void> => {
   try {
