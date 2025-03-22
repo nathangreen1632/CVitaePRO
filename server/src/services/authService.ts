@@ -1,10 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import bcrypt from "bcrypt";
-import { generateToken, verifyToken } from "../utils/jwtUtils.js";  // ✅ Import from jwtUtils
+import { generateToken, verifyToken } from "../utils/jwtUtils.js";
 import User from "../models/User.js";
 import logger from "../register/logger.js";
 
-// Standardized JWT payload structure
 export interface CustomJwtPayload {
   userId: string;
   role?: string;
@@ -28,7 +27,6 @@ export const authenticateUser = (req: Request, res: Response, next: NextFunction
     return;
   }
 
-
   req.user = { id: decoded.userId };
   next();
 };
@@ -42,7 +40,6 @@ export const generateUserToken = (userId: string, role?: string): string => {
   }
 };
 
-// ✅ Validate User Credentials (Handles Password Check & Token Issuance)
 export async function validateUserCredentials(username: string, password: string): Promise<{ token?: string; error?: string }> {
   const user = await User.findOne({ where: { username } });
 
@@ -50,18 +47,12 @@ export async function validateUserCredentials(username: string, password: string
     return { error: "Invalid credentials." };
   }
 
-  // ✅ Compare the entered password with the stored hash
   const isMatch = await bcrypt.compare(password, user.passwordhash);
-
-  console.log("Entered Password:", password);
-  console.log("Stored Hash:", user.passwordhash);
-  console.log("Password Match Result:", isMatch);
 
   if (!isMatch) {
     return { error: "Invalid credentials." };
   }
 
-  // ✅ Generate JWT if credentials are correct
   const token = generateToken(user.id, user.role);
   return { token };
 }
