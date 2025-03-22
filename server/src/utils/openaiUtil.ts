@@ -9,7 +9,6 @@ const OPENAI_API_KEY: string = process.env.OPENAI_KEY ?? '';
 
 export async function callOpenAI(p0: { model: string; messages: { role: string; content: string; }[]; }): Promise<{ success: boolean; message: string }> {
   try {
-    // Validate API URL before making the request
     if (!OPENAI_API_URL) {
       logger.error("❌ Error: OPENAI_API_URL is missing in .env file.");
       return { success: false, message: "Server misconfiguration: Missing OpenAI API URL." };
@@ -20,15 +19,15 @@ export async function callOpenAI(p0: { model: string; messages: { role: string; 
     }
 
     const requestPayload = {
-        model: p0.model,
-        messages: p0.messages,
-        temperature: 0.7
+      model: p0.model,
+      messages: p0.messages,
+      temperature: 0.7
     };
 
     const response = await fetch(OPENAI_API_URL, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${OPENAI_API_KEY}`,
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify(requestPayload)
