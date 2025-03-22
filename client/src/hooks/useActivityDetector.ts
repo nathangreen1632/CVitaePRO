@@ -18,11 +18,18 @@ export const useActivityDetector = ({
   const [showWarning, setShowWarning] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    let inactivityTimer: NodeJS.Timeout;
-    let countdownTimer: NodeJS.Timeout;
-    let expirationTimeout: NodeJS.Timeout;
+  // Declare timers at the top level
+  let inactivityTimer: NodeJS.Timeout;
+  let countdownTimer: NodeJS.Timeout;
+  let expirationTimeout: NodeJS.Timeout;
 
+  const clearAllTimers = () => {
+    clearTimeout(inactivityTimer);
+    clearTimeout(countdownTimer);
+    clearTimeout(expirationTimeout);
+  };
+
+  useEffect(() => {
     const handleInactivity = () => {
       setShowWarning(true);
 
@@ -75,9 +82,7 @@ export const useActivityDetector = ({
     scheduleTokenExpirationWarning();
 
     return () => {
-      clearTimeout(inactivityTimer);
-      clearTimeout(countdownTimer);
-      clearTimeout(expirationTimeout);
+      clearAllTimers();
       window.removeEventListener("mousemove", resetInactivityTimer);
       window.removeEventListener("keydown", resetInactivityTimer);
       window.removeEventListener("scroll", resetInactivityTimer);
@@ -86,7 +91,34 @@ export const useActivityDetector = ({
 
   const acknowledgeActivity = () => {
     setShowWarning(false);
+
+    clearAllTimers(); // <--- THIS is the key addition
     onExtendSession();
+
+    // Reschedule everything
+    const token = localStorage.getItem("token");
+    const expirationTime = token ? getTokenExpirationTime(token) : null;
+
+    if (expirationTime) {
+      const warningTime = expirationTime - 15 * 60 * 1000;
+      const msUntilWarning = warningTime - Date.now();
+
+      if (msUntilWarning > 0) {
+        expirationTimeout = setTimeout(() => {
+          setShowWarning(true);
+        }, msUntilWarning);
+      }
+    }
+
+    inactivityTimer = setTimeout(() => {
+      setShowWarning(true);
+
+      countdownTimer = setTimeout(() => {
+        sessionStorage.removeItem("intentionalLogout");
+        onLogout();
+        navigate("/login");
+      }, countdownLimit);
+    }, inactiveLimit);
   };
 
   return {
