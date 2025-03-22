@@ -19,6 +19,7 @@ const getAdobeAccessToken = async (): Promise<string> => {
       grant_type: 'client_credentials',
     }),
   });
+
   const data: AdobeAuthResponse = await response.json();
   return data.access_token;
 };
