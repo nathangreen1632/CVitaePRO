@@ -16,7 +16,6 @@ if (process.env.NODE_ENV === "production") {
   applyMiddleware(app);
 }
 
-// Middlewares
 app.use(express.json());
 
 const __dirname = path.resolve();

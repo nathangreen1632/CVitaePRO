@@ -2,14 +2,13 @@ import { Request, Response } from "express";
 import PDFDocument from "pdfkit";
 import { callOpenAI } from "../utils/openaiUtil.js";
 import { coverLetterPrompt, userCoverLetterDirections } from "../prompts/coverLetterDirections.js";
-import logger from "../register/logger.js"; // ✅ Use structured logging
+import logger from "../register/logger.js";
 import { generateCoverLetterDocx } from "../utils/docxUtil.js";
 
 export const generateCoverLetter = async (req: Request, res: Response): Promise<void> => {
   try {
     const { userInput, applicantDetails, resumeSummary, customizationPreferences } = req.body;
 
-    // ✅ Validate required fields before proceeding
     if (!userInput?.jobTitle || !userInput?.companyName) {
       logger.warn("⚠️ Missing required job details:", userInput);
       res.status(400).json({ error: "Job title and company name are required." });
@@ -72,7 +71,6 @@ export const generateCoverLetter = async (req: Request, res: Response): Promise<
   }
 };
 
-// 📄 Cover Letter PDF Download Handler
 export const downloadCoverLetter = (req: Request, res: Response): void => {
   const { coverLetter, name } = req.body;
 
@@ -100,8 +98,6 @@ export const downloadCoverLetter = (req: Request, res: Response): void => {
   doc.end();
 };
 
-
-
 export const downloadCoverLetterDocx = async (req: Request, res: Response): Promise<void> => {
   try {
     const { coverLetter, name } = req.body;
@@ -118,8 +114,7 @@ export const downloadCoverLetterDocx = async (req: Request, res: Response): Prom
     res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
     res.send(buffer);
   } catch (error) {
-    console.error("❌ Error generating .docx file:", error);
+    logger.error("❌ Error generating .docx file:", error);
     res.status(500).json({ error: "Failed to generate .docx file." });
   }
 };
-

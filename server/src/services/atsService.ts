@@ -1,19 +1,16 @@
 import * as cheerio from "cheerio";
 import natural from "natural";
 
-// ✅ Enhanced parseResume() Function
-// ✅ Enhanced parseResume() Function
+
 export function parseResume(htmlResume: string) {
   const $ = cheerio.load(htmlResume);
 
-  // 🔎 Extract and clean text helper function
   const extractText = (selector: string) => $(selector).text().trim();
 
-  // 🔎 Improved regex for name extraction (now allows lowercase letters)
   const nameRegex = /Name:\s*([A-Za-z\s-]+)/i;
 
   let name: string | null =
-    $("section#contact h1").first().text().trim() ?? // ✅ Try extracting from <h1>
+    $("section#contact h1").first().text().trim() ??
     extractText("p:has(strong:contains('Name'))") ??
     extractText("div:has(strong:contains('Name'))") ??
     extractText("span:has(strong:contains('Name'))") ??
@@ -22,16 +19,13 @@ export function parseResume(htmlResume: string) {
     nameRegex.exec($("body").text())?.[1]?.trim() ??
     null;
 
-
-  // ✅ Final cleanup to ensure it's a valid name
   if (name) {
     name = name.replace(/(^|\s)Name:\s?/gi, "").trim();
     if (!/^[A-Za-z\s-]+$/.test(name)) {
-      name = null; // ✅ Ensure invalid names are not used (no change needed here)
+      name = null;
     }
   }
 
-  // ✅ Extract other fields
   const email =
     $('a[href^="mailto:"]').attr("href")?.replace("mailto:", "").trim() ??
     $("p:contains('@')").text().replace(/Email:\s?/i, "").trim() ??
@@ -46,27 +40,20 @@ export function parseResume(htmlResume: string) {
   const education = $("section#education").text().trim();
   const skills = $("section#skills").text().trim();
 
-
-
   return { name, email, phone, experience, education, skills };
 }
 
-
-// ✅ NLP Utilities
 const stemmer = natural.PorterStemmer;
 const tokenizer = new natural.WordTokenizer();
 
-// ✅ Tokenize, clean, and stem text
 function tokenizeAndStem(text: string): string[] {
   return tokenizer.tokenize(text.toLowerCase()).map(word => stemmer.stem(word));
 }
 
-// ✅ Fuzzy matching using Jaro-Winkler distance
 function fuzzyMatch(word1: string, word2: string, threshold = 0.88): boolean {
   return natural.JaroWinklerDistance(word1, word2) >= threshold;
 }
 
-// ✅ Expanded Synonym Mapping
 const synonyms: Record<string, string[]> = {
   "ci/cd": ["continuous integration", "continuous deployment", "devops pipelines", "automation", "jenkins", "github actions", "gitlab ci", "circleci", "azure devops"],
   "cloud computing": ["aws", "gcp", "azure", "cloud architecture", "cloud services", "cloud security", "serverless", "hybrid cloud", "multi-cloud", "cloud storage"],
@@ -116,8 +103,6 @@ const synonyms: Record<string, string[]> = {
   "quantitative finance": ["quantitative modeling", "HFT", "risk analysis"],
 };
 
-
-// ✅ Ensure softSkills and industryTerms are defined
 const softSkills: string[] = [
   "leadership", "teamwork", "collaboration", "problem-solving", "communication",
   "adaptability", "mentoring", "critical thinking", "initiative", "time management",
@@ -142,9 +127,7 @@ const softSkills: string[] = [
   "cohesion building", "collaborative problem-solving"
 ];
 
-
 const industryTerms: string[] = [
-  // Core DevOps & Cloud Terms
   "CI/CD", "microservices", "Kubernetes", "AWS", "GCP", "cloud computing",
   "DevOps", "agile development", "serverless", "containerization",
   "infrastructure as code", "Terraform", "Ansible", "Jenkins", "GitHub Actions",
@@ -177,8 +160,6 @@ const industryTerms: string[] = [
   "ETL", "ELT", "graph databases", "sharding", "replication", "container registry",
   "Kubernetes namespaces", "policy as code", "progressive delivery",
   "shadow deployments", "traffic mirroring", "chaos testing", "observability pipeline",
-
-  // 🚀 Principal Engineer Specific Additions (Enterprise-Level & Leadership)
   "Enterprise Architecture", "Scalability Planning", "Technical Debt Management",
   "IT Governance", "Enterprise Cloud Strategy", "Cost Optimization Strategies",
   "Software Engineering Best Practices", "Technical Roadmap Planning",
@@ -186,24 +167,15 @@ const industryTerms: string[] = [
   "Distributed Computing", "Data Mesh", "Parallel Processing",
   "Cloud-Native Governance", "Systems Thinking", "Hybrid Cloud Strategy",
   "Data Residency Compliance", "Federated Services Architecture",
-
-  // 📊 Business & Strategic Thinking
   "Digital Transformation", "Business Continuity Planning",
   "IT Compliance & Regulations", "Vendor Management", "Technology Budgeting",
   "Cross-Team Collaboration", "Customer Experience Optimization",
   "Tech-Driven Business Growth", "Cloud Cost Management (FinOps)",
-
-  // 🧠 AI, Emerging Technologies, and Automation
   "AI-Powered DevOps", "LLM (Large Language Models) Integration",
   "Self-Healing Infrastructure", "AI-Driven Security", "Autonomous Cloud Systems",
   "Generative AI in Software Engineering", "Edge AI & Distributed Machine Learning"
 ];
 
-
-
-
-// ✅ Keyword Matching with Synonyms, Fuzzy & Partial Matching
-// ✅ Matching Logic
 function countMatches(resumeTokens: string[], jobKeywords: string[]): number {
   const seen = new Set<string>();
   let matchCount = 0;
@@ -223,20 +195,17 @@ function countMatches(resumeTokens: string[], jobKeywords: string[]): number {
   for (const jobWord of jobKeywords) {
     const stemmedJobWord = stemmer.stem(jobWord.toLowerCase());
 
-    // ✅ Direct match
     if (resumeTokens.includes(stemmedJobWord) && isNewMatch(stemmedJobWord)) {
       matchCount += registerMatch(stemmedJobWord, 1);
       continue;
     }
 
-    // ✅ Fuzzy match
     const fuzzyToken = resumeTokens.find(token => fuzzyMatch(stemmedJobWord, token) && isNewMatch(token));
     if (fuzzyToken) {
       matchCount += registerMatch(fuzzyToken, 0.85);
       continue;
     }
 
-    // ✅ Synonym match
     const synonymTerms = getAllStemmedSynonyms(stemmedJobWord);
     const matchedSyn = resumeTokens.find(token =>
       (synonymTerms.includes(token) || fuzzyMatch(token, stemmedJobWord)) && isNewMatch(token)
@@ -250,9 +219,6 @@ function countMatches(resumeTokens: string[], jobKeywords: string[]): number {
   return matchCount;
 }
 
-
-
-// ✅ Main Matching Function
 export function matchKeywords(resumeText: string, jobDescription: string): {
   keywordMatch: number;
   softSkillsMatch: number;
@@ -308,8 +274,6 @@ export function matchKeywords(resumeText: string, jobDescription: string): {
   return { keywordMatch, softSkillsMatch, industryTermsMatch };
 }
 
-
-// ✅ Optimized ATS Score Calculation
 export function calculateATSScore(
   keywordMatch: number,
   formattingErrors: string[],
@@ -319,14 +283,12 @@ export function calculateATSScore(
   const majorErrors = formattingErrors.filter(err => err.includes("Missing name") || err.includes("Missing email"));
   const minorErrors = formattingErrors.filter(err => !majorErrors.includes(err));
 
-  let keywordScore = keywordMatch * 0.35;  // 🔽 Lowered from 0.38
+  let keywordScore = keywordMatch * 0.35;
   let formattingPenalty = (majorErrors.length * 2.0) + (minorErrors.length * 0.6);
-  let formattingScore = Math.max(0, 5 - formattingPenalty);  // 🔽 Reduced from 3.5
-  let softSkillsScore = softSkillsMatch * 1.4;  // 🔼 Increased from 1.47
-  let industryScore = industryTermsMatch * 1.7; // 🔼 Increased from 1.47
+  let formattingScore = Math.max(0, 5 - formattingPenalty);
+  let softSkillsScore = softSkillsMatch * 1.4;
+  let industryScore = industryTermsMatch * 1.7;
 
   let score = keywordScore + formattingScore + softSkillsScore + industryScore;
-  return Math.max(0, Math.min(score, 80)); // 🔽 Capped at 80 max
+  return Math.max(0, Math.min(score, 80));
 }
-
-

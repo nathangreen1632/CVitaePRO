@@ -10,7 +10,6 @@ export const parseResumeMarkdown = (markdown: string, inputData: any): Record<st
       if (parsed) return parsed;
     }
 
-    console.warn("⚠️ No JSON block found in markdown. Falling back to section-based parsing.");
     return parseMarkdownSections(markdown, inputData);
   } catch (error) {
     console.error("❌ Unexpected error during resume parsing:", error);
@@ -110,7 +109,6 @@ const parseMarkdownSections = (markdown: string, inputData: any): Record<string,
   return resume;
 };
 
-// ✅ Already working helpers
 const parseExperienceSection = (content: string[], inputExperience: any[]): any[] => {
   const experiences: any[] = [];
   let currentJob: any = null;
