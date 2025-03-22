@@ -6,7 +6,6 @@ import bcrypt from "bcrypt";
 import logger from "../register/logger.js";
 import { verifyToken, generateToken } from "../utils/jwtUtils.js";
 
-
 export async function register(req: Request, res: Response): Promise<void> {
   try {
     const { username, password, role } = req.body;
@@ -55,7 +54,7 @@ export async function login(req: Request, res: Response): Promise<void> {
 
     res.status(200).json({ token });
   } catch (error) {
-    console.error("Login Error:", error);
+    logger.error("❌ Login Error:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 }
@@ -92,7 +91,7 @@ export async function changePassword(req: Request, res: Response): Promise<void>
     logger.info(`🔑 Password changed for user ${userId}`);
     res.status(200).json({ message: "Password changed successfully." });
   } catch (error) {
-    console.error("❌ Password Change Error:", error);
+    logger.error("❌ Password Change Error:", error);
     res.status(500).json({ error: "Something went wrong while updating password." });
   }
 }
@@ -118,7 +117,7 @@ export async function refreshToken(req: Request, res: Response): Promise<void> {
 
     res.status(200).json({ token: newToken });
   } catch (error) {
-    console.error("❌ Error refreshing token:", error);
+    logger.error("❌ Error refreshing token:", error);
     res.status(500).json({ error: "Token refresh failed" });
   }
 }
