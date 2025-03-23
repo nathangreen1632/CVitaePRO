@@ -272,7 +272,7 @@ export const downloadResume: RequestHandler = async (req, res) => {
       const trimmedStart = start.trim();
       const trimmedEnd = end?.trim() ?? "";
       if (trimmedStart && trimmedEnd) return `${trimmedStart} to ${trimmedEnd}`;
-      if (trimmedStart && !trimmedEnd) return `${trimmedStart} to Present`;
+      if (trimmedStart && !trimmedEnd) return `${trimmedStart}`;
       return "";
     };
 
