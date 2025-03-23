@@ -202,7 +202,7 @@ const ResumeCard: React.FC<ResumeCardProps> = ({id, name, resumeSnippet, summary
     }
 
     if (hasValidStart && !hasValidEnd) {
-      return `${cleanStart} to Present`;
+      return `${cleanStart}`;
     }
 
     return "N/A";
