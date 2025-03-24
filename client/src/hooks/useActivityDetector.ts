@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { getTokenExpirationTime } from "../utils/tokenUtils";
+import { useEffect, useState } from 'react';
+import {NavigateFunction, useNavigate} from 'react-router-dom';
+import { getTokenExpirationTime } from '../utils/tokenUtils';
 
 interface UseActivityDetectorOptions {
   inactiveLimit?: number;
@@ -9,39 +9,39 @@ interface UseActivityDetectorOptions {
   onExtendSession: () => void | Promise<void>;
 }
 
-export const useActivityDetector = ({
+export const useActivityDetector: ({inactiveLimit, countdownLimit, onLogout, onExtendSession }: UseActivityDetectorOptions) => {showWarning: boolean, acknowledgeActivity: () => void} = ({
                                       inactiveLimit = 15 * 60 * 1000,
                                       countdownLimit = 2 * 60 * 1000,
                                       onLogout,
                                       onExtendSession,
                                     }: UseActivityDetectorOptions) => {
   const [showWarning, setShowWarning] = useState(false);
-  const navigate = useNavigate();
+  const navigate: NavigateFunction = useNavigate();
 
   let inactivityTimer: NodeJS.Timeout;
   let countdownTimer: NodeJS.Timeout;
   let expirationTimeout: NodeJS.Timeout;
 
-  const clearAllTimers = () => {
+  const clearAllTimers: () => void = (): void => {
     clearTimeout(inactivityTimer);
     clearTimeout(countdownTimer);
     clearTimeout(expirationTimeout);
   };
 
-  useEffect(() => {
-    const handleInactivity = () => {
+  useEffect((): () => void => {
+    const handleInactivity: () => void = (): void => {
       setShowWarning(true);
 
-      countdownTimer = setTimeout(() => {
+      countdownTimer = setTimeout((): void => {
         sessionStorage.removeItem("intentionalLogout");
         onLogout();
-        navigate("/login");
+        navigate("/home");
       }, countdownLimit);
     };
 
-    const debounce = (fn: () => void, delay: number) => {
+    const debounce: (fn: () => void, delay: number) => () => void = (fn: () => void, delay: number): () => void => {
       let debounceTimer: NodeJS.Timeout;
-      return () => {
+      return (): void => {
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(fn, delay);
       };
@@ -58,12 +58,12 @@ export const useActivityDetector = ({
     }, 2000);
 
     const scheduleTokenExpirationWarning = () => {
-      const token = localStorage.getItem("token");
-      const expirationTime = token ? getTokenExpirationTime(token) : null;
+      const token: string | null = localStorage.getItem("token");
+      const expirationTime: number | null = token ? getTokenExpirationTime(token) : null;
 
       if (expirationTime) {
-        const warningTime = expirationTime - 15 * 60 * 1000;
-        const msUntilWarning = warningTime - Date.now();
+        const warningTime: number = expirationTime - 15 * 60 * 1000;
+        const msUntilWarning: number = warningTime - Date.now();
 
         if (msUntilWarning > 0) {
           expirationTimeout = setTimeout(() => {
@@ -80,7 +80,7 @@ export const useActivityDetector = ({
     resetInactivityTimer();
     scheduleTokenExpirationWarning();
 
-    return () => {
+    return (): void => {
       clearAllTimers();
       window.removeEventListener("mousemove", resetInactivityTimer);
       window.removeEventListener("keydown", resetInactivityTimer);
@@ -88,18 +88,18 @@ export const useActivityDetector = ({
     };
   }, [inactiveLimit, countdownLimit, onLogout, onExtendSession, navigate, showWarning]);
 
-  const acknowledgeActivity = () => {
+  const acknowledgeActivity: () => void = (): void => {
     setShowWarning(false);
 
     clearAllTimers();
     onExtendSession();
 
-    const token = localStorage.getItem("token");
-    const expirationTime = token ? getTokenExpirationTime(token) : null;
+    const token: string | null = localStorage.getItem("token");
+    const expirationTime: number | null = token ? getTokenExpirationTime(token) : null;
 
     if (expirationTime) {
-      const warningTime = expirationTime - 15 * 60 * 1000;
-      const msUntilWarning = warningTime - Date.now();
+      const warningTime: number = expirationTime - 15 * 60 * 1000;
+      const msUntilWarning: number = warningTime - Date.now();
 
       if (msUntilWarning > 0) {
         expirationTimeout = setTimeout(() => {
