@@ -58,10 +58,6 @@ const ResumeCard: React.FC<ResumeCardProps> = ({id, name, resumeSnippet, summary
   const [error, setError] = useState<string | null>(null);
   const [showDownloadModal, setShowDownloadModal] = useState(false);
 
-  const handleEdit = () => {
-    window.location.href = `/edit-resume/${id}`;
-  };
-
   const handleDownload = async (format: "pdf" | "docx") => {
     setIsDownloading(true);
     setError(null);
@@ -350,10 +346,15 @@ const ResumeCard: React.FC<ResumeCardProps> = ({id, name, resumeSnippet, summary
 
       {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
 
-      <div className="mt-4 flex flex-wrap gap-2 justify-between">
-        <button onClick={handleEdit} className="bg-indigo-600 px-4 py-2 rounded-lg font-medium hover:bg-indgio-800 transition">
-          Edit
+      <div className="mt-4 flex flex-wrap sm:flex-nowrap gap-2 justify-center sm:justify-between">
+        <button
+          onClick={handleEnhance}
+          disabled={isEnhancing}
+          className="bg-green-700 px-4 py-2 rounded-lg font-medium hover:bg-green-900 transition"
+        >
+          {isEnhancing ? "Enhancing..." : "Enhance"}
         </button>
+
         <button
           onClick={() => setShowDownloadModal(true)}
           className="bg-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-900 transition"
@@ -362,13 +363,6 @@ const ResumeCard: React.FC<ResumeCardProps> = ({id, name, resumeSnippet, summary
         </button>
 
         <button
-          onClick={handleEnhance}
-          disabled={isEnhancing}
-          className="bg-indigo-600 px-4 py-2 rounded-lg font-medium hover:bg-indigo-800 transition"
-        >
-          {isEnhancing ? "Enhancing..." : "Enhance"}
-        </button>
-        <button
           onClick={handleDelete}
           disabled={isDeleting}
           className="bg-red-600 px-4 py-2 rounded-lg font-medium hover:bg-red-800 transition"
@@ -376,6 +370,8 @@ const ResumeCard: React.FC<ResumeCardProps> = ({id, name, resumeSnippet, summary
           {isDeleting ? "Deleting..." : "Delete"}
         </button>
       </div>
+
+
       {showDownloadModal && (
         <div className="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex justify-center items-center z-50">
           <div className="bg-gray-800 text-white p-6 rounded-2xl shadow-2xl w-[320px] border border-gray-600">
