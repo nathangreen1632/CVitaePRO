@@ -48,9 +48,9 @@ export const convertResumeToHTML = (resume: {
   const formatDateRange = (start: string, end: string): string => {
     const cleanStart = cleanText(start).replace(/\s+/g, " ").trim();
     const cleanEnd = cleanText(end).replace(/\s+/g, " ").trim();
-    return cleanEnd && cleanEnd !== "Present"
+    return cleanEnd && cleanEnd !== " to Present"
       ? `${cleanStart} – ${cleanEnd}`
-      : `${cleanStart} – Present`;
+      : `${cleanStart} – to Present`;
   };
 
   const rawSummary = resume.summary || "";

@@ -18,7 +18,6 @@ export const useActivityDetector = ({
   const [showWarning, setShowWarning] = useState(false);
   const navigate = useNavigate();
 
-  // Declare timers at the top level
   let inactivityTimer: NodeJS.Timeout;
   let countdownTimer: NodeJS.Timeout;
   let expirationTimeout: NodeJS.Timeout;
@@ -92,10 +91,9 @@ export const useActivityDetector = ({
   const acknowledgeActivity = () => {
     setShowWarning(false);
 
-    clearAllTimers(); // <--- THIS is the key addition
+    clearAllTimers();
     onExtendSession();
 
-    // Reschedule everything
     const token = localStorage.getItem("token");
     const expirationTime = token ? getTokenExpirationTime(token) : null;
 
@@ -116,7 +114,7 @@ export const useActivityDetector = ({
       countdownTimer = setTimeout(() => {
         sessionStorage.removeItem("intentionalLogout");
         onLogout();
-        navigate("/login");
+        navigate("/home");
       }, countdownLimit);
     }, inactiveLimit);
   };

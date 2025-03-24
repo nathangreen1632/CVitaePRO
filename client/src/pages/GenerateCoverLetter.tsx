@@ -289,7 +289,7 @@ const GenerateCoverLetter: React.FC = () => {
           </div>
 
           <div className="mt-6 text-center">
-            <button onClick={handleSubmit} className="bg-blue-600 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded">
+            <button onClick={handleSubmit} className="bg-green-700 hover:bg-green-900 text-white font-bold py-2 px-4 rounded">
               {loading ? "Generating..." : "Generate Cover Letter"}
             </button>
           </div>

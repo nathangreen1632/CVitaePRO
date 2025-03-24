@@ -132,7 +132,7 @@ const parseExperienceSection = (content: string[], inputExperience: any[]): any[
       const startDate = formatDate(dates[0]);
       let endDate = dates.length > 1 ? dates[1] : "";
       currentJob.start_date = startDate;
-      currentJob.end_date = endDate.toLowerCase() === "present" ? "Present" : formatDate(endDate);
+      currentJob.end_date = endDate.toLowerCase() === "- present" ? "to Present" : formatDate(endDate);
     } else if (currentJob) {
       currentJob.responsibilities.push(line.trim());
     }
