@@ -1,27 +1,16 @@
-import jwt from "jsonwebtoken";
-import User from "../models/User.js";
-import { JWT_SECRET } from "../config/env.js";
-import { hashPassword, comparePassword } from "../utils/hash.js";
-import { generateUserToken } from "./authService.js";
-import logger from "../register/logger.js";
+import {comparePassword, hashPassword} from '../utils/hash.js';
+import logger from '../register/logger.js';
+import {generateToken} from '../utils/jwtUtils.js';
+import {User} from '../models/index.js';
+import {generateUserToken} from './authService.js';
+import {IUser} from '../models/User';
+
 
 interface UserData {
   username: string;
   password: string;
   role?: "admin" | "user";
 }
-
-export const generateAccessToken = (user: InstanceType<typeof User>): string => {
-  return jwt.sign(
-    {
-      userId: user.getDataValue("id"),
-      username: user.getDataValue("username"),
-      role: user.getDataValue("role"),
-    },
-    JWT_SECRET,
-    { expiresIn: "90m" }
-  );
-};
 
 export async function registerUser(userData: UserData): Promise<{ user: InstanceType<typeof User>; token: string } | null> {
   try {
@@ -30,19 +19,16 @@ export async function registerUser(userData: UserData): Promise<{ user: Instance
       return null;
     }
 
-    const role = userData.role === "admin" ? "admin" : "user";
-    const hashedPassword = await hashPassword(userData.password);
+    const role: 'admin' | 'user' = userData.role === 'admin' ? 'admin' : 'user';
+    const hashedPassword: string = await hashPassword(userData.password);
 
-    const newUser = await User.create({
+    const newUser: IUser = await User.create({
       username: userData.username,
       passwordhash: hashedPassword,
       role,
     });
 
-    const token = generateUserToken(newUser.id, role);
-
-    logger.info(`User '${userData.username}' registered successfully with role '${role}'.`);
-
+    const token: string = generateUserToken(newUser.id, role, newUser.username);
     return { user: newUser, token };
   } catch (error) {
     logger.error(`Error registering user: ${error instanceof Error ? error.message : "Unknown error"}`);
@@ -52,14 +38,14 @@ export async function registerUser(userData: UserData): Promise<{ user: Instance
 
 export async function loginUser(credentials: UserData): Promise<string | null> {
   try {
-    const user = await User.findOne({ where: { username: credentials.username } });
+    const user: IUser | null = await User.findOne({ where: { username: credentials.username } });
 
     if (!user) {
       logger.warn(`Login failed: User '${credentials.username}' not found.`);
       return null;
     }
 
-    const isMatch = await comparePassword(credentials.password, user.passwordhash);
+    const isMatch: boolean = await comparePassword(credentials.password, user.passwordhash);
 
     logger.info(`Password match result for '${credentials.username}': ${isMatch}`);
 
@@ -68,8 +54,7 @@ export async function loginUser(credentials: UserData): Promise<string | null> {
       return null;
     }
 
-    const token = generateAccessToken(user);
-    return token;
+    return generateToken(user.getDataValue("id"), user.getDataValue("role"), user.getDataValue("username"));
   } catch (error) {
     logger.error(`Error logging in user: ${error instanceof Error ? error.message : "Unknown error"}`);
     return null;
