@@ -263,31 +263,28 @@ const ResumeEditor: React.FC = () => {
       <div className="max-w-3xl mx-auto bg-white dark:bg-gray-800 p-6 shadow-lg rounded-lg mt-4">
         <h2 className="text-2xl font-bold mb-4">Editor</h2>
 
-        <div className="flex justify-between flex-wrap gap-4 mb-4">
-
-          <ResumeUpload onParse={setResumeText} inputRef={uploadRef as React.RefObject<HTMLInputElement>} /> {/* ✅ Pass ref here */}
-
+        <div className="flex flex-wrap gap-4 mb-4 justify-center sm:justify-between">
+        <ResumeUpload onParse={setResumeText} inputRef={uploadRef as React.RefObject<HTMLInputElement>} />
+          <button
+            onClick={handleExpand}
+            className={`${sharedButtonClass} bg-green-700 text-white hover:bg-green-900`}
+          >
+            {loading ? "Expanding..." : "Enhance"}
+          </button>
+          <button
+            onClick={handleEnhance}
+            className={`${sharedButtonClass} bg-yellow-700 text-white font-medium hover:bg-yellow-900`}
+          >
+            {loading ? "Summarizing..." : "Summarize"}
+          </button>
           <button
             onClick={handleClear}
             className={`${sharedButtonClass} bg-red-600 text-white font-medium hover:bg-red-800`}
           >
             {loading ? "Clearing..." : "Clear Editor"}
           </button>
-
-          <button
-            onClick={handleEnhance}
-            className={`${sharedButtonClass} bg-yellow-600 text-white font-medium hover:bg-yellow-800`}
-          >
-            {loading ? "Summarizing..." : "Summarize"}
-          </button>
-          <button
-            onClick={handleExpand}
-            className={`${sharedButtonClass} bg-indigo-600 text-white hover:bg-indigo-800`}
-          >
-            {loading ? "Expanding..." : "Enhance"}
-          </button>
-
         </div>
+
 
         {error && <p className="text-red-500 mb-4">{error}</p>}
 
