@@ -6,6 +6,9 @@ import { saveToPostgreSQL } from "../services/postgreSQLService.js";
 import crypto from "crypto";
 export { expandResumeEditorContent } from "../services/openaiService.js";
 
+const scrubCertificationsSection = (markdown: string): string => {
+  return markdown.replace(/## Certifications[\s\S]*?(?=\n## |\n\*\*|$)/g, "").trim();
+};
 
 export const generateResume = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -36,7 +39,9 @@ export const generateResume = async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    const formattedResume = parseResumeMarkdown(aiResponse.message, req.body.resumeData);
+    const aiRawMarkdown = aiResponse.message;
+    const cleanedMarkdown = scrubCertificationsSection(aiRawMarkdown);
+    const formattedResume = parseResumeMarkdown(cleanedMarkdown, req.body.resumeData);
 
     await redisClient.set(cacheKey, JSON.stringify(formattedResume), { EX: 86400 });
 

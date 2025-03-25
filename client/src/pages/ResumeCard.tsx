@@ -146,7 +146,28 @@ const ResumeCard: React.FC<ResumeCardProps> = ({id, name, resumeSnippet, summary
       return;
     }
 
-    const resumeData = {name, email, phone, linkedin, portfolio, summary, experience, education, skills, certifications};
+    const filteredCertifications = certifications?.filter(cert =>
+      cert.name && cert.name.trim() !== "" &&
+      !cert.name.toLowerCase().includes("placeholder")
+    );
+
+    const resumeData = {
+      name,
+      email,
+      phone,
+      linkedin,
+      portfolio,
+      summary,
+      experience,
+      education,
+      skills,
+      ...(filteredCertifications && filteredCertifications.length > 0
+        ? { certifications: filteredCertifications }
+        : undefined),
+    };
+
+
+
 
     try {
       const response = await fetch("/api/openai/enhance-resume", {
@@ -323,26 +344,42 @@ const ResumeCard: React.FC<ResumeCardProps> = ({id, name, resumeSnippet, summary
       </div>
 
 
-      <div className="mb-4">
-        <h4 className="font-semibold text-lg">Certifications</h4>
-        {certifications.length > 0 ? (
-          certifications
-            .filter((cert) => cert.name?.trim())
-            .map((cert: Certification) => (
-              <div
-                key={`${cert.name}-${cert.year}`}
-                className="text-sm text-gray-300 mt-1"
-              >
-                 {cert.name}
-                {cert.year && cert.year.trim().length > 0 ? ` (${cert.year})` : ""}
-              </div>
+      {certifications.length > 0 && certifications.some(cert => cert.name?.trim()) && (
+        <div className="mb-4">
+          <h4 className="font-semibold text-lg">Certifications</h4>
 
-            ))
-
-        ) : (
-          <p className="text-gray-400 text-sm">No certifications listed.</p>
-        )}
-      </div>
+          {certifications[0]?.name?.trim() && (
+            <div className="text-sm text-gray-300 mt-1">
+              {certifications[0].name}
+              {certifications[0].year?.trim() && ` (${certifications[0].year})`}
+            </div>
+          )}
+          {certifications[1]?.name?.trim() && (
+            <div className="text-sm text-gray-300 mt-1">
+              {certifications[1].name}
+              {certifications[1].year?.trim() && ` (${certifications[1].year})`}
+            </div>
+          )}
+          {certifications[2]?.name?.trim() && (
+            <div className="text-sm text-gray-300 mt-1">
+              {certifications[2].name}
+              {certifications[2].year?.trim() && ` (${certifications[2].year})`}
+            </div>
+          )}
+          {certifications[3]?.name?.trim() && (
+            <div className="text-sm text-gray-300 mt-1">
+              {certifications[3].name}
+              {certifications[3].year?.trim() && ` (${certifications[3].year})`}
+            </div>
+          )}
+          {certifications[4]?.name?.trim() && (
+            <div className="text-sm text-gray-300 mt-1">
+              {certifications[4].name}
+              {certifications[4].year?.trim() && ` (${certifications[4].year})`}
+            </div>
+          )}
+        </div>
+      )}
 
       {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
 

@@ -71,7 +71,7 @@ const parseStructuredMarkdown = (markdown: string, inputData: any): Record<strin
     experience: inputData.experience || [],
     education: inputData.education || [],
     skills: inputData.skills || ["No skills listed."],
-    certifications: inputData.certifications || ["No certifications listed."]
+    certifications: inputData.certifications || []
   };
 
   const sections = markdown.split(/\n(?=## )/);
@@ -106,7 +106,7 @@ const parseStructuredMarkdown = (markdown: string, inputData: any): Record<strin
         resume.skills = parseSkillsSection(content, inputData.skills || []) || ["No skills listed."];
         break;
       case "certifications":
-        resume.certifications = parseCertificationsSection(content, inputData.certifications || []) || ["No certifications listed."];
+        resume.certifications = parseCertificationsSection(content) || [];
         break;
       default:
         break;
@@ -147,16 +147,30 @@ const parseSkillsSection = (content: string[], inputSkills: string[]): string[] 
   return skills.length > 0 ? skills : inputSkills;
 };
 
-const parseCertificationsSection = (content: string[], inputCertifications: any[]): any[] => {
-  const certifications = content.map(cert => {
-    const parts = cert.split(",");
-    return { name: parts[0].trim(), year: parts[1]?.trim() || "" };
-  }).filter(cert => cert.name.length > 3);
+const parseCertificationsSection = (content: string[]): { name: string; year: string }[] => {
+  return content
+    .map((cert) => {
+      const parts = cert.split(",");
+      const name = parts[0]?.trim() || "";
+      const year = parts[1]?.trim() || "";
 
-  return certifications.length > 0 ? certifications : inputCertifications;
-};
+      const lower = cert.toLowerCase();
+      const isGarbage =
+        lower.includes("placeholder") ||
+        lower.includes("left blank") ||
+        lower.includes("no certifications") ||
+        lower.includes("n/a") ||
+        lower.includes("none") ||
+        lower === "";
 
-const parseEducationSection = (content: string[], inputEducation: any[]): any[] => {
+      return isGarbage ? null : {name, year};
+    })
+    .filter((cert: { name: string; year: string } | null): cert is { name: string; year: string } =>
+      cert !== null && cert.name.length > 2
+    );
+  };
+
+  const parseEducationSection = (content: string[], inputEducation: any[]): any[] => {
   const education: any[] = [];
   let currentEducation: any = {};
 
