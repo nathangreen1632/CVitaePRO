@@ -8,5 +8,5 @@ export const buildFallbackResume = (inputData: any): Record<string, any> => ({
   experience: inputData.experience || [],
   education: inputData.education || [],
   skills: inputData.skills || ["No skills listed."],
-  certifications: inputData.certifications || ["No certifications listed."]
+  certifications: inputData.certifications || []
 });
