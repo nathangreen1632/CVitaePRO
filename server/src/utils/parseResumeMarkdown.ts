@@ -64,7 +64,7 @@ const parseMarkdownSections = (markdown: string, inputData: any): Record<string,
     experience: inputData.experience || [],
     education: inputData.education || [],
     skills: inputData.skills || ["No skills listed."],
-    certifications: inputData.certifications || ["No certifications listed."]
+    certifications: inputData.certifications || []
   };
 
   const sections = markdown.split(/\n(?=## )/);
@@ -99,7 +99,7 @@ const parseMarkdownSections = (markdown: string, inputData: any): Record<string,
         resume.skills = parseSkillsSection(content, inputData.skills || []) || ["No skills listed."];
         break;
       case "certifications":
-        resume.certifications = parseCertificationsSection(content, inputData.certifications || []) || ["No certifications listed."];
+        resume.certifications = parseCertificationsSection(content, inputData.certifications || []) || [];
         break;
       default:
         break;
@@ -193,5 +193,5 @@ const buildFallbackResume = (inputData: any): Record<string, any> => ({
   experience: inputData.experience || [],
   education: inputData.education || [],
   skills: inputData.skills || ["No skills listed."],
-  certifications: inputData.certifications || ["No certifications listed."]
+  certifications: inputData.certifications || []
 });
