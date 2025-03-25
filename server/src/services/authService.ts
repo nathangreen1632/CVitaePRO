@@ -1,8 +1,8 @@
-import { Request, Response, NextFunction } from "express";
-import bcrypt from "bcrypt";
-import { generateToken, verifyToken } from "../utils/jwtUtils.js";
-import User from "../models/User.js";
-import logger from "../register/logger.js";
+import { Request, Response, NextFunction } from 'express';
+import bcrypt from 'bcrypt';
+import { generateToken, verifyToken } from '../utils/jwtUtils.js';
+import User from '../models/User.js';
+import logger from '../register/logger.js';
 
 export interface CustomJwtPayload {
   userId: string;
@@ -31,12 +31,20 @@ export const authenticateUser = (req: Request, res: Response, next: NextFunction
   next();
 };
 
-export const generateUserToken = (userId: string, role?: string): string => {
+export const generateUserToken = (
+  id: string,
+  role?: string,
+  username?: string
+): string => {
   try {
-    return generateToken(userId, role);
+    return generateToken(id, role, username);
   } catch (error) {
-    logger.error("Token generation failed:", error);
-    throw new Error("Failed to generate authentication token.");
+    if (error instanceof Error) {
+      logger.error(`Error generating token: ${error.message}`);
+    } else {
+      logger.error(`Error generating token: ${String(error)}`);
+    }
+    throw new Error("Error generating token.");
   }
 };
 

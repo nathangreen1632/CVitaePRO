@@ -148,7 +148,7 @@ const ExperienceSection: React.FC<Props> = ({ resumeData, setResumeData }) => {
               <input
                 id={`start-${exp.id}`}
                 type="text"
-                placeholder="Start Date"
+                placeholder="YYYY"
                 value={exp.start_date}
                 onChange={(e) => handleExperienceChange(exp.id, "start_date", e.target.value)}
                 className="w-full p-2 rounded bg-gray-800 text-white"
@@ -160,7 +160,7 @@ const ExperienceSection: React.FC<Props> = ({ resumeData, setResumeData }) => {
               <input
                 id={`end-${exp.id}`}
                 type="text"
-                placeholder="End Date"
+                placeholder="YYYY or Present"
                 value={exp.end_date}
                 onChange={(e) => handleExperienceChange(exp.id, "end_date", e.target.value)}
                 className="w-full p-2 rounded bg-gray-800 text-white"

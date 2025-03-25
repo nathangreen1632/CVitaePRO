@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 interface SessionWarningModalProps {
   onStayLoggedIn: () => void;
@@ -13,18 +13,19 @@ const SessionWarningModal: React.FC<SessionWarningModalProps> = ({
                                                                  }) => {
   const [remainingTime, setRemainingTime] = useState(countdownLimit);
   const [buttonsDisabled, setButtonsDisabled] = useState(false);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    intervalRef.current = setInterval(() => {
       setRemainingTime((prev) => {
         const next = prev - 1000;
 
-        if (next === 1000 && !buttonsDisabled) {
+        if (next <= 500 && !buttonsDisabled) {
           setButtonsDisabled(true);
         }
 
         if (next <= 0) {
-          clearInterval(interval);
+          clearInterval(intervalRef.current!);
           onLogout();
           return 0;
         }
@@ -33,8 +34,9 @@ const SessionWarningModal: React.FC<SessionWarningModalProps> = ({
       });
     }, 1000);
 
-    return () => clearInterval(interval);
+    return () => clearInterval(intervalRef.current!);
   }, [onLogout, buttonsDisabled]);
+
 
   const formatTime = (ms: number) => {
     const totalSeconds = Math.floor(ms / 1000);
@@ -59,7 +61,11 @@ const SessionWarningModal: React.FC<SessionWarningModalProps> = ({
 
         <div className="flex justify-center gap-4">
           <button
-            onClick={onStayLoggedIn}
+            aria-label="I'm still here"
+            onClick={() => {
+              clearInterval(intervalRef.current!);
+              onStayLoggedIn();
+            }}
             disabled={buttonsDisabled}
             className={`${
               buttonsDisabled ? "bg-gray-400 cursor-not-allowed" : "bg-green-600 hover:bg-green-700"
@@ -68,6 +74,7 @@ const SessionWarningModal: React.FC<SessionWarningModalProps> = ({
             I'm still here
           </button>
           <button
+            aria-label="Log me out"
             onClick={onLogout}
             disabled={buttonsDisabled}
             className={`${

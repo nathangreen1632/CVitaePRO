@@ -5,18 +5,26 @@ interface JwtPayloadStructure {
   userId: string;
   id?: string;
   role?: string;
+  username?: string;
   iat: number;
   exp: number;
 }
 
-export const generateToken = (id: string, role?: string): string => {
+export const generateToken = (
+  id: string,
+  role?: string,
+  username?: string
+): string => {
   return jwt.sign(
-    { id, userId: id, role }, // ✅ Ensuring `id` and `userId` are both set
+    { id, userId: id, role, username },
     JWT_SECRET,
-    { expiresIn: "7d", issuer: "CVitaePRO", audience: "cvitaepro_users" }
+    {
+      expiresIn: "90m",
+      issuer: "CVitaePRO",
+      audience: "cvitaepro_users",
+    }
   );
 };
-
 
 export const verifyToken = (token: string): JwtPayloadStructure | null => {
   try {
