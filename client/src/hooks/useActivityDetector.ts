@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import {NavigateFunction, useNavigate} from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { NavigateFunction, useNavigate } from 'react-router-dom';
 import { getTokenExpirationTime } from '../utils/tokenUtils';
 
 interface UseActivityDetectorOptions {
@@ -9,37 +9,45 @@ interface UseActivityDetectorOptions {
   onExtendSession: () => void | Promise<void>;
 }
 
-export const useActivityDetector: ({inactiveLimit, countdownLimit, onLogout, onExtendSession }: UseActivityDetectorOptions) => {showWarning: boolean, acknowledgeActivity: () => void} = ({
-                                      inactiveLimit = 15 * 60 * 1000,
-                                      countdownLimit = 2 * 60 * 1000,
-                                      onLogout,
-                                      onExtendSession,
-                                    }: UseActivityDetectorOptions) => {
+export const useActivityDetector: ({
+                                     inactiveLimit,
+                                     countdownLimit,
+                                     onLogout,
+                                     onExtendSession,
+                                   }: UseActivityDetectorOptions) => {
+  showWarning: boolean;
+  acknowledgeActivity: () => void;
+} = ({
+       inactiveLimit = 15 * 60 * 1000,
+       countdownLimit = 2 * 60 * 1000,
+       onLogout,
+       onExtendSession,
+     }: UseActivityDetectorOptions) => {
   const [showWarning, setShowWarning] = useState(false);
   const navigate: NavigateFunction = useNavigate();
 
-  let inactivityTimer: NodeJS.Timeout;
-  let countdownTimer: NodeJS.Timeout;
-  let expirationTimeout: NodeJS.Timeout;
+  const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const expirationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const clearAllTimers: () => void = (): void => {
-    clearTimeout(inactivityTimer);
-    clearTimeout(countdownTimer);
-    clearTimeout(expirationTimeout);
+  const clearAllTimers = (): void => {
+    if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
+    if (countdownTimerRef.current) clearTimeout(countdownTimerRef.current);
+    if (expirationTimeoutRef.current) clearTimeout(expirationTimeoutRef.current);
   };
 
   useEffect((): () => void => {
-    const handleInactivity: () => void = (): void => {
+    const handleInactivity = (): void => {
       setShowWarning(true);
 
-      countdownTimer = setTimeout((): void => {
-        sessionStorage.removeItem("intentionalLogout");
+      countdownTimerRef.current = setTimeout((): void => {
+        sessionStorage.removeItem('intentionalLogout');
         onLogout();
-        navigate("/home");
+        navigate('/home');
       }, countdownLimit);
     };
 
-    const debounce: (fn: () => void, delay: number) => () => void = (fn: () => void, delay: number): () => void => {
+    const debounce = (fn: () => void, delay: number): (() => void) => {
       let debounceTimer: NodeJS.Timeout;
       return (): void => {
         clearTimeout(debounceTimer);
@@ -50,71 +58,78 @@ export const useActivityDetector: ({inactiveLimit, countdownLimit, onLogout, onE
     const resetInactivityTimer = debounce(() => {
       if (showWarning) return;
 
-      clearTimeout(inactivityTimer);
-      clearTimeout(countdownTimer);
+      clearAllTimers();
 
       onExtendSession();
-      inactivityTimer = setTimeout(handleInactivity, inactiveLimit);
+
+      inactivityTimerRef.current = setTimeout(handleInactivity, inactiveLimit);
     }, 2000);
 
-    const scheduleTokenExpirationWarning = () => {
-      const token: string | null = localStorage.getItem("token");
-      const expirationTime: number | null = token ? getTokenExpirationTime(token) : null;
+    const scheduleTokenExpirationWarning = (): void => {
+      const token = localStorage.getItem('token');
+      const expirationTime = token ? getTokenExpirationTime(token) : null;
 
       if (expirationTime) {
-        const warningTime: number = expirationTime - 15 * 60 * 1000;
-        const msUntilWarning: number = warningTime - Date.now();
+        const warningTime = expirationTime - 15 * 60 * 1000;
+        const msUntilWarning = warningTime - Date.now();
 
         if (msUntilWarning > 0) {
-          expirationTimeout = setTimeout(() => {
+          expirationTimeoutRef.current = setTimeout(() => {
             handleInactivity();
           }, msUntilWarning);
         }
       }
     };
 
-    window.addEventListener("mousemove", resetInactivityTimer);
-    window.addEventListener("keydown", resetInactivityTimer);
-    window.addEventListener("scroll", resetInactivityTimer);
+    window.addEventListener('mousemove', resetInactivityTimer);
+    window.addEventListener('keydown', resetInactivityTimer);
+    window.addEventListener('scroll', resetInactivityTimer);
 
     resetInactivityTimer();
     scheduleTokenExpirationWarning();
 
     return (): void => {
       clearAllTimers();
-      window.removeEventListener("mousemove", resetInactivityTimer);
-      window.removeEventListener("keydown", resetInactivityTimer);
-      window.removeEventListener("scroll", resetInactivityTimer);
+      window.removeEventListener('mousemove', resetInactivityTimer);
+      window.removeEventListener('keydown', resetInactivityTimer);
+      window.removeEventListener('scroll', resetInactivityTimer);
     };
-  }, [inactiveLimit, countdownLimit, onLogout, onExtendSession, navigate, showWarning]);
+  }, [
+    inactiveLimit,
+    countdownLimit,
+    onLogout,
+    onExtendSession,
+    navigate,
+    showWarning,
+  ]);
 
-  const acknowledgeActivity: () => void = (): void => {
+  const acknowledgeActivity = (): void => {
     setShowWarning(false);
 
     clearAllTimers();
     onExtendSession();
 
-    const token: string | null = localStorage.getItem("token");
-    const expirationTime: number | null = token ? getTokenExpirationTime(token) : null;
+    const token = localStorage.getItem('token');
+    const expirationTime = token ? getTokenExpirationTime(token) : null;
 
     if (expirationTime) {
-      const warningTime: number = expirationTime - 15 * 60 * 1000;
-      const msUntilWarning: number = warningTime - Date.now();
+      const warningTime = expirationTime - 15 * 60 * 1000;
+      const msUntilWarning = warningTime - Date.now();
 
       if (msUntilWarning > 0) {
-        expirationTimeout = setTimeout(() => {
+        expirationTimeoutRef.current = setTimeout(() => {
           setShowWarning(true);
         }, msUntilWarning);
       }
     }
 
-    inactivityTimer = setTimeout(() => {
+    inactivityTimerRef.current = setTimeout(() => {
       setShowWarning(true);
 
-      countdownTimer = setTimeout(() => {
-        sessionStorage.removeItem("intentionalLogout");
+      countdownTimerRef.current = setTimeout(() => {
+        sessionStorage.removeItem('intentionalLogout');
         onLogout();
-        navigate("/home");
+        navigate('/home');
       }, countdownLimit);
     }, inactiveLimit);
   };
