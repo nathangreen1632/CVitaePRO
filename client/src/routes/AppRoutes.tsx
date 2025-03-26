@@ -12,6 +12,9 @@ import NotFound from "../pages/NotFound.jsx";
 import Home from "../pages/Home.jsx";
 import ProtectedRoute from "../components/ProtectedRoutes.jsx";
 import ActivityWatcher from "../components/ActivityWatcher.jsx";
+import Policies from "../pages/Policies.jsx";
+import LegalPage from "../pages/LegalPage.jsx";
+
 
 const AppRoutes = (): React.JSX.Element => {
   return (
@@ -21,6 +24,8 @@ const AppRoutes = (): React.JSX.Element => {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/features" element={<Features />} />
+      <Route path="/policies" element={<Policies />} />
+      <Route path="/legal" element={<LegalPage />} />
 
       <Route
         path="/dashboard"
@@ -43,7 +48,7 @@ const AppRoutes = (): React.JSX.Element => {
         }
       />
       <Route
-        path="/resume"
+        path="/resume-form"
         element={
           <ProtectedRoute>
             <ActivityWatcher>
