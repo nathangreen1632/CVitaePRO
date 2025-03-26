@@ -28,7 +28,7 @@ const Navbar: React.FC = () => {
           {visiblePages.map((item) => (
             <Link
               key={item}
-              to={`/${item.toLowerCase()}`}
+              to={item === "Home" ? "/" : `/${item.toLowerCase()}`}
               className="hover:text-red-400 transition-all duration-200"
             >
               {item.replace(/-/g, " ")}
@@ -57,7 +57,7 @@ const Navbar: React.FC = () => {
           {visiblePages.map((item) => (
             <Link
               key={item}
-              to={`/${item.toLowerCase()}`}
+              to={item === "Home" ? "/" : `/${item.toLowerCase()}`}
               className="block py-2 text-white hover:text-red-400 transition-all duration-200"
               onClick={() => setMenuOpen(false)}
             >
