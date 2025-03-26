@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import Dashboard from "../pages/Dashboard.jsx";
 import GenerateCoverLetter from "../pages/GenerateCoverLetter.jsx";
 import Resume from "../pages/Resume.jsx";
@@ -19,8 +19,7 @@ import LegalPage from "../pages/LegalPage.jsx";
 const AppRoutes = (): React.JSX.Element => {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/home" replace />} />
-      <Route path="/home" element={<Home />} />
+      <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/features" element={<Features />} />
