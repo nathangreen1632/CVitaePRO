@@ -7,9 +7,9 @@ const Resume: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       <header>
-        <HeaderBar title="Generate Resume" />
-        <h1 className="sr-only" aria-label="Generate Resume">
-          Generate Resume
+        <HeaderBar title="Resume Form" />
+        <h1 className="sr-only" aria-label="Resume Form">
+          Resume Form
         </h1>
       </header>
 
