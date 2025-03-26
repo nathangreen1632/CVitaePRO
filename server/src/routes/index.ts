@@ -6,8 +6,8 @@ import adobeRoutes from "./adobeRoutes.js";
 import coverLetterRoutes from "./coverLetterRoutes.js";
 import resumeRoutes from "./resumeRoutes.js";
 import adminRoutes from "./adminRoutes.js";
-import legalRoutes from "./legalRoutes";
-import devAdminRoutes from "./devAdminRoutes";
+import legalRoutes from "./legalRoutes.js";
+import devAdminRoutes from "./devAdminRoutes.js";
 
 
 const router: Router = Router();
