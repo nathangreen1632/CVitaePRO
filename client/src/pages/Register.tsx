@@ -23,13 +23,36 @@ const Register = (): React.JSX.Element => {
     }
 
     try {
-      const success = await register(username, password);
-      if (success) {
-        navigate("/login");
-      } else {
+      const { success, token } = await register(username, password);
+
+      if (!success || !token) {
         setError("Registration failed. Try a different username.");
+        return;
       }
+
+      // ✅ Submit legal confirmations
+      const agreements = [
+        { documentType: "tos", version: "2025-03-26" },
+        { documentType: "privacy", version: "2025-03-26" },
+        { documentType: "disclaimer", version: "2025-03-26" },
+        { documentType: "eula", version: "2025-03-26" },
+      ];
+
+      for (const agreement of agreements) {
+        await fetch("/api/legal/agree", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(agreement),
+        });
+      }
+
+      navigate("/login");
+
     } catch (err) {
+      console.error("Registration error:", err);
       setError("Something went wrong. Please try again.");
     }
   };
