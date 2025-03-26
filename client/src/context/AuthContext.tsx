@@ -10,7 +10,7 @@ export interface AuthContextType {
   user: string | null;
   token: string | null;
   login: (username: string, password: string) => Promise<boolean>;
-  register: (username: string, password: string) => Promise<boolean>;
+  register: (username: string, password: string) => Promise<{ success: boolean; token?: string }>;
   logout: () => void;
 }
 
@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const register = async (
     username: string,
     password: string
-  ): Promise<boolean> => {
+  ): Promise<{ success: boolean; token?: string }> => {
     try {
       const response = await fetch("/api/auth/register", {
         method: "POST",
@@ -46,24 +46,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         body: JSON.stringify({ username, password }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok || !data.token) {
         console.error(
           "❌ Registration failed:",
-          errorData?.error || "Unknown error"
+          data?.error || "Unknown error"
         );
-        return false;
+        return { success: false };
       }
 
-      return true;
+      // ✅ Save token and user
+      setUser(username);
+      setToken(data.token);
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", username);
+
+      return { success: true, token: data.token };
     } catch (error) {
       console.error(
         "❌ Unexpected registration error:",
         error instanceof Error ? error.message : error
       );
-      return false;
+      return { success: false };
     }
   };
+
 
   const login = async (
     username: string,
