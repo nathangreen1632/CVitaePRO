@@ -1,8 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcrypt';
 import { generateToken, verifyToken } from '../utils/jwtUtils.js';
-import User from '../models/User.js';
 import logger from '../register/logger.js';
+import { sequelize } from "../config/database.js";
+import initModels from "../models/index.js";
+
+const { User } = initModels(sequelize);
+
 
 export interface CustomJwtPayload {
   userId: string;
