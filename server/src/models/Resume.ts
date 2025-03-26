@@ -1,34 +1,36 @@
-import { Model, DataTypes } from "sequelize";
-import { sequelize } from "../config/database.js";
+import { DataTypes, Model, Sequelize } from "sequelize";
 
-class Resume extends Model {}
+export interface IResume extends Model {
+  file_hash: string;
+  user_id?: string;
+  extracted_text?: string;
+  updated_at?: Date;
+}
 
-Resume.init(
-  {
-    file_hash: {
-      type: DataTypes.STRING,
-      primaryKey: true,
+export default (sequelize: Sequelize) => {
+  return sequelize.define<IResume>(
+    "Resume",
+    {
+      file_hash: {
+        type: DataTypes.STRING,
+        primaryKey: true,
+      },
+      user_id: {
+        type: DataTypes.UUID,
+        allowNull: true,
+      },
+      extracted_text: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
+      updated_at: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW,
+      },
     },
-    user_id: {
-      type: DataTypes.UUID,
-      allowNull: true,
-    },
-    extracted_text: {
-      type: DataTypes.TEXT,
-      allowNull: true,
-    },
-    updated_at: {
-      type: DataTypes.DATE,
-      allowNull: true,
-      defaultValue: DataTypes.NOW,
-    },
-  },
-  {
-    sequelize,
-    modelName: "Resume",
-    tableName: "Resumes",
-    timestamps: true,
-  }
-);
-
-export default Resume;
+    {
+      tableName: "Resumes",
+      timestamps: true,
+    }
+  );
+};
