@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 
-
 const Navbar: React.FC = () => {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -13,7 +12,7 @@ const Navbar: React.FC = () => {
   }, [location]);
 
   const publicPages = ["Home", "Login", "Register", "Features"];
-  const privatePages = ["Dashboard", "Resume", "Resume-Editor", "Generate-Cover-Letter"];
+  const privatePages = ["Dashboard", "Resume-Form", "Resume-Editor", "Generate-Cover-Letter"];
 
   const visiblePages = isAuthenticated ? privatePages : publicPages;
 
@@ -29,12 +28,19 @@ const Navbar: React.FC = () => {
           {visiblePages.map((item) => (
             <Link
               key={item}
-              to={`/${item.toLowerCase()}`}
+              to={item === "Home" ? "/" : `/${item.toLowerCase()}`}
               className="hover:text-red-400 transition-all duration-200"
             >
               {item.replace(/-/g, " ")}
             </Link>
           ))}
+
+          <Link
+            to="/legal"
+            className="hover:text-red-400 transition-all duration-200"
+          >
+            Legal
+          </Link>
         </div>
 
         <button
@@ -44,7 +50,6 @@ const Navbar: React.FC = () => {
         >
           ☰
         </button>
-
       </div>
 
       {menuOpen && (
@@ -52,13 +57,21 @@ const Navbar: React.FC = () => {
           {visiblePages.map((item) => (
             <Link
               key={item}
-              to={`/${item.toLowerCase()}`}
+              to={item === "Home" ? "/" : `/${item.toLowerCase()}`}
               className="block py-2 text-white hover:text-red-400 transition-all duration-200"
               onClick={() => setMenuOpen(false)}
             >
               {item.replace(/-/g, " ")}
             </Link>
           ))}
+
+          <Link
+            to="/legal"
+            className="block py-2 text-white hover:text-red-400 transition-all duration-200"
+            onClick={() => setMenuOpen(false)}
+          >
+            Legal
+          </Link>
         </div>
       )}
     </nav>

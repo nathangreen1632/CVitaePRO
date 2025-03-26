@@ -12,7 +12,6 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { token } = useAuth();
 
-  // ✅ Add hydration guard
   const [tokenHydrated, setTokenHydrated] = useState(false);
 
   const {
@@ -41,7 +40,6 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  // ✅ Handle hydration delay and only redirect if still no token
   useEffect(() => {
     if (token === null) {
       const storedToken = localStorage.getItem("token");
@@ -204,7 +202,7 @@ const Dashboard: React.FC = () => {
               setActivityLog,
             });
             await fetchResumes();
-          }} onGenerate={() => navigate("/resume")}
+          }} onGenerate={() => navigate("/resume-form")}
         />
 
         {error && <p className="text-red-500 text-center mb-4">{error}</p>}

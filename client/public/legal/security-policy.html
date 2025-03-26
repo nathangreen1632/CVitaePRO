@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Security Policy</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-white text-black font-sans p-8 max-w-4xl mx-auto space-y-6">
+  <h1 class="text-4xl font-bold text-gray-900 mb-4">Security Policy for CVitaePRO</h1>
+  <p><strong>Effective Date:</strong> March 26, 2025</p>
+  <p>At One Guy Productions, LLC, we take the security of user data seriously. This Security Policy outlines the technical and organizational measures we use to protect personal data and maintain the integrity of the CVitaePRO platform.</p>
+
+  <h2 class="text-2xl font-semibold mt-6">1. Data Encryption</h2>
+  <ul class="list-disc list-inside space-y-1">
+    <li><strong>In Transit:</strong> All data is encrypted using TLS 1.2 or higher.</li>
+    <li><strong>At Rest:</strong> Sensitive data (e.g., user credentials) is encrypted or hashed using industry standards such as bcrypt.</li>
+  </ul>
+
+  <h2 class="text-2xl font-semibold mt-6">2. Authentication & Access Control</h2>
+  <ul class="list-disc list-inside space-y-1">
+    <li>Passwords are hashed using bcrypt and never stored in plain text.</li>
+    <li>User roles and authentication tokens are validated on every request.</li>
+    <li>Admin and developer access to infrastructure is restricted via role-based access and protected with 2FA.</li>
+  </ul>
+
+  <h2 class="text-2xl font-semibold mt-6">3. Infrastructure Security</h2>
+  <ul class="list-disc list-inside space-y-1">
+    <li>All cloud infrastructure is hosted via industry-compliant providers (e.g., Render, AWS).</li>
+    <li>Firewalls and network-level security are enabled by default.</li>
+    <li>Database access is IP-restricted and encrypted.</li>
+  </ul>
+
+  <h2 class="text-2xl font-semibold mt-6">4. Monitoring and Logging</h2>
+  <ul class="list-disc list-inside space-y-1">
+    <li>Logs are maintained for authentication events, API usage, and error events.</li>
+    <li>Suspicious activity (e.g., excessive requests, brute-force login attempts) is flagged and rate-limited.</li>
+  </ul>
+
+  <h2 class="text-2xl font-semibold mt-6">5. Backups and Redundancy</h2>
+  <ul class="list-disc list-inside space-y-1">
+    <li>Regular backups of critical data are performed and stored securely.</li>
+    <li>Backup data is encrypted and retained in accordance with our data retention policy.</li>
+  </ul>
+
+  <h2 class="text-2xl font-semibold mt-6">6. Security Testing</h2>
+  <ul class="list-disc list-inside space-y-1">
+    <li>CVitaePRO undergoes internal code reviews and automated vulnerability scans.</li>
+    <li>Patches and updates are deployed regularly to address known CVEs and zero-day vulnerabilities.</li>
+  </ul>
+
+  <h2 class="text-2xl font-semibold mt-6">7. Incident Response</h2>
+  <p>In the event of a data breach:</p>
+  <ul class="list-disc list-inside space-y-1">
+    <li>Affected users will be notified within 72 hours (per GDPR Article 33).</li>
+    <li>A full investigation and mitigation report will be conducted and made available.</li>
+  </ul>
+
+  <h2 class="text-2xl font-semibold mt-6">8. Your Responsibilities</h2>
+  <p>Users are responsible for:</p>
+  <ul class="list-disc list-inside space-y-1">
+    <li>Using strong passwords and updating them periodically</li>
+    <li>Not sharing login credentials with third parties</li>
+  </ul>
+
+  <h2 class="text-2xl font-semibold mt-6">9. Contact</h2>
+  <p>If you have questions or believe your account has been compromised, please contact:</p>
+  <p>One Guy Productions, LLC<br/>
+  Attn: Security Team<br/>
+  Kyle, TX 78640<br/>
+  Email: <a href="mailto:security@cvitaepro.com" class="text-blue-700 underline">security@cvitaepro.com</a></p>
+</body>
+</html>
