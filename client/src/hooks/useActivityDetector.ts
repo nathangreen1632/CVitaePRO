@@ -43,7 +43,7 @@ export const useActivityDetector: ({
       countdownTimerRef.current = setTimeout((): void => {
         sessionStorage.removeItem('intentionalLogout');
         onLogout();
-        navigate('/home');
+        navigate('/');
       }, countdownLimit);
     };
 
@@ -129,7 +129,7 @@ export const useActivityDetector: ({
       countdownTimerRef.current = setTimeout(() => {
         sessionStorage.removeItem('intentionalLogout');
         onLogout();
-        navigate('/home');
+        navigate('/');
       }, countdownLimit);
     }, inactiveLimit);
   };
