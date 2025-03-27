@@ -77,13 +77,18 @@ export const useActivityDetector: ({
           expirationTimeoutRef.current = setTimeout(() => {
             handleInactivity();
           }, msUntilWarning);
+        } else {
+          handleInactivity();
         }
       }
     };
 
     window.addEventListener('mousemove', resetInactivityTimer);
     window.addEventListener('keydown', resetInactivityTimer);
-    window.addEventListener('scroll', resetInactivityTimer);
+    window.addEventListener('scroll', resetInactivityTimer, { passive: true });
+    window.addEventListener('wheel', resetInactivityTimer, { passive: true });
+    window.addEventListener('touchmove', resetInactivityTimer, { passive: true });
+
 
     resetInactivityTimer();
     scheduleTokenExpirationWarning();
@@ -93,6 +98,8 @@ export const useActivityDetector: ({
       window.removeEventListener('mousemove', resetInactivityTimer);
       window.removeEventListener('keydown', resetInactivityTimer);
       window.removeEventListener('scroll', resetInactivityTimer);
+      window.removeEventListener('wheel', resetInactivityTimer);
+      window.removeEventListener('touchmove', resetInactivityTimer);
     };
   }, [
     inactiveLimit,
