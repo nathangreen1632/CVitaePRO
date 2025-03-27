@@ -5,10 +5,22 @@ const Navbar: React.FC = () => {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     setIsAuthenticated(!!token);
+
+    try {
+      if (token) {
+        const decoded = JSON.parse(atob(token.split(".")[1]));
+        setIsAdmin(decoded?.role === "admin");
+      } else {
+        setIsAdmin(false);
+      }
+    } catch {
+      setIsAdmin(false);
+    }
   }, [location]);
 
   const publicPages = ["Home", "Login", "Register", "Features"];
@@ -34,6 +46,15 @@ const Navbar: React.FC = () => {
               {item.replace(/-/g, " ")}
             </Link>
           ))}
+
+          {isAdmin && (
+            <Link
+              to="/admin"
+              className="hover:text-red-400 transition-all duration-200 font-semibold"
+            >
+              Admin Panel
+            </Link>
+          )}
 
           <Link
             to="/legal"
@@ -64,6 +85,16 @@ const Navbar: React.FC = () => {
               {item.replace(/-/g, " ")}
             </Link>
           ))}
+
+          {isAdmin && (
+            <Link
+              to="/admin"
+              className="block py-2 text-white hover:text-red-400 font-semibold transition-all duration-200"
+              onClick={() => setMenuOpen(false)}
+            >
+              Admin Panel
+            </Link>
+          )}
 
           <Link
             to="/legal"
