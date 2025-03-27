@@ -1,5 +1,5 @@
 {
-  "name": "cvitaepro",
+  "name": "root",
   "version": "1.0.0",
   "description": "AI-powered Resume & Cover Letter Generator",
   "main": "index.js",
