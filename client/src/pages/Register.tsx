@@ -30,7 +30,6 @@ const Register = (): React.JSX.Element => {
         return;
       }
 
-      // ✅ Submit legal confirmations
       const agreements = [
         { documentType: "tos", version: "2025-03-26" },
         { documentType: "privacy", version: "2025-03-26" },
@@ -38,19 +37,20 @@ const Register = (): React.JSX.Element => {
         { documentType: "eula", version: "2025-03-26" },
       ];
 
-      for (const agreement of agreements) {
-        await fetch("/api/legal/agree", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(agreement),
-        });
-      }
+      await Promise.all(
+        agreements.map((agreement) =>
+          fetch("/api/legal/agree", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(agreement),
+          })
+        )
+      );
 
       navigate("/login");
-
     } catch (err) {
       console.error("Registration error:", err);
       setError("Something went wrong. Please try again.");
