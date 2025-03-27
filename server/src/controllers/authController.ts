@@ -16,12 +16,12 @@ export async function register(req: Request, res: Response): Promise<void> {
     }
 
     const userRole = role === "admin" ? "admin" : "user";
-    const { user: newUser } =
+    const { user: newUser, token } =
     (await registerUser({ username, password, role: userRole })) ||
     { user: null, token: null };
 
-    if (!newUser) {
-      logger.error(`❌ Registration failed for '${username}'. User object is null.`);
+    if (!newUser || !token) {
+      logger.error(`❌ Registration failed for '${username}'.`);
       res.status(500).json({ error: "User registration failed. Please try again." });
       return;
     }
@@ -29,8 +29,11 @@ export async function register(req: Request, res: Response): Promise<void> {
     logger.info(`✅ New user registered: '${username}' with role '${userRole}'`);
     res.status(201).json({
       message: "User registered successfully",
-      userId: newUser?.getDataValue("id"),
+      userId: newUser.getDataValue("id"),
+      token,
     });
+
+
   } catch (error) {
     logger.error(`❌ Registration Error: ${error instanceof Error ? error.message : "Unknown error"}`);
     res.status(400).json({ error: error instanceof Error ? error.message : "Unknown error" });
