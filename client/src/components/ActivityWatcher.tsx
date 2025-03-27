@@ -12,6 +12,11 @@ const ActivityWatcher: React.FC<{ children?: React.ReactNode }> = ({ children })
     countdownLimit: 2 * 60 * 1000,
     onLogout: auth?.logout || (() => {}),
     onExtendSession: async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.info("Skipping refresh — no token present");
+        return;
+      }
       const success = await refreshToken();
       if (!success) {
         auth?.logout?.();
