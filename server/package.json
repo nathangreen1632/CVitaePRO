@@ -12,8 +12,8 @@
     "seed": "node dist/seeds/index.js",
     "start": "node dist/server.js",
     "build": "tsc",
-    "migrate": "sequelize-cli db:migrate --config src/config/config.cjs",
-    "rollback": "sequelize-cli db:migrate:undo:all --config src/config/config.cjs"
+    "migrate": "sequelize-cli db:migrate --config config/config.cjs",
+    "rollback": "sequelize-cli db:migrate:undo:all --config config/config.cjs"
   },
   "nodemonConfig": {
     "watch": [
