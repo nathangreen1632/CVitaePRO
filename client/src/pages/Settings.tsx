@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import HeaderBar from "../components/HeaderBar";
 import { AuthContext } from "../context/AuthContext";
 
@@ -16,6 +16,11 @@ const Settings: React.FC = () => {
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleChangePassword = async () => {
     setError("");
@@ -69,80 +74,101 @@ const Settings: React.FC = () => {
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow mb-8">
           <h3 className="text-lg font-semibold mb-4">Change Password</h3>
 
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="currentPassword" className="block mb-1 font-medium">Current Password</label>
-              <div className="flex">
-                <input
-                  id="currentPassword"
-                  type={showCurrent ? "text" : "password"}
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="w-full p-2 rounded-l border border-r-0 bg-gray-100 dark:bg-gray-700 text-black dark:text-white"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowCurrent((prev) => !prev)}
-                  className="px-5 bg-gray-300 dark:bg-gray-800 rounded-r border-l hover:bg-gray-600 border-gray-400 dark:border-gray-500"
-                >
-                  {showCurrent ? "Hide" : "Show"}
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="newPassword" className="block mb-1 font-medium">New Password</label>
-              <div className="flex">
-                <input
-                  id="newPassword"
-                  type={showNew ? "text" : "password"}
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full p-2 rounded-l border border-r-0 bg-gray-100 dark:bg-gray-700 text-black dark:text-white"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowNew((prev) => !prev)}
-                  className="px-5 bg-gray-300 dark:bg-gray-800 rounded-r border-l hover:bg-gray-600 border-gray-400 dark:border-gray-500"
-                >
-                  {showNew ? "Hide" : "Show"}
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="confirmPassword" className="block mb-1 font-medium">Confirm New Password</label>
-              <div className="flex">
-                <input
-                  id="confirmPassword"
-                  type={showConfirm ? "text" : "password"}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full p-2 rounded-l border border-r-0 bg-gray-100 dark:bg-gray-700 text-black dark:text-white"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirm((prev) => !prev)}
-                  className="px-5 bg-gray-300 dark:bg-gray-800 rounded-r border-l hover:bg-gray-600 border-gray-400 dark:border-gray-500"
-                >
-                  {showConfirm ? "Hide" : "Show"}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {error && <p className="text-red-500 mt-3">{error}</p>}
-          {success && <p className="text-green-500 mt-3">{success}</p>}
-
-          <div className="text-right mt-6">
-            <button
-              onClick={handleChangePassword}
-              className="bg-blue-600 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded disabled:opacity-60"
-              disabled={loading}
+          {mounted && (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                void handleChangePassword();
+              }}
+              className="space-y-4"
             >
-              {loading ? "Updating..." : "Update Password"}
-            </button>
-          </div>
+              {/* ✅ Hidden field for username to satisfy autofill/accessibility */}
+              <input
+                type="text"
+                name="username"
+                autoComplete="username"
+                value={user ?? ""}
+                readOnly
+                hidden
+              />
+
+              <div>
+                <label htmlFor="currentPassword" className="block mb-1 font-medium">Current Password</label>
+                <div className="flex">
+                  <input
+                    autoComplete="off"
+                    id="currentPassword"
+                    type={showCurrent ? "text" : "password"}
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    className="w-full p-2 rounded-l border border-r-0 bg-gray-100 dark:bg-gray-700 text-black dark:text-white"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrent((prev) => !prev)}
+                    className="px-5 bg-gray-300 dark:bg-gray-800 rounded-r border-l hover:bg-gray-600 border-gray-400 dark:border-gray-500"
+                  >
+                    {showCurrent ? "Hide" : "Show"}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="newPassword" className="block mb-1 font-medium">New Password</label>
+                <div className="flex">
+                  <input
+                    autoComplete="off"
+                    id="newPassword"
+                    type={showNew ? "text" : "password"}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full p-2 rounded-l border border-r-0 bg-gray-100 dark:bg-gray-700 text-black dark:text-white"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNew((prev) => !prev)}
+                    className="px-5 bg-gray-300 dark:bg-gray-800 rounded-r border-l hover:bg-gray-600 border-gray-400 dark:border-gray-500"
+                  >
+                    {showNew ? "Hide" : "Show"}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="confirmPassword" className="block mb-1 font-medium">Confirm New Password</label>
+                <div className="flex">
+                  <input
+                    autoComplete="off"
+                    id="confirmPassword"
+                    type={showConfirm ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full p-2 rounded-l border border-r-0 bg-gray-100 dark:bg-gray-700 text-black dark:text-white"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirm((prev) => !prev)}
+                    className="px-5 bg-gray-300 dark:bg-gray-800 rounded-r border-l hover:bg-gray-600 border-gray-400 dark:border-gray-500"
+                  >
+                    {showConfirm ? "Hide" : "Show"}
+                  </button>
+                </div>
+              </div>
+
+              {error && <p className="text-red-500 mt-3">{error}</p>}
+              {success && <p className="text-green-700 mt-3">{success}</p>}
+
+              <div className="text-right mt-6">
+                <button
+                  type="submit"
+                  className="bg-blue-600 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded disabled:opacity-60"
+                  disabled={loading}
+                >
+                  {loading ? "Updating..." : "Update Password"}
+                </button>
+              </div>
+            </form>
+          )}
         </div>
 
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow mb-8">
