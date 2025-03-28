@@ -7,7 +7,6 @@ import coverLetterRoutes from "./coverLetterRoutes.js";
 import resumeRoutes from "./resumeRoutes.js";
 import adminRoutes from "./adminRoutes.js";
 import legalRoutes from "./legalRoutes.js";
-import devAdminRoutes from "./devAdminRoutes.js";
 
 
 const router: Router = Router();
@@ -20,9 +19,6 @@ router.use("/cover-letter", coverLetterRoutes);
 router.use("/resume", resumeRoutes);
 router.use("/admin", adminRoutes);
 router.use("/legal", legalRoutes);
-router.use("/dev-admin", devAdminRoutes);
-
-
 
 
 export default router;
