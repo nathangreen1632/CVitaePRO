@@ -10,7 +10,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { token } = useAuth();
   const location = useLocation();
 
-  if (!token && location.pathname !== "/home") {
+  if (!token && location.pathname !== "/") {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 

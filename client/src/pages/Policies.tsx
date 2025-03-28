@@ -45,7 +45,7 @@ const Policies = (): React.JSX.Element => {
 
   const handleDisagree = (): void => {
     localStorage.removeItem("cvitaepro:policiesAgreed");
-    navigate("/home");
+    navigate("/");
   };
 
   const progressPercent = ((step + 1) / documents.length) * 100;

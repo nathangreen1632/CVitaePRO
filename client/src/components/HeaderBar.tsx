@@ -11,7 +11,7 @@ const HeaderBar: React.FC<HeaderBarProps> = ({ title }) => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    navigate("/home", { replace: true });
+    navigate("/", { replace: true });
     logout();
   };
 

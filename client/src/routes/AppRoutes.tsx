@@ -14,6 +14,9 @@ import ProtectedRoute from "../components/ProtectedRoutes.jsx";
 import ActivityWatcher from "../components/ActivityWatcher.jsx";
 import Policies from "../pages/Policies.jsx";
 import LegalPage from "../pages/LegalPage.jsx";
+import AdminLogsPage from "../pages/AdminLogsPage.jsx";
+import AdminRoute from "../components/AdminRoute.jsx";
+
 
 
 const AppRoutes = (): React.JSX.Element => {
@@ -72,6 +75,18 @@ const AppRoutes = (): React.JSX.Element => {
           <ProtectedRoute>
             <ActivityWatcher>
               <Settings />
+            </ActivityWatcher>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute>
+            <ActivityWatcher>
+              <AdminRoute>
+                <AdminLogsPage />
+              </AdminRoute>
             </ActivityWatcher>
           </ProtectedRoute>
         }

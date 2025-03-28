@@ -4,8 +4,8 @@ import path from "path";
 import Logger from "./register/logger.js";
 import { applyMiddleware } from "./middleware/index.js";
 import routes from "./routes/index.js";
-import { connectDatabase } from "./config/database.js";
-import { associateModels } from "./models/index.js";
+import { connectDatabase, sequelize } from "./config/database.js";
+import initModels from "./models/index.js";
 
 dotenv.config();
 
@@ -33,13 +33,17 @@ app.get("*", (req, res) => {
 const startServer = async () => {
   try {
     await connectDatabase();
-    Logger.info("Database connected successfully.");
+    const models = initModels(sequelize);
+    Logger.info("Models initialized.");
+    app.locals.models = models; // if needed globally
     app.listen(PORT, () => Logger.info(`Server is running on port ${PORT}`));
   } catch (error) {
-    Logger.error("Database connection failed:", error);
+    Logger.error("Startup failure:", error);
     process.exit(1);
   }
 };
 
-associateModels();
-startServer();
+(async () => {
+  await startServer();
+})();
+

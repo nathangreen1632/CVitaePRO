@@ -46,7 +46,7 @@ const LegalAgreementModal: React.FC<LegalAgreementModalProps> = ({ onComplete, o
     if (onReject) {
       onReject();
     } else {
-      window.location.href = "/home";
+      window.location.href = "/";
     }
   };
 

@@ -14,7 +14,7 @@ export async function parseResumeFromPDF(filePath: string): Promise<ResumeData> 
   const rawText = await extractTextFromPDF(filePath);
   const structuredResume = normalizeResume(rawText);
 
-  await setCachedResponse(cacheKey, structuredResume, 86400);
+  await setCachedResponse(cacheKey, structuredResume, 1800);
 
   return structuredResume;
 }

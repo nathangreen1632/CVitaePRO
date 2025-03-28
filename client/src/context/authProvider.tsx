@@ -42,7 +42,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }): React
     }
   };
 
-  const register = async (username: string, password: string): Promise<boolean> => {
+  const register = async (username: string, password: string): Promise<{ success: boolean; token?: string }> => {
     try {
       const response = await fetch("/api/auth/register", {
         method: "POST",
@@ -51,13 +51,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }): React
       });
 
       if (!response.ok) {
-        return false;
+        return { success: false };
       }
 
-      return true;
+      const data = await response.json();
+      return { success: true, token: data.token };
     } catch (error) {
       console.error("Registration failed:", error);
-      return false;
+      return { success: false };
     }
   };
 
@@ -66,7 +67,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }): React
     localStorage.removeItem("token");
     setUser(null);
     setToken(null);
-    navigate("/home");
+    navigate("/");
   };
 
   const value = useMemo(

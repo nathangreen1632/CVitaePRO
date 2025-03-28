@@ -8,7 +8,18 @@ import { AuthenticatedRequest } from "../middleware/authMiddleware.js";
 import PDFDocument from "pdfkit";
 import { parseResumeMarkdown } from "../utils/parseResumeMarkdown.js";
 import { saveToPostgreSQL } from "../services/postgreSQLService.js";
-import { Document, Packer, Paragraph, TextRun, HeadingLevel } from "docx";
+import {
+  Document,
+  Packer,
+  Paragraph,
+  TextRun,
+  HeadingLevel,
+  AlignmentType,
+  TableCell,
+  WidthType,
+  Table,
+  TableRow, BorderStyle
+} from "docx";
 
 declare module "express" {
   interface Request {
@@ -280,60 +291,322 @@ export const downloadResume: RequestHandler = async (req, res) => {
       const doc = new Document({
         sections: [
           {
+            properties: {
+              page: {
+                margin: {
+                  top: 1000,
+                  right: 1440,
+                  bottom: 1000,
+                  left: 1440,
+                },
+              },
+            },
             children: [
+              // NAME HEADER
               new Paragraph({
-                children: [new TextRun({ text: parsed.name, bold: true, size: 32, font: "Arial" })],
-                spacing: { after: 300 },
+                alignment: AlignmentType.CENTER,
+                children: [
+                  new TextRun({
+                    text: parsed.name,
+                    bold: true,
+                    font: "Times New Roman",
+                    size: 36, // 12pt (docx size is half-points)
+                    color: "000000",
+                  }),
+                ],
+                spacing: { after: 175 },
+              }),
+
+              // CONTACT INFO
+              ...[
+                parsed.email && new Paragraph({
+                  spacing: { after: 40 },
+                  children: [
+                    new TextRun({ text: "Email: ", bold: true, font: "Times New Roman", size: 24, color: "000000" }),
+                    new TextRun({ text: parsed.email, font: "Times New Roman", size: 24, color: "000000" }),
+                  ],
+                }),
+                parsed.phone && new Paragraph({
+                  spacing: { after: 40 },
+                  children: [
+                    new TextRun({ text: "Phone: ", bold: true, font: "Times New Roman", size: 24, color: "000000" }),
+                    new TextRun({ text: parsed.phone, font: "Times New Roman", size: 24, color: "000000" }),
+                  ],
+                }),
+                parsed.linkedin && new Paragraph({
+                  spacing: { after: 40 },
+                  children: [
+                    new TextRun({ text: "LinkedIn: ", bold: true, font: "Times New Roman", size: 24, color: "000000" }),
+                    new TextRun({ text: parsed.linkedin, font: "Times New Roman", size: 24, color: "000000" }),
+                  ],
+                }),
+                parsed.portfolio && new Paragraph({
+                  spacing: { after: 200 },
+                  children: [
+                    new TextRun({ text: "Portfolio: ", bold: true, font: "Times New Roman", size: 24, color: "000000" }),
+                    new TextRun({ text: parsed.portfolio, font: "Times New Roman", size: 24, color: "000000" }),
+                  ],
+                }),
+              ].filter(Boolean),
+
+              // SUMMARY
+              new Paragraph({
+                text: "Summary",
+                heading: HeadingLevel.HEADING_2,
+                spacing: { after: 100 },
               }),
               new Paragraph({
-                children: [new TextRun({ text: parsed.summary, font: "Arial" })],
-                spacing: { after: 300 },
+                spacing: { after: 200 },
+                children: [
+                  new TextRun({
+                    text: parsed.summary,
+                    font: "Times New Roman",
+                    size: 24,
+                    color: "000000",
+                  }),
+                ],
               }),
-              new Paragraph({ text: "Experience", heading: HeadingLevel.HEADING_2 }),
-              ...parsed.experience.map((exp: any) =>
-                new Paragraph({
-                  children: [
-                    new TextRun({ text: `${exp.company} — ${exp.role}`, bold: true, font: "Arial" }),
-                    new TextRun({ text: "\n", break: 1 }),
-                    new TextRun({ text: formatWorkDates(exp.start_date, exp.end_date), font: "Arial" }),
-                    ...exp.responsibilities.map((r: string) =>
-                      new TextRun({ text: `\n• ${r}`, font: "Arial" })
-                    ),
-                  ],
-                  spacing: { after: 200 },
-                })
-              ),
-              new Paragraph({ text: "Education", heading: HeadingLevel.HEADING_2 }),
-              ...parsed.education.map((edu: any) =>
-                new Paragraph({
-                  children: [
-                    new TextRun({
-                      text: `${edu.degree} at ${edu.institution} (${edu.graduation_year})`,
-                      font: "Arial",
+
+              // EXPERIENCE
+              new Paragraph({
+                text: "Experience",
+                heading: HeadingLevel.HEADING_2,
+                spacing: { after: 200 },
+              }),
+              ...parsed.experience.map((job: any) => {
+                const leftText = `${job.company} — ${job.role}`;
+                const rightText = formatWorkDates(job.start_date, job.end_date);
+
+                return new Table({
+                  width: { size: 100, type: WidthType.PERCENTAGE },
+                  borders: {
+                    top: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                    bottom: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                    left: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                    right: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                    insideHorizontal: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                    insideVertical: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                  },
+                  rows: [
+                    new TableRow({
+                      children: [
+                        new TableCell({
+                          columnSpan: 2,
+                          children: [
+                            // Header row: Company + Role and Dates
+                            new Table({
+                              width: { size: 100, type: WidthType.PERCENTAGE },
+                              borders: {
+                                top: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                                bottom: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                                left: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                                right: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                                insideHorizontal: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                                insideVertical: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                              },
+                              rows: [
+                                new TableRow({
+                                  children: [
+                                    new TableCell({
+                                      width: { size: 70, type: WidthType.PERCENTAGE },
+                                      children: [
+                                        new Paragraph({
+                                          children: [
+                                            new TextRun({
+                                              text: leftText,
+                                              bold: true,
+                                              font: "Times New Roman",
+                                              size: 24,
+                                              color: "000000",
+                                            }),
+                                          ],
+                                          spacing: { after: 100 },
+                                        }),
+                                      ],
+                                    }),
+                                    new TableCell({
+                                      width: { size: 30, type: WidthType.PERCENTAGE },
+                                      children: [
+                                        new Paragraph({
+                                          alignment: AlignmentType.RIGHT,
+                                          children: [
+                                            new TextRun({
+                                              text: rightText,
+                                              bold: true,
+                                              font: "Times New Roman",
+                                              size: 24,
+                                              color: "000000",
+                                            }),
+                                          ],
+                                        }),
+                                      ],
+                                    }),
+                                  ],
+                                }),
+                              ],
+                            }),
+
+                            // Bullet points
+                            ...job.responsibilities.map((r: string) =>
+                              new Paragraph({
+                                spacing: { after: 100 },
+                                bullet: { level: 0 },
+                                children: [
+                                  new TextRun({
+                                    text: r,
+                                    font: "Times New Roman",
+                                    size: 24,
+                                    color: "000000",
+                                  }),
+                                ],
+                              })
+                            ),
+
+                            new Paragraph(""),
+                          ],
+                        }),
+                      ],
                     }),
                   ],
-                  spacing: { after: 200 },
-                })
-              ),
-              new Paragraph({ text: "Skills", heading: HeadingLevel.HEADING_2 }),
-              ...parsed.skills.map((skill: string) =>
-                new Paragraph({
-                  children: [new TextRun({ text: skill, font: "Arial" })],
-                  spacing: { after: 100 },
-                })
-              ),
-              new Paragraph({ text: "Certifications", heading: HeadingLevel.HEADING_2 }),
-              ...parsed.certifications.map((cert: any) =>
-                new Paragraph({
-                  children: [
-                    new TextRun({
-                      text: cert.year ? `${cert.name} (${cert.year})` : cert.name,
-                      font: "Arial",
-                    }),
-                  ],
-                  spacing: { after: 100 },
-                })
-              ),
+                });
+              }),
+
+
+
+              // EDUCATION (conditional)
+              ...(() => {
+                const realEdu = parsed.education.filter((edu: any) => {
+                  return (
+                    edu.degree?.trim() &&
+                    edu.institution?.trim() &&
+                    edu.graduation_year?.toString().trim()
+                  );
+                });
+
+                if (realEdu.length === 0) return [];
+
+                return [
+                  new Paragraph({
+                    text: "Education",
+                    heading: HeadingLevel.HEADING_2,
+                    spacing: { after: 100 },
+                  }),
+                  ...realEdu.map((edu: any) =>
+                    new Paragraph({
+                      spacing: { after: 100 },
+                      indent: { left: 400 },
+                      children: [
+                        new TextRun({
+                          text: `${edu.degree} at ${edu.institution} (${edu.graduation_year})`,
+                          font: "Times New Roman",
+                          size: 24,
+                          color: "000000",
+                        }),
+                      ],
+                    })
+                  ),
+                ];
+              })(),
+
+              // SKILLS (conditional)
+              ...(() => {
+                const cleanedSkills = parsed.skills
+                  .map((s: string) => (s || "").trim())
+                  .filter((s: string) => s.length > 0);
+
+                if (cleanedSkills.length < 2) return [];
+
+                const skillBlocks: Paragraph[] = [
+                  new Paragraph({
+                    text: "Skills",
+                    heading: HeadingLevel.HEADING_2,
+                    spacing: { after: 100 },
+                  }),
+                ];
+
+                for (let i = 0; i < cleanedSkills.length; i += 2) {
+                  const rawLabel = cleanedSkills[i] || "";
+                  const rawContent = cleanedSkills[i + 1] || "";
+
+                  const label = rawLabel.replace(/[:\s]+$/, "").trim();
+                  const content = rawContent.trim();
+
+                  if (label && content) {
+                    skillBlocks.push(
+                      new Paragraph({
+                        spacing: { after: 50 },
+                        children: [
+                          new TextRun({
+                            text: `${label}:`,
+                            bold: true,
+                            font: "Times New Roman",
+                            size: 24,
+                            color: "000000",
+                          }),
+                        ],
+                      }),
+                      new Paragraph({
+                        spacing: { after: 150 },
+                        children: [
+                          new TextRun({
+                            text: content,
+                            font: "Times New Roman",
+                            size: 24,
+                            color: "000000",
+                          }),
+                        ],
+                        indent: { left: 400 },
+                      })
+                    );
+                  }
+                }
+
+                return skillBlocks;
+              })(),
+
+
+
+              // CERTIFICATIONS (conditional)
+              ...(() => {
+                const realCerts = parsed.certifications.filter((cert: any) => {
+                  const name = (cert.name || "").trim().toLowerCase();
+                  return (
+                    name.length > 0 &&
+                    name !== "certifications" &&
+                    !name.includes("placeholder")
+                  );
+                });
+
+                if (realCerts.length === 0) return [];
+
+                return [
+                  new Paragraph({
+                    text: "Certifications",
+                    heading: HeadingLevel.HEADING_2,
+                    spacing: { after: 100 },
+                  }),
+                  ...realCerts.map((cert: any) => {
+                    const name = cert.name?.trim();
+                    const year = cert.year?.trim();
+                    if (!name) return null;
+
+                    const line = year ? `${name} (${year})` : name;
+
+                    return new Paragraph({
+                      spacing: { after: 100 },
+                      children: [
+                        new TextRun({
+                          text: line,
+                          font: "Times New Roman",
+                          size: 24,
+                          color: "000000",
+                        }),
+                      ],
+                      indent: { left: 400 },
+                    });
+                  }).filter(Boolean),
+                ];
+              })(),
             ],
           },
         ],
@@ -344,55 +617,150 @@ export const downloadResume: RequestHandler = async (req, res) => {
       res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
       res.send(buffer);
       return;
-    } else {
-      const doc = new PDFDocument();
-      const filename = `${parsed.name}-resume.pdf`;
+    }
+
+    else {
+      const doc = new PDFDocument({ margin: 65 });
+      const filename = `${parsed.name || "Resume"}-resume.pdf`;
 
       res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
       res.setHeader("Content-Type", "application/pdf");
 
       doc.pipe(res);
-      doc.fontSize(20).text(parsed.name || "Untitled Resume", { underline: true });
-      doc.moveDown();
-      if (parsed.email) doc.fontSize(12).text(`Email: ${parsed.email}`);
-      if (parsed.phone) doc.text(`Phone: ${parsed.phone}`);
-      if (parsed.linkedin) doc.text(`LinkedIn: ${parsed.linkedin}`);
-      if (parsed.portfolio) doc.text(`Portfolio: ${parsed.portfolio}`);
-      doc.moveDown();
-      doc.fontSize(14).text("Summary", { underline: true });
-      doc.fontSize(12).text(parsed.summary);
-      doc.moveDown();
-      doc.fontSize(14).text("Experience", { underline: true });
-      parsed.experience.forEach((job: any) => {
-        doc.fontSize(12).text(`${job.company} — ${job.role}`);
-        doc.text(formatWorkDates(job.start_date, job.end_date));
-        job.responsibilities.forEach((r: string) => doc.text(`• ${r}`));
-        doc.moveDown();
-      });
-      doc.fontSize(14).text("Education", { underline: true });
-      parsed.education.forEach((edu: any) => {
-        doc.fontSize(12).text(`${edu.degree} at ${edu.institution} (${edu.graduation_year})`);
-      });
-      doc.moveDown();
-      doc.fontSize(14).text("Skills", { underline: true });
-      parsed.skills.forEach((line: string) => {
-        const [label, content] = line.split(":".trim());
-        if (label && content) {
-          doc.fontSize(12).text(`${label}: ${content}`);
-        } else {
-          doc.fontSize(12).text(line);
-        }
-      });
-      doc.moveDown();
-      doc.fontSize(14).text("Certifications", { underline: true });
-      parsed.certifications.forEach((cert: any) => {
-        const hasYear = cert.year && cert.year.trim().length > 0;
-        const line = hasYear ? `${cert.name} (${cert.year})` : `${cert.name}`;
-        doc.fontSize(12).text(line);
+
+      doc.font("Times-Roman").fontSize(20).text(parsed.name || "Untitled Resume", {
+        align: "center",
+        underline: true,
       });
 
+      doc.moveDown(0.5);
+      doc.fontSize(12);
+
+      if (parsed.email) {
+        doc.font("Times-Bold").text("Email:", { continued: true });
+        doc.font("Times-Roman").text(` ${parsed.email}`);
+      }
+      if (parsed.phone) {
+        doc.font("Times-Bold").text("Phone:", { continued: true });
+        doc.font("Times-Roman").text(` ${parsed.phone}`);
+      }
+      if (parsed.linkedin) {
+        doc.font("Times-Bold").text("LinkedIn:", { continued: true });
+        doc.font("Times-Roman").text(` ${parsed.linkedin}`);
+      }
+      if (parsed.portfolio) {
+        doc.font("Times-Bold").text("Portfolio:", { continued: true });
+        doc.font("Times-Roman").text(` ${parsed.portfolio}`);
+      }
+
+
+      doc.moveDown();
+      doc.fontSize(14).text("Summary", { underline: true });
+      doc.moveDown(0.5);
+      doc.fontSize(12).text(parsed.summary, { lineGap: 1 });
+
+      doc.moveDown();
+      doc.fontSize(14).text("Experience", { underline: true });
+      doc.moveDown(0.5);
+      parsed.experience.forEach((job: any) => {
+        const leftText = `${job.company} — ${job.role}`;
+        const rightText = formatWorkDates(job.start_date, job.end_date);
+
+        const pageWidth = doc.page.width - doc.page.margins.left - doc.page.margins.right;
+        doc.font("Times-Bold").fontSize(12); // Bold for width calc
+        const leftTextWidth = doc.widthOfString(leftText);
+        const rightTextWidth = doc.widthOfString(rightText);
+        const spaceBetween = pageWidth - leftTextWidth - rightTextWidth;
+
+        // Render bolded header
+        doc.font("Times-Bold").fontSize(12)
+          .text(leftText, { continued: true })
+          .text(" ".repeat(Math.max(spaceBetween / 3, 2)), { continued: true })
+          .text(rightText);
+
+        doc.moveDown(0.5);
+
+        // Render bullet points (regular font, left-aligned)
+        doc.font("Times-Roman").fontSize(12);
+        job.responsibilities.forEach((r: string) => {
+          doc.text(`• ${r}`, { lineGap: 2, align: "left" });
+        });
+
+        doc.moveDown();
+      });
+
+      doc.fontSize(14).text("Education", { underline: true });
+      doc.moveDown(0.5);
+      parsed.education.forEach((edu: any) => {
+        doc.fontSize(12).text(`${edu.degree} at ${edu.institution} (${edu.graduation_year})`, {
+          indent: 10,
+        });
+      });
+
+      doc.moveDown();
+      doc.fontSize(14).text("Skills", { underline: true });
+      doc.moveDown(0.5);
+
+// Loop through pairs of [label, content]
+      for (let i = 0; i < parsed.skills.length; i += 2) {
+        const rawLabel = parsed.skills[i] || "";
+        const rawContent = parsed.skills[i + 1] || "";
+
+        // Sanitize label and content
+        const label = rawLabel
+          .normalize("NFKD")
+          .replace(/[^\x00-\x7F]/g, "")
+          .replace(/[:\s]+$/, ""); // remove trailing colon/spaces
+
+        const content = rawContent
+          .normalize("NFKD")
+          .replace(/[^\x00-\x7F]/g, "")
+          .trim();
+
+        // Bolded label
+        doc.font("Times-Bold").fontSize(12).text(`${label}:`, {
+          align: "left",
+          indent: 10,
+        });
+
+        doc.moveDown(0.3);
+
+        // Indented skill content
+        doc.font("Times-Roman").fontSize(12).text(content, {
+          indent: 20,
+          align: "left",
+          lineGap: 1,
+        });
+
+        doc.moveDown(0.25);
+      }
+
+      const realCerts = parsed.certifications.filter((cert: any) => {
+        const name = (cert.name || "").trim().toLowerCase();
+        return (
+          name.length > 0 &&
+          name !== "certifications" &&
+          !name.includes("placeholder")
+        );
+      });
+
+      if (realCerts.length > 0) {
+        doc.moveDown();
+        doc.fontSize(14).text("Certifications", { underline: true });
+        doc.moveDown(0.5);
+
+        realCerts.forEach((cert: any) => {
+          const name = cert.name?.trim();
+          const year = cert.year?.trim();
+          if (!name) return;
+
+          const line = year ? `${name} (${year})` : name;
+          doc.fontSize(12).text(line, { indent: 10 });
+        });
+      }
       doc.end();
     }
+
   } catch (error) {
     res.status(500).json({ error: "Failed to download resume." });
   }

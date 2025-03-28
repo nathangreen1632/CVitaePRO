@@ -1,9 +1,12 @@
 import {comparePassword, hashPassword} from '../utils/hash.js';
 import logger from '../register/logger.js';
 import {generateToken} from '../utils/jwtUtils.js';
-import {User} from '../models/index.js';
 import {generateUserToken} from './authService.js';
 import {IUser} from '../models/User';
+import { sequelize } from "../config/database.js";
+import initModels from "../models/index.js";
+
+const { User } = initModels(sequelize);
 
 
 interface UserData {
