@@ -32,7 +32,7 @@ const QuantifyingImpactTutorial: React.FC = () => {
           <h2 className="text-2xl font-semibold mb-2 flex items-center">
             Why Metrics Matter
             <Info
-              className="ml-2 w-5 h-5 cursor-pointer text-red-700 dark:text-red-400"
+              className="ml-2 w-5 h-5 cursor-pointer text-red-700 dark:text-red-500"
               onClick={() => toggleModal("metrics")}
             />
           </h2>
@@ -64,7 +64,7 @@ const QuantifyingImpactTutorial: React.FC = () => {
           <h2 className="text-2xl font-semibold mb-2 flex items-center">
             What Should I Measure?
             <Info
-              className="ml-2 w-5 h-5 cursor-pointer text-red-700 dark:text-red-400"
+              className="ml-2 w-5 h-5 cursor-pointer text-red-700 dark:text-red-500"
               onClick={() => toggleModal("measure")}
             />
           </h2>
@@ -88,7 +88,7 @@ const QuantifyingImpactTutorial: React.FC = () => {
           <h2 className="text-2xl font-semibold mb-2 flex items-center">
             Combine Action Verbs with Metrics
             <Info
-              className="ml-2 w-5 h-5 cursor-pointer text-red-700 dark:text-red-400"
+              className="ml-2 w-5 h-5 cursor-pointer text-red-700 dark:text-red-500"
               onClick={() => toggleModal("verbs")}
             />
           </h2>
@@ -110,14 +110,14 @@ const QuantifyingImpactTutorial: React.FC = () => {
         <section className="mb-10">
           <h2 className="text-2xl font-semibold mb-2">Before and After Examples</h2>
           <div className="grid md:grid-cols-2 gap-6">
-            <div className="border border-neutral-300 dark:border-red-600 p-4 rounded-xl bg-white dark:bg-neutral-700 shadow">
-              <h3 className="text-red-700 dark:text-red-400 font-semibold mb-2">Before</h3>
+            <div className="border border-neutral-300 dark:border-red-600 p-4 rounded-xl bg-white dark:bg-neutral-900 shadow">
+              <h3 className="text-red-700 dark:text-red-500 font-semibold mb-2">Before</h3>
               <p className="text-sm text-neutral-800 dark:text-neutral-200">
                 Handled customer onboarding process and supported account managers.
               </p>
             </div>
-            <div className="border border-neutral-300 dark:border-green-600 p-4 rounded-xl bg-white dark:bg-neutral-700 shadow">
-              <h3 className="text-green-700 dark:text-green-400 font-semibold mb-2">After</h3>
+            <div className="border border-neutral-300 dark:border-green-600 p-4 rounded-xl bg-white dark:bg-neutral-900 shadow">
+              <h3 className="text-green-700 dark:text-green-500 font-semibold mb-2">After</h3>
               <p className="text-sm text-neutral-800 dark:text-neutral-200">
                 Onboarded 60+ enterprise clients in Q1, increasing client retention by 25% and reducing churn rate by 18%.
               </p>
