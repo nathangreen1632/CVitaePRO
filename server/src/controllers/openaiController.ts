@@ -3,6 +3,7 @@ import { generateFromOpenAI } from "../services/openaiService.js";
 import redisClient from "../services/cacheService.js";
 import { parseResumeMarkdown } from "../utils/parseResumeMarkdown.js";
 import { saveToPostgreSQL } from "../services/postgreSQLService.js";
+import { sanitizeResumeForOpenAI } from "../utils/sanitizeResumeForOpenAI.js";
 import crypto from "crypto";
 export { expandResumeEditorContent } from "../services/openaiService.js";
 
@@ -13,6 +14,8 @@ const scrubCertificationsSection = (markdown: string): string => {
 export const generateResume = async (req: Request, res: Response): Promise<void> => {
   try {
     const { resumeData } = req.body;
+    const sanitizedData = sanitizeResumeForOpenAI(resumeData);
+
 
     if (!resumeData) {
       res.status(400).json({ error: "Missing resume data" });
@@ -32,7 +35,7 @@ export const generateResume = async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    const aiResponse = await generateFromOpenAI(req.user.id, "resume", resumeData);
+    const aiResponse = await generateFromOpenAI(req.user.id, "resume", sanitizedData);
 
     if (!aiResponse.success) {
       res.status(500).json({ error: aiResponse.message });
