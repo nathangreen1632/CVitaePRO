@@ -9,6 +9,17 @@ const ATSFormattingTutorial: React.FC = () => {
     setShowModal(prev => (prev === id ? null : id));
   };
 
+  const formatTextWithRedPRO = (text: string) => {
+    const parts = text.split("CVitaePRO");
+    return (
+      <>
+        {parts[0]}
+        CVitae<span className="text-red-500">PRO</span>
+        {parts[1]}
+      </>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-neutral-100 dark:bg-gray-900 py-12 px-4">
       <div className="max-w-5xl mx-auto bg-white dark:bg-gray-800 shadow-md rounded-2xl p-8 text-neutral-900 dark:text-neutral-100">
@@ -22,7 +33,7 @@ const ATSFormattingTutorial: React.FC = () => {
             <li className="after:content-['→'] after:mx-2">Why Formatting Matters</li>
             <li className="after:content-['→'] after:mx-2">Avoiding Common Pitfalls</li>
             <li className="after:content-['→'] after:mx-2">Best Practices</li>
-            <li>CVitaePRO Templates</li>
+            <li>{formatTextWithRedPRO("CVitaePRO Templates")}</li>
           </ol>
         </div>
 
@@ -31,7 +42,7 @@ const ATSFormattingTutorial: React.FC = () => {
           <h2 className="text-2xl font-semibold mb-2 flex items-center">
             Why Formatting Matters
             <Info
-              className="ml-2 w-5 h-5 cursor-pointer text-red-700 dark:text-red-400"
+              className="ml-2 w-5 h-5 cursor-pointer text-red-700 dark:text-red-500"
               onClick={() => toggleModal("importance")}
             />
           </h2>
@@ -63,7 +74,7 @@ const ATSFormattingTutorial: React.FC = () => {
           <h2 className="text-2xl font-semibold mb-2 flex items-center">
             ATS-Friendly Formatting Tips
             <Info
-              className="ml-2 w-5 h-5 cursor-pointer text-red-700 dark:text-red-400"
+              className="ml-2 w-5 h-5 cursor-pointer text-red-700 dark:text-red-500"
               onClick={() => toggleModal("tips")}
             />
           </h2>
@@ -84,7 +95,9 @@ const ATSFormattingTutorial: React.FC = () => {
 
         {/* Section 4 */}
         <section className="mb-10">
-          <h2 className="text-2xl font-semibold mb-2">How CVitaePRO Helps</h2>
+          <h2 className="text-2xl font-semibold mb-2">
+            How {formatTextWithRedPRO("CVitaePRO")} Helps
+          </h2>
           <p>
             All our resume templates are designed to meet ATS formatting standards. Our enhancement process also ensures your content
             is aligned correctly and uses industry-friendly layouts without breaking compatibility.
