@@ -17,7 +17,7 @@ import LegalPage from "../pages/LegalPage.jsx";
 import AdminLogsPage from "../pages/AdminLogsPage.jsx";
 import AdminRoute from "../components/AdminRoute.jsx";
 import ResumeTutorial from "../tutorials/ResumeTutorial.jsx";
-import Resources from "../pages/Resources.jsx";
+import HelpCenter from "../pages/HelpCenter.tsx";
 import FaQ from "../tutorials/FAQ.jsx";
 import ResumeSummaryTutorial from "../tutorials/ResumeSummaryTutorial.jsx";
 import KeywordOptimizationTutorial from "../tutorials/KeywordOptimizationTutorial.jsx";
@@ -42,14 +42,15 @@ const AppRoutes = (): React.JSX.Element => {
       <Route path="/legal" element={<LegalPage />} />
 
       {/* Resources */}
-      <Route path="/resources" element={<Resources />} />
-      <Route path="/resources/faq" element={<FaQ />} />
-      <Route path="/resources/tutorial" element={<ResumeTutorial />} />
-      <Route path="/resources/resume-summary-tutorial" element={<ResumeSummaryTutorial />} />
-      <Route path="/resources/keyword-guide" element={<KeywordOptimizationTutorial />} />
-      <Route path="/resources/ats-formatting" element={<ATSFormattingTutorial />} />
-      <Route path="/resources/quantifying-impact" element={<QuantifyingImpactTutorial />} />
-      <Route path="/resources/tailoring-resume" element={<TailoringResumeTutorial />} />
+      <Route path="/help-center" element={<HelpCenter />} />
+      <Route path="/help-center/faq" element={<FaQ />} />
+      <Route path="/help-center/tutorial" element={<ResumeTutorial />} />
+      <Route path="/help-center/resume-summary-tutorial" element={<ResumeSummaryTutorial />} />
+      <Route path="/help-center/keyword-guide" element={<KeywordOptimizationTutorial />} />
+      <Route path="/help-center/ats-formatting" element={<ATSFormattingTutorial />} />
+      <Route path="/help-center/quantifying-impact" element={<QuantifyingImpactTutorial />} />
+      <Route path="/help-center/tailoring-resume" element={<TailoringResumeTutorial />} />
+
 
 
 
