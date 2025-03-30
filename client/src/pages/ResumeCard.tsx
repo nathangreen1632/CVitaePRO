@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { parseResumeMarkdown } from "../helpers/parseResumeMarkdown";
+import { sanitizeResumeForOpenAI} from "../helpers/sanitizeResumeForOpenAI.ts";
 
 
 interface Experience {
@@ -146,12 +147,29 @@ const ResumeCard: React.FC<ResumeCardProps> = ({id, name, resumeSnippet, summary
       return;
     }
 
+    const filteredEducation = education?.filter(
+      (edu) =>
+        edu.institution?.trim() &&
+        edu.degree?.trim() &&
+        edu.graduation_year?.trim() &&
+        !edu.institution.toLowerCase().includes("placeholder") &&
+        !edu.degree.toLowerCase().includes("placeholder") &&
+        !edu.graduation_year.toLowerCase().includes("placeholder")
+    );
+
+    const filteredSkills = skills?.filter(
+      (skill) =>
+        skill?.trim() &&
+        !skill.toLowerCase().includes("placeholder")
+    );
+
+
     const filteredCertifications = certifications?.filter(cert =>
       cert.name && cert.name.trim() !== "" &&
       !cert.name.toLowerCase().includes("placeholder")
     );
 
-    const resumeData = {
+    const resumeData = sanitizeResumeForOpenAI({
       name,
       email,
       phone,
@@ -159,15 +177,11 @@ const ResumeCard: React.FC<ResumeCardProps> = ({id, name, resumeSnippet, summary
       portfolio,
       summary,
       experience,
-      education,
-      skills,
-      ...(filteredCertifications && filteredCertifications.length > 0
-        ? { certifications: filteredCertifications }
-        : undefined),
-    };
-
-
-
+      education: filteredEducation || [],
+      skills: filteredSkills || [],
+      certifications: filteredCertifications || [],
+    });
+    console.log("🟦 Raw resumeData being sent to OpenAI:", resumeData); // Debugging
 
     try {
       const response = await fetch("/api/openai/enhance-resume", {
@@ -187,6 +201,10 @@ const ResumeCard: React.FC<ResumeCardProps> = ({id, name, resumeSnippet, summary
       }
 
       const data = await response.json();
+      console.log("🟥 Raw response received from OpenAI:", data); // Debugging
+      console.log("📄 Raw markdown (data.resume):", data.resume); // Debugging
+
+
       const enhancedResume = data.resume;
 
       const stored = localStorage.getItem("resumes");
@@ -274,9 +292,13 @@ const ResumeCard: React.FC<ResumeCardProps> = ({id, name, resumeSnippet, summary
         </div>
       </div>
 
-      <p className="text-sm text-gray-300 mb-2">
-        <strong>Summary:</strong> {cleanSummary}
-      </p>
+      <div className="mb-4">
+        <h4 className="font-semibold text-lg py-3">Summary</h4>
+        <p className="text-gray-300 text-sm whitespace-pre-line">
+          {cleanSummary}
+        </p>
+      </div>
+
 
       {resumeSnippet?.includes("{") || resumeSnippet?.includes("[") ? null : (
         <div
@@ -285,68 +307,119 @@ const ResumeCard: React.FC<ResumeCardProps> = ({id, name, resumeSnippet, summary
         />
       )}
 
-      <div className="mb-4">
-        <h4 className="font-semibold text-lg py-3">Experience</h4>
-        {experience.length > 0 ? (
-          experience.map((exp) => (
-            <div key={`${exp.company}-${exp.role}-${exp.start_date}`} className="text-sm mt-2 border-b border-gray-700 pb-2">
-              <p className="font-medium text-gray-100">{exp.company} — {exp.role}</p>
-              <p className="text-gray-400">{formatWorkDates(exp.start_date, exp.end_date)}</p>
-              <ul className="list-disc list-inside ml-2 mt-1">
-                {exp.responsibilities.map((item, i) => (
-                  <li key={`${item}-${i}`} className="text-gray-300">
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))
-        ) : (
-          <p className="text-gray-400 text-sm">No experience data available.</p>
-        )}
-      </div>
+      {experience.length > 0 && experience.some(
+        (exp) =>
+          exp.company?.trim() &&
+          exp.role?.trim() &&
+          exp.start_date?.trim()
+      ) && (
+        <div className="mb-4">
+          <h4 className="font-semibold text-lg py-3">Experience</h4>
+          {experience.map((exp) =>
+            exp.company?.trim() &&
+            exp.role?.trim() &&
+            exp.start_date?.trim() ? (
+              <div
+                key={`${exp.company}-${exp.role}-${exp.start_date}`}
+                className="text-sm mt-2 border-b border-gray-700 pb-2"
+              >
+                <div className="flex justify-between">
+                  <span className="font-bold text-gray-100">
+                    {exp.company} — {exp.role}
+                  </span>
+                  <span className="font-bold text-gray-100 whitespace-nowrap">
+                    {formatWorkDates(exp.start_date, exp.end_date)}
+                  </span>
+                </div>
 
-      <div className="mb-4">
-        <h4 className="font-semibold text-lg">Education</h4>
-        {education.length > 0 ? (
-          education.map((edu) => (
-            <div key={`${edu.institution}-${edu.degree}-${edu.graduation_year}`} className="text-sm text-gray-300 mt-1">
-              🎓 {edu.degree} from {edu.institution} ({edu.graduation_year})
-            </div>
-          ))
-        ) : (
-          <p className="text-gray-400 text-sm">No education data available.</p>
-        )}
-      </div>
+                <div className="h-4" />
 
-      <div className="mb-4">
-        <h4 className="font-semibold text-lg">Skills</h4>
-        {skills.length > 0 ? (
+                <ul className="list-disc list-inside ml-2 mt-1">
+                  {exp.responsibilities.map((item, i) => (
+                    <li key={`${item}-${i}`} className="text-gray-300">
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null
+          )}
+        </div>
+      )}
+
+      {education.length > 0 && education.some(
+        (edu) =>
+          edu.institution?.trim() &&
+          !edu.institution.toLowerCase().includes("placeholder")
+      ) && (
+        <div className="mb-4">
+          <h4 className="font-semibold text-lg py-3">Education</h4>
+          {education.map((edu) =>
+            edu.institution?.trim() ? (
+              <div
+                key={`${edu.institution}-${edu.degree}-${edu.graduation_year}`}
+              >
+                <p className="text-sm text-gray-100">
+                  {edu.institution} — {edu.degree}  ({edu.graduation_year})
+                </p>
+              </div>
+            ) : null
+          )}
+        </div>
+      )}
+
+      {skills.length > 0 && skills.some(
+        (skill) =>
+          skill?.trim() &&
+          !skill.toLowerCase().includes("placeholder")
+      ) && (
+
+        <div className="mb-4">
+          <h4 className="font-semibold text-lg py-3">Skills</h4>
           <div className="text-gray-300 text-sm space-y-1">
             {skills.map((skillLine: string) => {
-              const parts: string[] = skillLine.split(":");
-              if (parts.length === 2) {
-                const label: string = parts[0].trim();
-                const content: string = parts[1].trim();
+              const trimmed = skillLine.trim();
+
+              // Skip if the entire line is empty
+              if (!trimmed) return null;
+
+              // Header labels like "Frontend:"
+              if (trimmed.endsWith(":")) {
                 return (
-                  <p key={skillLine}>
+                  <p key={skillLine} className="text-gray-300">
+                    <strong>{trimmed}</strong>
+                  </p>
+                );
+              }
+
+              // Handle "Label: value" format
+              const parts = trimmed.split(":");
+              if (parts.length === 2) {
+                const label = parts[0].trim();
+                const content = parts[1].trim();
+                return (
+                  <p key={skillLine} className="text-gray-300 ml-4">
                     <strong>{label}:</strong> {content}
                   </p>
                 );
               }
-              return <p key={skillLine}>{skillLine}</p>;
-            })}
 
+              // Catch-all: indent raw skills
+              return (
+                <p key={skillLine} className="text-gray-300 ml-4">
+                  {trimmed}
+                </p>
+              );
+            })}
           </div>
-        ) : (
-          <p className="text-gray-400 text-sm">No skills listed.</p>
-        )}
-      </div>
+        </div>
+      )}
+
 
 
       {certifications.length > 0 && certifications.some(cert => cert.name?.trim()) && (
         <div className="mb-4">
-          <h4 className="font-semibold text-lg">Certifications</h4>
+          <h4 className="font-semibold text-lg py-3">Certifications</h4>
 
           {certifications[0]?.name?.trim() && (
             <div className="text-sm text-gray-300 mt-1">
