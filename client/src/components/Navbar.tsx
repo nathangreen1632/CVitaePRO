@@ -49,10 +49,10 @@ const Navbar: React.FC = () => {
 
           {/* ✅ New Resources Link */}
           <Link
-            to="/resources"
+            to="/help-center"
             className="hover:text-red-400 transition-all duration-200"
           >
-            Resources
+            Help Center
           </Link>
 
           {isAdmin && (
@@ -96,11 +96,11 @@ const Navbar: React.FC = () => {
 
           {/* ✅ New Resources Link for Mobile */}
           <Link
-            to="/resources"
+            to="/help-center"
             className="block py-2 text-white hover:text-red-400 transition-all duration-200"
             onClick={() => setMenuOpen(false)}
           >
-            Resources
+            Help Center
           </Link>
 
           {isAdmin && (
