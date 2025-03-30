@@ -43,52 +43,63 @@ const FaQ: React.FC = () => {
   };
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold mb-8 text-center">Frequently Asked Questions</h1>
+    <div className="min-h-screen bg-neutral-100 dark:bg-gray-900 py-12 px-4">
+      <div className="max-w-4xl mx-auto bg-white dark:bg-neutral-800 shadow-md rounded-2xl p-8">
+        <h1 className="text-4xl font-bold text-neutral-900 dark:text-white mb-10 text-center">
+          Frequently Asked Questions
+        </h1>
 
-      {Object.entries(groupedFAQs).map(([category, faqs]) => (
-        <div key={category} className="mb-10">
-          <h2 className="text-xl font-semibold mb-4 border-b pb-2">{category}</h2>
+        {Object.entries(groupedFAQs).map(([category, faqs]) => (
+          <div key={category} className="mb-12">
+            <h2 className="text-2xl font-semibold text-neutral-800 dark:text-neutral-100 mb-4 border-b border-neutral-300 dark:border-neutral-700 pb-2">
+              {category}
+            </h2>
 
-          {faqs.map(({ question, answer, modalContent }) => (
-            <div key={question} className="mb-4">
-              <button
-                onClick={() => toggle(question)}
-                className="flex justify-between items-center w-full text-left text-gray-800 font-medium bg-gray-100 hover:bg-gray-200 p-4 rounded-lg shadow-sm"
-              >
-                <span>{question}</span>
-                <span className="text-xl">{expanded === question ? "−" : "+"}</span>
-              </button>
+            {faqs.map(({ question, answer, modalContent }) => (
+              <div key={question} className="mb-4">
+                <button
+                  onClick={() => toggle(question)}
+                  className="flex justify-between items-center w-full text-left text-neutral-900 dark:text-neutral-100 font-medium bg-neutral-100 dark:bg-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-600 p-4 rounded-lg shadow-sm"
+                >
+                  <span>{question}</span>
+                  <span className="text-xl">{expanded === question ? "−" : "+"}</span>
+                </button>
 
-              {expanded === question && (
-                <div className="bg-white border-l-4 border-blue-500 p-4 text-sm text-gray-700">
-                  <div className="flex justify-between items-start">
-                    <p>{answer}</p>
-                    {modalContent && (
-                      <Info className="ml-4 mt-1 w-4 h-4 cursor-pointer text-blue-600" onClick={() => setModal({ question, content: modalContent })} />
-                    )}
+                {expanded === question && (
+                  <div className="bg-neutral-50 dark:bg-neutral-800 border-l-4 border-red-700 dark:border-red-400 p-4 text-sm text-neutral-800 dark:text-neutral-100 mt-2 rounded-md">
+                    <div className="flex justify-between items-start">
+                      <p className="pr-4">{answer}</p>
+                      {modalContent && (
+                        <Info
+                          className="w-5 h-5 cursor-pointer text-red-700 dark:text-red-400"
+                          onClick={() => setModal({ question, content: modalContent })}
+                        />
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      ))}
-
-      {modal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-xl max-w-md w-full shadow-lg">
-            <h2 className="text-lg font-semibold mb-4">More Info: {modal.question}</h2>
-            <p className="text-sm text-gray-700">{modal.content}</p>
-            <button
-              onClick={() => setModal(null)}
-              className="mt-6 w-full bg-blue-700 text-white py-2 rounded-lg hover:bg-blue-600 transition"
-            >
-              Close
-            </button>
+                )}
+              </div>
+            ))}
           </div>
-        </div>
-      )}
+        ))}
+
+        {modal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 px-4">
+            <div className="bg-white dark:bg-neutral-800 p-6 rounded-2xl max-w-md w-full shadow-2xl">
+              <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">
+                More Info: {modal.question}
+              </h2>
+              <p className="text-sm text-neutral-800 dark:text-neutral-100">{modal.content}</p>
+              <button
+                onClick={() => setModal(null)}
+                className="mt-6 w-full bg-red-700 text-white py-2 rounded-lg hover:bg-red-800 transition"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
