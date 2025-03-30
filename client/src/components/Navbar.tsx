@@ -47,6 +47,14 @@ const Navbar: React.FC = () => {
             </Link>
           ))}
 
+          {/* ✅ New Resources Link */}
+          <Link
+            to="/resources"
+            className="hover:text-red-400 transition-all duration-200"
+          >
+            Resources
+          </Link>
+
           {isAdmin && (
             <Link
               to="/admin"
@@ -85,6 +93,15 @@ const Navbar: React.FC = () => {
               {item.replace(/-/g, " ")}
             </Link>
           ))}
+
+          {/* ✅ New Resources Link for Mobile */}
+          <Link
+            to="/resources"
+            className="block py-2 text-white hover:text-red-400 transition-all duration-200"
+            onClick={() => setMenuOpen(false)}
+          >
+            Resources
+          </Link>
 
           {isAdmin && (
             <Link
