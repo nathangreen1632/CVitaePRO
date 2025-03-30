@@ -15,6 +15,17 @@ const KeywordOptimizationTutorial: React.FC = () => {
     navigate("/resume-editor");
   };
 
+  const formatTextWithRedPRO = (text: string) => {
+    const parts = text.split("CVitaePRO");
+    return (
+      <>
+        {parts[0]}
+        CVitae<span className="text-red-500">PRO</span>
+        {parts[1]}
+      </>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-neutral-100 dark:bg-gray-900 py-12 px-4">
       <div className="max-w-5xl mx-auto bg-white dark:bg-gray-800 shadow-md rounded-2xl p-8 text-neutral-900 dark:text-neutral-100">
@@ -28,7 +39,9 @@ const KeywordOptimizationTutorial: React.FC = () => {
             <li className="after:content-['→'] after:mx-2">What Are Keywords?</li>
             <li className="after:content-['→'] after:mx-2">Why ATS Matters</li>
             <li className="after:content-['→'] after:mx-2">Finding Keywords</li>
-            <li className="after:content-['→'] after:mx-2">Optimize with CVitaePRO</li>
+            <li className="after:content-['→'] after:mx-2">
+              Optimize with {formatTextWithRedPRO("CVitaePRO")}
+            </li>
             <li>Enhance Resume</li>
           </ol>
         </div>
@@ -38,7 +51,7 @@ const KeywordOptimizationTutorial: React.FC = () => {
           <h2 className="text-2xl font-semibold mb-2 flex items-center">
             What Are Resume Keywords?
             <Info
-              className="ml-2 w-5 h-5 cursor-pointer text-red-700 dark:text-red-400"
+              className="ml-2 w-5 h-5 cursor-pointer text-red-700 dark:text-red-500"
               onClick={() => toggleModal("keywords")}
             />
           </h2>
@@ -50,7 +63,11 @@ const KeywordOptimizationTutorial: React.FC = () => {
             id="keywords"
             activeId={showModal}
             onClose={() => setShowModal(null)}
-            content={<p>Examples include: “project management,” “JavaScript,” “data analysis,” “CRM software,” or “cross-functional collaboration.”</p>}
+            content={
+              <p>
+                Examples include: “project management,” “JavaScript,” “data analysis,” “CRM software,” or “cross-functional collaboration.”
+              </p>
+            }
           />
         </section>
 
@@ -68,7 +85,7 @@ const KeywordOptimizationTutorial: React.FC = () => {
           <h2 className="text-2xl font-semibold mb-2 flex items-center">
             How to Find the Right Keywords
             <Info
-              className="ml-2 w-5 h-5 cursor-pointer text-red-700 dark:text-red-400"
+              className="ml-2 w-5 h-5 cursor-pointer text-red-700 dark:text-red-500"
               onClick={() => toggleModal("extracting")}
             />
           </h2>
@@ -81,15 +98,21 @@ const KeywordOptimizationTutorial: React.FC = () => {
             id="extracting"
             activeId={showModal}
             onClose={() => setShowModal(null)}
-            content={<p>You can copy a job listing into a document and highlight all skills, tools, and action words. Then cross-check your resume to see what’s missing.</p>}
+            content={
+              <p>
+                You can copy a job listing into a document and highlight all skills, tools, and action words. Then cross-check your resume to see what’s missing.
+              </p>
+            }
           />
         </section>
 
         {/* Section 4 */}
         <section className="mb-10">
-          <h2 className="text-2xl font-semibold mb-2">Optimizing with CVitaePRO</h2>
+          <h2 className="text-2xl font-semibold mb-2">
+            Optimizing with {formatTextWithRedPRO("CVitaePRO")}
+          </h2>
           <p>
-            CVitaePRO helps automate keyword optimization using AI. When you enhance a resume:
+            {formatTextWithRedPRO("CVitaePRO")} helps automate keyword optimization using AI. When you enhance a resume:
           </p>
           <ul className="list-disc list-inside text-sm text-neutral-700 dark:text-neutral-200 mt-2">
             <li>Our AI reviews your resume content and job goals</li>
@@ -102,13 +125,13 @@ const KeywordOptimizationTutorial: React.FC = () => {
         <section className="mb-10">
           <h2 className="text-2xl font-semibold mb-2">Before and After Optimization</h2>
           <div className="grid md:grid-cols-2 gap-6">
-            <div className="border border-neutral-300 dark:border-red-600 p-4 rounded-xl bg-white dark:bg-neutral-700 shadow">
-              <h3 className="text-red-700 dark:text-red-400 font-semibold mb-2">Before</h3>
+            <div className="border border-neutral-300 dark:border-red-600 p-4 rounded-xl bg-white dark:bg-neutral-900 shadow">
+              <h3 className="text-red-700 dark:text-red-500 font-semibold mb-2">Before</h3>
               <p className="text-sm text-neutral-800 dark:text-neutral-200">
                 Responsible for team projects. Helped implement processes. Worked with other departments.
               </p>
             </div>
-            <div className="border border-neutral-300 dark:border-green-600 p-4 rounded-xl bg-white dark:bg-neutral-700 shadow">
+            <div className="border border-neutral-300 dark:border-green-500 p-4 rounded-xl bg-white dark:bg-neutral-900 shadow">
               <h3 className="text-green-700 dark:text-green-400 font-semibold mb-2">After</h3>
               <p className="text-sm text-neutral-800 dark:text-neutral-200">
                 Led cross-functional project teams using Agile methodology. Improved operational efficiency by 18% through automated reporting and workflow optimization.
