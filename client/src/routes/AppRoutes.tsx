@@ -16,7 +16,9 @@ import Policies from "../pages/Policies.jsx";
 import LegalPage from "../pages/LegalPage.jsx";
 import AdminLogsPage from "../pages/AdminLogsPage.jsx";
 import AdminRoute from "../components/AdminRoute.jsx";
-
+import ResumeTutorial from "../tutorials/ResumeTutorial.tsx";
+import Resources from "../pages/Resources.tsx";
+import FaQ from "../tutorials/FAQ.tsx";
 
 
 const AppRoutes = (): React.JSX.Element => {
@@ -28,6 +30,14 @@ const AppRoutes = (): React.JSX.Element => {
       <Route path="/features" element={<Features />} />
       <Route path="/policies" element={<Policies />} />
       <Route path="/legal" element={<LegalPage />} />
+
+      {/* Resources */}
+      <Route path="/resources" element={<Resources />} />
+      <Route path="/resources/faq" element={<FaQ />} />
+      <Route path="/resources/tutorial" element={<ResumeTutorial />} />
+
+
+
 
       <Route
         path="/dashboard"
