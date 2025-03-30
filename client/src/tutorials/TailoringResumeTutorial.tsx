@@ -32,7 +32,7 @@ const TailoringResumeTutorial: React.FC = () => {
           <h2 className="text-2xl font-semibold mb-2 flex items-center">
             Why Tailoring Matters
             <Info
-              className="ml-2 w-5 h-5 cursor-pointer text-red-700 dark:text-red-400"
+              className="ml-2 w-5 h-5 cursor-pointer text-red-700 dark:text-red-500"
               onClick={() => toggleModal("why")}
             />
           </h2>
@@ -64,7 +64,7 @@ const TailoringResumeTutorial: React.FC = () => {
           <h2 className="text-2xl font-semibold mb-2 flex items-center">
             The 80/20 Rule
             <Info
-              className="ml-2 w-5 h-5 cursor-pointer text-red-700 dark:text-red-400"
+              className="ml-2 w-5 h-5 cursor-pointer text-red-700 dark:text-red-500"
               onClick={() => toggleModal("rule")}
             />
           </h2>
@@ -84,11 +84,11 @@ const TailoringResumeTutorial: React.FC = () => {
         <section className="mb-10">
           <h2 className="text-2xl font-semibold mb-2">Tailoring Checklist</h2>
           <ul className="list-disc list-inside text-sm text-neutral-700 dark:text-neutral-200">
-            <li>✔️ Paste the job description into a document</li>
-            <li>✔️ Highlight repeating phrases and required skills</li>
-            <li>✔️ Match those terms in your summary and bullets</li>
-            <li>✔️ Adjust titles to reflect job language (if applicable)</li>
-            <li>✔️ Prioritize bullets that match role responsibilities</li>
+            <li>✅ Paste the job description into a document</li>
+            <li>✅ Highlight repeating phrases and required skills</li>
+            <li>✅ Match those terms in your summary and bullets</li>
+            <li>✅ Adjust titles to reflect job language (if applicable)</li>
+            <li>✅ Prioritize bullets that match role responsibilities</li>
           </ul>
         </section>
 
@@ -96,14 +96,14 @@ const TailoringResumeTutorial: React.FC = () => {
         <section className="mb-10">
           <h2 className="text-2xl font-semibold mb-2">Real-World Example</h2>
           <div className="grid md:grid-cols-2 gap-6">
-            <div className="border border-neutral-300 dark:border-red-600 p-4 rounded-xl bg-white dark:bg-neutral-700 shadow">
-              <h3 className="text-red-700 dark:text-red-400 font-semibold mb-2">❌ Generic Resume</h3>
+            <div className="border border-neutral-300 dark:border-red-600 p-4 rounded-xl bg-white dark:bg-neutral-900 shadow">
+              <h3 className="text-red-700 dark:text-red-500 font-semibold mb-2">❌ Generic Resume</h3>
               <p className="text-sm text-neutral-800 dark:text-neutral-200">
                 Experienced professional skilled in teamwork, problem-solving, and customer service. Seeking growth opportunities.
               </p>
             </div>
-            <div className="border border-neutral-300 dark:border-green-600 p-4 rounded-xl bg-white dark:bg-neutral-700 shadow">
-              <h3 className="text-green-700 dark:text-green-400 font-semibold mb-2">✅ Tailored Resume</h3>
+            <div className="border border-neutral-300 dark:border-green-600 p-4 rounded-xl bg-white dark:bg-neutral-900 shadow">
+              <h3 className="text-green-700 dark:text-green-500 font-semibold mb-2">✅ Tailored Resume</h3>
               <p className="text-sm text-neutral-800 dark:text-neutral-200">
                 Customer Success Manager with 5+ years in SaaS onboarding and user retention. Skilled in Salesforce, Intercom, and cross-team collaboration to reduce churn by 22%.
               </p>
