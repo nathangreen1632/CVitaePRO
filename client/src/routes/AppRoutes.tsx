@@ -16,9 +16,19 @@ import Policies from "../pages/Policies.jsx";
 import LegalPage from "../pages/LegalPage.jsx";
 import AdminLogsPage from "../pages/AdminLogsPage.jsx";
 import AdminRoute from "../components/AdminRoute.jsx";
-import ResumeTutorial from "../tutorials/ResumeTutorial.tsx";
-import Resources from "../pages/Resources.tsx";
-import FaQ from "../tutorials/FAQ.tsx";
+import ResumeTutorial from "../tutorials/ResumeTutorial.jsx";
+import Resources from "../pages/Resources.jsx";
+import FaQ from "../tutorials/FAQ.jsx";
+import ResumeSummaryTutorial from "../tutorials/ResumeSummaryTutorial.jsx";
+import KeywordOptimizationTutorial from "../tutorials/KeywordOptimizationTutorial.jsx";
+import ATSFormattingTutorial from "../tutorials/ATSFormattingTutorial.jsx";
+import QuantifyingImpactTutorial from "../tutorials/QuantifyingImpactTutorial.jsx";
+import TailoringResumeTutorial from "../tutorials/TailoringResumeTutorial.jsx";
+
+
+
+
+
 
 
 const AppRoutes = (): React.JSX.Element => {
@@ -35,6 +45,12 @@ const AppRoutes = (): React.JSX.Element => {
       <Route path="/resources" element={<Resources />} />
       <Route path="/resources/faq" element={<FaQ />} />
       <Route path="/resources/tutorial" element={<ResumeTutorial />} />
+      <Route path="/resources/resume-summary-tutorial" element={<ResumeSummaryTutorial />} />
+      <Route path="/resources/keyword-guide" element={<KeywordOptimizationTutorial />} />
+      <Route path="/resources/ats-formatting" element={<ATSFormattingTutorial />} />
+      <Route path="/resources/quantifying-impact" element={<QuantifyingImpactTutorial />} />
+      <Route path="/resources/tailoring-resume" element={<TailoringResumeTutorial />} />
+
 
 
 
