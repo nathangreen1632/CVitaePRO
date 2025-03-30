@@ -42,36 +42,47 @@ const FaQ: React.FC = () => {
     setExpanded(prev => (prev === question ? null : question));
   };
 
+  const formatTextWithRedPRO = (text: string) => {
+    const parts = text.split("CVitaePRO");
+    return (
+      <>
+        {parts[0]}
+        CVitae<span className="text-red-500">PRO</span>
+        {parts[1]}
+      </>
+    );
+  };
+
   return (
-    <div className="min-h-screen bg-neutral-100 dark:bg-gray-900 py-12 px-4">
-      <div className="max-w-4xl mx-auto bg-white dark:bg-neutral-800 shadow-md rounded-2xl p-8">
-        <h1 className="text-4xl font-bold text-neutral-900 dark:text-white mb-10 text-center">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 py-12 px-4">
+      <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 shadow-md rounded-2xl p-8">
+        <h1 className="text-4xl font-bold text-white dark:text-white mb-10 text-center">
           Frequently Asked Questions
         </h1>
 
         {Object.entries(groupedFAQs).map(([category, faqs]) => (
           <div key={category} className="mb-12">
-            <h2 className="text-2xl font-semibold text-neutral-800 dark:text-neutral-100 mb-4 border-b border-neutral-300 dark:border-neutral-700 pb-2">
-              {category}
+            <h2 className="text-2xl font-semibold text-white dark:text-neutral-100 mb-4 border-b border-neutral-300 dark:border-gray-900 pb-2">
+              {category.includes("CVitaePRO") ? formatTextWithRedPRO(category) : category}
             </h2>
 
             {faqs.map(({ question, answer, modalContent }) => (
               <div key={question} className="mb-4">
                 <button
                   onClick={() => toggle(question)}
-                  className="flex justify-between items-center w-full text-left text-neutral-900 dark:text-neutral-100 font-medium bg-neutral-100 dark:bg-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-600 p-4 rounded-lg shadow-sm"
+                  className="flex justify-between items-center w-full text-left text-neutral-900 dark:text-neutral-100 font-medium bg-neutral-100 dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-neutral-800 p-4 rounded-lg shadow-sm"
                 >
-                  <span>{question}</span>
+                  <span>{question.includes("CVitaePRO") ? formatTextWithRedPRO(question) : question}</span>
                   <span className="text-xl">{expanded === question ? "−" : "+"}</span>
                 </button>
 
                 {expanded === question && (
-                  <div className="bg-neutral-50 dark:bg-neutral-800 border-l-4 border-red-700 dark:border-red-400 p-4 text-sm text-neutral-800 dark:text-neutral-100 mt-2 rounded-md">
+                  <div className="bg-gray-50 dark:bg-neutral-900 border-l-4 border-red-700 dark:border-red-500 p-4 text-sm text-neutral-800 dark:text-neutral-100 mt-2 rounded-md">
                     <div className="flex justify-between items-start">
-                      <p className="pr-4">{answer}</p>
+                      <p>{answer.includes("CVitaePRO") ? formatTextWithRedPRO(answer) : answer}</p>
                       {modalContent && (
                         <Info
-                          className="w-5 h-5 cursor-pointer text-red-700 dark:text-red-400"
+                          className="w-5 h-5 cursor-pointer text-red-700 dark:text-red-500"
                           onClick={() => setModal({ question, content: modalContent })}
                         />
                       )}
@@ -85,11 +96,17 @@ const FaQ: React.FC = () => {
 
         {modal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 px-4">
-            <div className="bg-white dark:bg-neutral-800 p-6 rounded-2xl max-w-md w-full shadow-2xl">
+            <div className="bg-white dark:bg-neutral-900 p-6 rounded-2xl max-w-md w-full shadow-2xl">
               <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">
-                More Info: {modal.question}
+                More Info: {modal.question.includes("CVitaePRO")
+                ? formatTextWithRedPRO(modal.question)
+                : modal.question}
               </h2>
-              <p className="text-sm text-neutral-800 dark:text-neutral-100">{modal.content}</p>
+              <p className="text-sm text-neutral-800 dark:text-neutral-100">
+                {modal.content.includes("CVitaePRO")
+                  ? formatTextWithRedPRO(modal.content)
+                  : modal.content}
+              </p>
               <button
                 onClick={() => setModal(null)}
                 className="mt-6 w-full bg-red-700 text-white py-2 rounded-lg hover:bg-red-800 transition"
