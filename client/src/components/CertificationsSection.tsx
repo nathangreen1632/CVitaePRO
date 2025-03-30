@@ -85,12 +85,13 @@ const CertificationsSection: React.FC<Props> = ({ resumeData, setResumeData }) =
         </button>
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        {resumeData.certifications.map((cert, idx) => (
-          <span
-            key={`${cert.name}-${cert.year}-${idx}`}
-            className="bg-blue-300 dark:bg-blue-600 text-black dark:text-white px-3 py-1 rounded-full flex items-center gap-2"
-          >
+      {resumeData.certifications.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {resumeData.certifications.map((cert, idx) => (
+            <span
+              key={`${cert.name}-${cert.year}-${idx}`}
+              className="bg-blue-300 dark:bg-blue-600 text-black dark:text-white px-3 py-1 rounded-full flex items-center gap-2"
+            >
             {cert.name} ({cert.year})
             <button
               type="button"
@@ -100,10 +101,12 @@ const CertificationsSection: React.FC<Props> = ({ resumeData, setResumeData }) =
               ❌
             </button>
           </span>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
+
 };
 
 export default CertificationsSection;
