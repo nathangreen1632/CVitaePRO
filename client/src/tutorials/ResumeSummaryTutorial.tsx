@@ -17,14 +17,14 @@ const ResumeSummaryTutorial: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-neutral-100 dark:bg-gray-900 py-12 px-4">
-      <div className="max-w-5xl mx-auto bg-white dark:bg-neutral-800 shadow-md rounded-2xl p-8 text-neutral-900 dark:text-neutral-100">
+      <div className="max-w-5xl mx-auto bg-white dark:bg-gray-800 shadow-md rounded-2xl p-8 text-neutral-900 dark:text-neutral-100">
         <h1 className="text-4xl font-bold mb-10 text-center">
           How to Write a Powerful Resume Summary
         </h1>
 
         {/* Progress Indicator */}
         <div className="flex justify-center mb-10">
-          <ol className="flex space-x-4 text-sm text-neutral-600 dark:text-neutral-400">
+          <ol className="flex space-x-4 text-sm text-neutral-600 dark:text-neutral-300">
             <li className="after:content-['→'] after:mx-2">Purpose</li>
             <li className="after:content-['→'] after:mx-2">Structure</li>
             <li className="after:content-['→'] after:mx-2">Examples</li>
@@ -38,7 +38,7 @@ const ResumeSummaryTutorial: React.FC = () => {
           <h2 className="text-2xl font-semibold mb-2 flex items-center">
             Why Your Summary Matters
             <Info
-              className="ml-2 w-5 h-5 cursor-pointer text-red-700 dark:text-red-400"
+              className="ml-2 w-5 h-5 cursor-pointer text-red-700 dark:text-red-500"
               onClick={() => toggleModal("importance")}
             />
           </h2>
@@ -69,14 +69,14 @@ const ResumeSummaryTutorial: React.FC = () => {
         <section className="mb-10">
           <h2 className="text-2xl font-semibold mb-2">Before and After Examples</h2>
           <div className="grid md:grid-cols-2 gap-6">
-            <div className="border border-neutral-300 dark:border-red-600 p-4 rounded-xl bg-white dark:bg-neutral-700 shadow">
-              <h3 className="text-red-700 dark:text-red-400 font-semibold mb-2">Weak Summary</h3>
+            <div className="border border-neutral-300 dark:border-red-600 p-4 rounded-xl bg-white dark:bg-neutral-900 shadow">
+              <h3 className="text-red-700 dark:text-red-500 font-semibold mb-2">Weak Summary</h3>
               <p className="text-sm text-neutral-800 dark:text-neutral-200">
                 I am a hard-working and passionate person looking for a challenging position where I can grow.
               </p>
             </div>
-            <div className="border border-neutral-300 dark:border-green-600 p-4 rounded-xl bg-white dark:bg-neutral-700 shadow">
-              <h3 className="text-green-700 dark:text-green-400 font-semibold mb-2">Improved Summary</h3>
+            <div className="border border-neutral-300 dark:border-green-600 p-4 rounded-xl bg-white dark:bg-neutral-900 shadow">
+              <h3 className="text-green-700 dark:text-green-500 font-semibold mb-2">Improved Summary</h3>
               <p className="text-sm text-neutral-800 dark:text-neutral-200">
                 Data Analyst with 4+ years of experience transforming complex data into actionable insights. Proven ability to improve reporting efficiency and deliver business-critical metrics.
               </p>
