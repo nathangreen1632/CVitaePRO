@@ -22,12 +22,10 @@ export const generateCoverLetter = async (req: Request, res: Response): Promise<
     }
 
     if (!resumeSummary?.summary) {
-      logger.warn("⚠️ Missing resume summary:", resumeSummary);
-      res.status(400).json({ error: "Resume summary is required." });
+      logger.warn("⚠️ Missing resume...:", resumeSummary);
+      res.status(400).json({ error: "Resume is required." });
       return;
     }
-
-    logger.info("✅ All required fields validated. Proceeding with OpenAI request.");
 
     const messages = [
       { role: "system", content: coverLetterPrompt },
@@ -63,7 +61,6 @@ export const generateCoverLetter = async (req: Request, res: Response): Promise<
       return;
     }
 
-    logger.info("✅ Successfully generated cover letter.");
     res.status(200).json({ coverLetter: aiResponse.message });
   } catch (error) {
     logger.error(`❌ Cover Letter Generation Error: ${error instanceof Error ? error.message : "Unknown error"}`);
@@ -80,7 +77,7 @@ export const downloadCoverLetter = (req: Request, res: Response): void => {
     return;
   }
 
-  logger.info("📄 Generating PDF for cover letter download...");
+  logger.info("Generating PDF for cover letter download...");
 
   const doc = new PDFDocument();
 
