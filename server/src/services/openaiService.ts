@@ -62,7 +62,7 @@ export const generateFromOpenAI = async (
       }
       if (!resumeSummary?.summary) {
         logger.error("Missing resume summary:", resumeSummary);
-        return { success: false, message: "Resume summary is required." };
+        return { success: false, message: "Resume is required." };
       }
     }
 
