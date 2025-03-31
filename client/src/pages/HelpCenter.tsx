@@ -24,7 +24,7 @@ const HelpCenter: React.FC = () => {
               to="/help-center/tutorial"
               className="text-neutral-700 dark:text-white hover:text-red-500 dark:hover:text-red-500 transition"
             >
-              Resume Tutorial
+              How to Build a Powerful Resume
             </Link>
           </li>
           <li className="flex items-start space-x-3">
@@ -72,8 +72,88 @@ const HelpCenter: React.FC = () => {
               How to Tailor Your Resume for Every Job
             </Link>
           </li>
+          <li className="flex items-start space-x-3">
+            <span className="text-red-500 mt-1">•</span>
+            <Link
+              to="/help-center/common-mistakes"
+              className="text-neutral-700 dark:text-white hover:text-red-500 dark:hover:text-red-500 transition"
+            >
+              Common Resume Mistakes to Avoid
+            </Link>
+          </li>
+          <li className="flex items-start space-x-3">
+            <span className="text-red-500 mt-1">•</span>
+            <Link
+              to="/help-center/template-usage"
+              className="text-neutral-700 dark:text-white hover:text-red-500 dark:hover:text-red-500 transition"
+            >
+              How to Use Resume Templates Effectively
+            </Link>
+          </li>
+          <li className="flex items-start space-x-3">
+            <span className="text-red-500 mt-1">•</span>
+            <Link
+              to="/help-center/file-naming"
+              className="text-neutral-700 dark:text-white hover:text-red-500 dark:hover:text-red-500 transition"
+            >
+              Best Practices for File Naming & Exporting
+            </Link>
+          </li>
+          <li className="flex items-start space-x-3">
+            <span className="text-red-500 mt-1">•</span>
+            <Link
+              to="/help-center/employment-gaps"
+              className="text-neutral-700 dark:text-white hover:text-red-500 dark:hover:text-red-500 transition"
+            >
+              How to Address Employment Gaps
+            </Link>
+          </li>
+          <li className="flex items-start space-x-3">
+            <span className="text-red-500 mt-1">•</span>
+            <Link
+              to="/help-center/remote-work"
+              className="text-neutral-700 dark:text-white hover:text-red-500 dark:hover:text-red-500 transition"
+            >
+              How to Showcase Remote Work Experience Effectively
+            </Link>
+          </li>
+          <li className="flex items-start space-x-3">
+            <span className="text-red-500 mt-1">•</span>
+            <Link
+              to="/help-center/career-change"
+              className="text-neutral-700 dark:text-white hover:text-red-500 dark:hover:text-red-500 transition"
+            >
+              How to Explain Career Changes on a Resume
+            </Link>
+          </li>
+          <li className="flex items-start space-x-3">
+            <span className="text-red-500 mt-1">•</span>
+            <Link
+              to="/help-center/no-experience"
+              className="text-neutral-700 dark:text-white hover:text-red-500 dark:hover:text-red-500 transition"
+            >
+              How to Build a Resume with No Work Experience
+            </Link>
+          </li>
+          <li className="flex items-start space-x-3">
+            <span className="text-red-500 mt-1">•</span>
+            <Link
+              to="/help-center/college-grad"
+              className="text-neutral-700 dark:text-white hover:text-red-500 dark:hover:text-red-500 transition"
+            >
+              Resume Tips for Recent College Graduates
+            </Link>
+          </li>
+          <li className="flex items-start space-x-3">
+            <span className="text-red-500 mt-1">•</span>
+            <Link
+              to="/help-center/gap-explanation"
+              className="text-neutral-700 dark:text-white hover:text-red-500 dark:hover:text-red-500 transition"
+            >
+              How to Explain Employment Gaps on Your Resume
+            </Link>
+          </li>
         </ul>
-
       </div>
     </div>
   );
