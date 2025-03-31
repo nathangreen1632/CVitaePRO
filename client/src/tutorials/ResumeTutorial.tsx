@@ -16,6 +16,11 @@ const ResumeTutorial: React.FC = () => {
     navigate("/resume-form");
   };
 
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+
   return (
     <div className="min-h-screen bg-neutral-100 dark:bg-gray-900 py-12 px-4">
       <div className="max-w-5xl mx-auto bg-white dark:bg-gray-800 shadow-md rounded-2xl p-8 text-neutral-900 dark:text-neutral-100">
@@ -191,6 +196,16 @@ const ResumeTutorial: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* 🔴 Floating Back to Top Button */}
+      <button
+        onClick={scrollToTop}
+        className="fixed bottom-6 right-6 z-50 bg-red-500 text-white px-4 py-2 rounded-full shadow-md hover:bg-red-700 transition"
+        aria-label="Back to top"
+      >
+        ↑ Top
+      </button>
+
     </div>
   );
 };
