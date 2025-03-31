@@ -47,7 +47,7 @@ const Features = (): React.JSX.Element => {
 
         {/* Auto-Save */}
         <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md">
-          <h2 className="text-2xl font-bold mb-3 text-red-500">Auto-Save + Local Progress</h2>
+          <h2 className="text-2xl font-bold mb-3 text-red-500">Auto-Save <span className="text-white">+</span> Local Progress</h2>
           <p className="text-neutral-700 dark:text-neutral-200 text-sm">
             Never lose your work again. CVitae<span className="text-red-500">PRO</span> auto-saves your resume data to local storage and syncs with your account when you’re logged in—ensuring seamless progress continuity.
           </p>
