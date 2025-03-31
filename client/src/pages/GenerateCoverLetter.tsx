@@ -19,7 +19,11 @@ const GenerateCoverLetter: React.FC = () => {
     focusAreas: "",
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -54,7 +58,9 @@ const GenerateCoverLetter: React.FC = () => {
       customizationPreferences: {
         tone: formData.tone,
         length: formData.length,
-        focusAreas: formData.focusAreas.split(",").map(item => item.trim()),
+        focusAreas: formData.focusAreas
+          .split(",")
+          .map((item) => item.trim()),
       },
     };
 
@@ -184,7 +190,7 @@ const GenerateCoverLetter: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 relative">
       <header>
         <HeaderBar title="Generate Cover Letter" />
         <h1 className="sr-only" aria-label="Generate Cover Letter">
@@ -192,38 +198,68 @@ const GenerateCoverLetter: React.FC = () => {
         </h1>
       </header>
 
-      <main className="container mx-auto p-6">
+      <main className="container mx-auto p-6 relative z-10">
         {downloadLoading && (
-          <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex justify-center items-center z-50">
+          <div className="fixed inset-0 bg-gray-900 bg-opacity-60 backdrop-blur-sm flex justify-center items-center z-50">
             <div className="flex flex-col items-center space-y-4">
-              <svg
-                className="animate-spin h-10 w-10 text-white"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                ></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8v8H4z"
-                ></path>
-              </svg>
+              {/* Bouncing Dots Row */}
+              <div className="flex space-x-2">
+                {[0, 1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="w-3 h-3 bg-red-500 rounded-full"
+                    style={{
+                      animation: `highBounce 0.8s ease-in-out ${i * 0.7}s infinite`,
+                    }}
+                  />
+                ))}
+              </div>
+
+              {/* Loading Text Below */}
               <p className="text-white font-medium text-lg">Downloading file...</p>
             </div>
+
+            <style>
+              {`
+                @keyframes highBounce {
+                  0%, 100% { transform: translateY(0); }
+                  50% { transform: translateY(-24px); }
+                }
+              `}
+            </style>
+
           </div>
         )}
 
         {loading && (
-          <div className="flex justify-center mt-10">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-green-500 border-opacity-50"></div>
+          <div className="fixed inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center z-50">
+            <div className="flex flex-col items-center space-y-4">
+              {/* Bouncing Dots Row */}
+              <div className="flex space-x-2">
+                {[0, 1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="w-3 h-3 bg-red-500 rounded-full"
+                    style={{
+                      animation: `highBounce 0.8s ease-in-out ${i * 0.7}s infinite`,
+                    }}
+                  />
+                ))}
+              </div>
+
+              {/* Loading Text Below */}
+              <p className="text-white font-medium text-lg">Generating Cover Letter...</p>
+            </div>
+
+            <style>
+              {`
+                @keyframes highBounce {
+                  0%, 100% { transform: translateY(0); }
+                  50% { transform: translateY(-24px); }
+                }
+              `}
+            </style>
+
           </div>
         )}
 
@@ -232,42 +268,107 @@ const GenerateCoverLetter: React.FC = () => {
 
           <div className="grid grid-cols-1 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1" htmlFor="jobTitle">Job Title</label>
-              <input id="jobTitle" name="jobTitle" value={formData.jobTitle} onChange={handleChange} className="p-2 w-full rounded bg-gray-100 dark:bg-gray-700 text-black dark:text-white" placeholder="Developer, Salesman, etc..." />
+              <label className="block text-sm font-medium mb-1" htmlFor="jobTitle">
+                Job Title
+              </label>
+              <input
+                id="jobTitle"
+                name="jobTitle"
+                value={formData.jobTitle}
+                onChange={handleChange}
+                className="p-2 w-full rounded bg-gray-100 dark:bg-gray-700 text-black dark:text-white"
+                placeholder="Developer, Salesman, etc..."
+              />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1" htmlFor="companyName">Company Name</label>
-              <input id="companyName" name="companyName" value={formData.companyName} onChange={handleChange} className="p-2 w-full rounded bg-gray-100 dark:bg-gray-700 text-black dark:text-white" placeholder="Acme, Inc..." />
+              <label className="block text-sm font-medium mb-1" htmlFor="companyName">
+                Company Name
+              </label>
+              <input
+                id="companyName"
+                name="companyName"
+                value={formData.companyName}
+                onChange={handleChange}
+                className="p-2 w-full rounded bg-gray-100 dark:bg-gray-700 text-black dark:text-white"
+                placeholder="Acme, Inc..."
+              />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1" htmlFor="name">Your Name</label>
-              <input id="name" name="name" value={formData.name} onChange={handleChange} className="p-2 w-full rounded bg-gray-100 dark:bg-gray-700 text-black dark:text-white" placeholder="John Doe..." />
+              <label className="block text-sm font-medium mb-1" htmlFor="name">
+                Your Name
+              </label>
+              <input
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                className="p-2 w-full rounded bg-gray-100 dark:bg-gray-700 text-black dark:text-white"
+                placeholder="John Doe..."
+              />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1" htmlFor="email">Your Email</label>
-              <input id="email" name="email" value={formData.email} onChange={handleChange} className="p-2 w-full rounded bg-gray-100 dark:bg-gray-700 text-black dark:text-white" placeholder="email@email.com..." />
+              <label className="block text-sm font-medium mb-1" htmlFor="email">
+                Your Email
+              </label>
+              <input
+                id="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                className="p-2 w-full rounded bg-gray-100 dark:bg-gray-700 text-black dark:text-white"
+                placeholder="email@email.com..."
+              />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1" htmlFor="phone">Phone Number</label>
-              <input id="phone" name="phone" value={formData.phone} onChange={handleChange} className="p-2 w-full rounded bg-gray-100 dark:bg-gray-700 text-black dark:text-white" placeholder="555-555-5555..." />
+              <label className="block text-sm font-medium mb-1" htmlFor="phone">
+                Phone Number
+              </label>
+              <input
+                id="phone"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                className="p-2 w-full rounded bg-gray-100 dark:bg-gray-700 text-black dark:text-white"
+                placeholder="555-555-5555..."
+              />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1" htmlFor="summary">Paste Your Resume Summary</label>
-              <textarea id="summary" name="summary" value={formData.summary} onChange={handleChange} className="p-2 w-full rounded bg-gray-100 dark:bg-gray-700 text-black dark:text-white" placeholder="Paste your resume summary here..." />
+              <label className="block text-sm font-medium mb-1" htmlFor="summary">
+                Paste Your Resume
+              </label>
+              <textarea
+                id="summary"
+                name="summary"
+                value={formData.summary}
+                onChange={handleChange}
+                className="p-2 w-full rounded bg-gray-100 dark:bg-gray-700 text-black dark:text-white"
+                placeholder="Paste your resume here..."
+              />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1" htmlFor="focusAreas">Focus Areas</label>
-              <input id="focusAreas" name="focusAreas" value={formData.focusAreas} onChange={handleChange} className="p-2 w-full rounded bg-gray-100 dark:bg-gray-700 text-black dark:text-white" placeholder="e.g., leadership, project management" />
+              <label className="block text-sm font-medium mb-1" htmlFor="focusAreas">
+                Focus Areas
+              </label>
+              <input
+                id="focusAreas"
+                name="focusAreas"
+                value={formData.focusAreas}
+                onChange={handleChange}
+                className="p-2 w-full rounded bg-gray-100 dark:bg-gray-700 text-black dark:text-white"
+                placeholder="e.g., leadership, project management"
+              />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1" htmlFor="length">Length Preference</label>
+              <label className="block text-sm font-medium mb-1" htmlFor="length">
+                Length Preference
+              </label>
               <select
                 id="length"
                 name="length"
@@ -289,7 +390,11 @@ const GenerateCoverLetter: React.FC = () => {
           </div>
 
           <div className="mt-6 text-center">
-            <button onClick={handleSubmit} className="bg-green-700 hover:bg-green-900 text-white font-bold py-2 px-4 rounded">
+            <button
+              onClick={handleSubmit}
+              className="bg-green-700 hover:bg-green-900 text-white font-bold py-2 px-4 rounded"
+              disabled={loading}
+            >
               {loading ? "Generating..." : "Generate Cover Letter"}
             </button>
           </div>

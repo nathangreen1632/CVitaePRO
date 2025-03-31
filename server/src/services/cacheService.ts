@@ -12,7 +12,7 @@ const redisClient = createClient({
 });
 
 redisClient.on("error", (err) => logger.error("❌ Redis Client Error", err));
-redisClient.on("connect", () => logger.info("✅ Redis Client Connected"));
+redisClient.on("connect", () => logger.info("Redis Client Connected"));
 redisClient.on("reconnecting", () => logger.warn("♻️ Redis Client Reconnecting"));
 redisClient.on("end", () => logger.info("🔌 Redis Client Disconnected"));
 

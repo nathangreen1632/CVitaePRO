@@ -31,24 +31,19 @@ import EmploymentGapsTutorial from "../tutorials/EmploymentGapsTutorial.jsx";
 import RemoteWorkTutorial from "../tutorials/RemoteWorkTutorial.jsx";
 import CareerChangeTutorial from "../tutorials/CareerChangeTutorial.jsx";
 import NoExperienceTutorial from "../tutorials/NoExperienceTutorial.jsx";
+import NoExperienceResumeTips from "../tutorials/NoExperienceResumeTips.jsx";
 import CollegeGradResumeTutorial from "../tutorials/CollegeGradResumeTutorial.jsx";
 import GapExplanationTutorial from "../tutorials/GapExplanationTutorial.jsx";
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+import ResumeHeaderTutorial from "../tutorials/ResumeHeaderTutorial.jsx";
+import IndustryFormattingTutorial from "../tutorials/IndustryFormattingTutorial.jsx";
+import CertificationsTutorial from "../tutorials/CertificationsTutorial.jsx";
+import HandlingEmploymentGaps from "../tutorials/HandlingEmploymentGaps.jsx";
+import ShowcasingSoftSkills from "../tutorials/ShowcasingSoftSkills.jsx";
+import InternationalStudentResumeTips from "../tutorials/InternationalStudentResumeTips.jsx";
+import ResumeForCareerChange from "../tutorials/ResumeForCareerChange.jsx";
+import BuildResumeFromScratch from "../tutorials/BuildResumeFromScratch.tsx";
+import UsingAchievementsEffectively from "../tutorials/UsingAchievementsEffectively.tsx";
+import FinalResumeChecklist from "../tutorials/FinalResumeChecklist.tsx";
 
 
 const AppRoutes = (): React.JSX.Element => {
@@ -77,16 +72,21 @@ const AppRoutes = (): React.JSX.Element => {
       <Route path="/help-center/remote-work" element={<RemoteWorkTutorial />} />
       <Route path="/help-center/career-change" element={<CareerChangeTutorial />} />
       <Route path="/help-center/no-experience" element={<NoExperienceTutorial />} />
+      <Route path="/help-center/no-experience-resume-tips" element={<NoExperienceResumeTips />} />
       <Route path="/help-center/college-grad" element={<CollegeGradResumeTutorial />} />
       <Route path="/help-center/gap-explanation" element={<GapExplanationTutorial />} />
+      <Route path="/help-center/resume-header" element={<ResumeHeaderTutorial />} />
+      <Route path="/help-center/industry-formatting" element={<IndustryFormattingTutorial />} />
+      <Route path="/help-center/certifications" element={<CertificationsTutorial />} />
+      <Route path="/help-center/handling-employment-gaps" element={<HandlingEmploymentGaps />} />
+      <Route path="/help-center/showcasing-soft-skills" element={<ShowcasingSoftSkills />} />
+      <Route path="/help-center/international-student-resume-tips" element={<InternationalStudentResumeTips />} />
+      <Route path="/help-center/resume-for-career-change" element={<ResumeForCareerChange />} />
+      <Route path="/help-center/build-resume-from-scratch" element={<BuildResumeFromScratch />} />
+      <Route path="/help-center/using-achievements-effectively" element={<UsingAchievementsEffectively />} />
+      <Route path="/help-center/final-resume-checklist" element={<FinalResumeChecklist />} />
 
-
-
-
-
-
-
-
+      {/* Protected Routes */}
       <Route
         path="/dashboard"
         element={

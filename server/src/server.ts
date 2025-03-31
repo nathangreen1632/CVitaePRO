@@ -36,7 +36,7 @@ const startServer = async () => {
     const models = initModels(sequelize);
     Logger.info("Models initialized.");
     app.locals.models = models; // if needed globally
-    app.listen(PORT, () => Logger.info(`Server is running on port ${PORT}`));
+    app.listen(PORT, () => Logger.info(`-→ Server is running on port ${PORT}`));
   } catch (error) {
     Logger.error("Startup failure:", error);
     process.exit(1);

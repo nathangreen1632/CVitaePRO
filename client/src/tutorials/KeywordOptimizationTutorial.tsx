@@ -12,7 +12,7 @@ const KeywordOptimizationTutorial: React.FC = () => {
   };
 
   const handleEnhance = () => {
-    navigate("/resume-editor");
+    navigate("/resume-form");
   };
 
   const formatTextWithRedPRO = (text: string) => {

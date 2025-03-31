@@ -49,7 +49,7 @@ const ResumePreviewCarousel: React.FC<ResumePreviewCarouselProps> = ({ title, im
         <img
           src={images[currentPage]}
           alt={`Resume Page ${currentPage + 1}`}
-          className="rounded-xl max-h-[600px] w-full object-contain"
+          className="rounded-xl max-h-[1000px] w-full object-contain"
         />
 
         {currentPage > 0 && (
