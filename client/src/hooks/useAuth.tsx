@@ -5,7 +5,7 @@ const defaultAuth: AuthContextType = {
   user: null,
   token: null,
   login: async () => false,
-  register: async () => false,
+  register: async () => ({ success: false }),
   logout: () => {},
 };
 

@@ -60,10 +60,16 @@ export const useActivityDetector: ({
 
       clearAllTimers();
 
-      onExtendSession();
+      const token = localStorage.getItem("token");
+      const expiration = token ? getTokenExpirationTime(token) : null;
+
+      if (expiration && expiration - Date.now() < 2 * 60 * 1000) {
+        onExtendSession();
+      }
 
       inactivityTimerRef.current = setTimeout(handleInactivity, inactiveLimit);
     }, 2000);
+
 
     const scheduleTokenExpirationWarning = (): void => {
       const token = localStorage.getItem('token');

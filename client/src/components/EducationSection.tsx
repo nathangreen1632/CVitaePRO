@@ -58,23 +58,27 @@ const EducationSection: React.FC<Props> = ({ resumeData, setResumeData }) => {
     <div className="mt-8">
       <h3 className="text-xl font-semibold text-white mb-2">Education</h3>
 
-      {resumeData.education.map((edu) => (
-        <div
-          key={edu.id}
-          className="mb-4 p-4 bg-gray-700 rounded border border-gray-600"
-        >
-          <p className="text-white font-semibold">{edu.institution}</p>
-          <p className="text-white text-sm italic">{edu.degree}</p>
-          <p className="text-white text-sm">{edu.graduation_year}</p>
-          <button
-            type="button"
-            onClick={() => removeEducation(edu.id)}
-            className="mt-2 text-red-200 shadow-red-200 hover:text-red-600 text-sm"
-          >
-            ❌ Remove Education
-          </button>
-        </div>
-      ))}
+      {resumeData.education.length > 0 && (
+        <>
+          {resumeData.education.map((edu) => (
+            <div
+              key={edu.id}
+              className="mb-4 p-4 bg-gray-700 rounded border border-gray-600"
+            >
+              <p className="text-white font-semibold">{edu.institution}</p>
+              <p className="text-white text-sm italic">{edu.degree}</p>
+              <p className="text-white text-sm">{edu.graduation_year}</p>
+              <button
+                type="button"
+                onClick={() => removeEducation(edu.id)}
+                className="mt-2 text-red-200 shadow-red-200 hover:text-red-600 text-sm"
+              >
+                ❌ Remove Education
+              </button>
+            </div>
+          ))}
+        </>
+      )}
 
       <div className="bg-gray-700 p-4 rounded border border-gray-600">
         <div className="mb-2">
