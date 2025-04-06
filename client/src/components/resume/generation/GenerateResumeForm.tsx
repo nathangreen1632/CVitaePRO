@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import ResumeDetailsForm from "./ResumeDetailsForm.jsx";
-import { useDashboardState } from "../hooks/useDashboardState.js";
-import { handleGenerateResume } from "../helpers/resumeHandlers.js";
+import ResumeDetailsForm from "../formSections/ResumeDetailsForm.tsx";
+import { useDashboardState } from "../../../hooks/useDashboardState.ts";
+import { handleGenerateResume } from "../../../helpers/resumeHandlers.ts";
 
 const GenerateResumeForm: React.FC = () => {
   const navigate = useNavigate();
