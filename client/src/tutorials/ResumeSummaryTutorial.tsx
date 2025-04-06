@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Info } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import Modal from "../components/Modal";
+import Modal from "../components/core/modals/Modal.tsx";
 
 const ResumeSummaryTutorial: React.FC = () => {
   const [showModal, setShowModal] = useState<string | null>(null);
