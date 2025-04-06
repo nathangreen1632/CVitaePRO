@@ -1,8 +1,8 @@
 import React from 'react';
-import ExperienceSection from './ExperienceSection.jsx';
-import EducationSection from './EducationSection.jsx';
-import SkillsSection from './SkillsSection.jsx';
-import CertificationsSection from './CertificationsSection.jsx';
+import ExperienceSection from './ExperienceSection.tsx';
+import EducationSection from './EducationSection.tsx';
+import SkillsSection from './SkillsSection.tsx';
+import CertificationsSection from './CertificationsSection.tsx';
 
 interface ResumeDetailsFormProps {
   resumeData: any;
