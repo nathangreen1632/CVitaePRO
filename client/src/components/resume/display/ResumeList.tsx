@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import ResumeCard from "../pages/ResumeCard.jsx";
-import ATSScoreBreakdown from "./ATSScoreBreakdown.jsx";
-import { convertResumeToHTML } from "../helpers/convertResumeToHTML";
+import ResumeCard from "../../../pages/ResumeCard.tsx";
+import ATSScoreBreakdown from "../ats/ATSScoreBreakdown.tsx";
+import { convertResumeToHTML } from "../../../helpers/convertResumeToHTML.ts";
 
 interface ResumeListProps {
   resumes: {

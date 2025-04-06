@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
-import ResumeUpload from "../components/ResumeUpload.jsx";
-import HeaderBar from "../components/HeaderBar.jsx";
+import ResumeUpload from "../components/resume/generation/ResumeUpload.tsx";
+import HeaderBar from "../components/layout/HeaderBar.tsx";
 
 const ResumeEditor: React.FC = () => {
   const [resumeText, setResumeText] = useState<string>("");

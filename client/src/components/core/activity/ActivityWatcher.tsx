@@ -1,8 +1,8 @@
 import React, { useContext } from "react";
-import { AuthContext } from "../context/AuthContext.jsx";
-import { useActivityDetector } from "../hooks/useActivityDetector.js";
-import SessionWarningModal from "./SessionWarningModal.jsx";
-import { refreshToken } from "../utils/refreshToken.js";
+import { AuthContext } from "../../../context/AuthContext.tsx";
+import { useActivityDetector } from "../../../hooks/useActivityDetector.ts";
+import SessionWarningModal from "../modals/SessionWarningModal.tsx";
+import { refreshToken } from "../../../utils/refreshToken.ts";
 
 const ActivityWatcher: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
   const auth = useContext(AuthContext);

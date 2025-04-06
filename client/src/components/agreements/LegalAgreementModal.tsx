@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { loadLegalHtml } from "../utils/loadLegalHtml.js";
+import { loadLegalHtml } from "../../utils/loadLegalHtml.ts";
 
 const documents = [
   { title: "Terms of Service", key: "tos", file: "terms-of-service.html" },

@@ -181,7 +181,6 @@ const ResumeCard: React.FC<ResumeCardProps> = ({id, name, resumeSnippet, summary
       skills: filteredSkills || [],
       certifications: filteredCertifications || [],
     });
-    console.log("🟦 Raw resumeData being sent to OpenAI:", resumeData); // Debugging
 
     try {
       const response = await fetch("/api/openai/enhance-resume", {
@@ -201,9 +200,6 @@ const ResumeCard: React.FC<ResumeCardProps> = ({id, name, resumeSnippet, summary
       }
 
       const data = await response.json();
-      console.log("🟥 Raw response received from OpenAI:", data); // Debugging
-      console.log("📄 Raw markdown (data.resume):", data.resume); // Debugging
-
 
       const enhancedResume = data.resume;
 

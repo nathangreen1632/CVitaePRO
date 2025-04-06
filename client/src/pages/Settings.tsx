@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from "react";
-import HeaderBar from "../components/HeaderBar";
+import HeaderBar from "../components/layout/HeaderBar.tsx";
 import { AuthContext } from "../context/AuthContext";
 
 const Settings: React.FC = () => {

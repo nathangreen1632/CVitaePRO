@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Info } from "lucide-react";
-import Modal from "../components/Modal";
-import ResumePreviewCarousel from "../components/ResumePreviewCarousel";
+import Modal from "../components/core/modals/Modal.tsx";
+import ResumePreviewCarousel from "../components/resume/display/ResumePreviewCarousel.tsx";
 
 const BuildResumeFromScratch: React.FC = () => {
   const [showModal, setShowModal] = useState<string | null>(null);

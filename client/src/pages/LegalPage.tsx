@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from "react";
-import HeaderBar from "../components/HeaderBar";
+import HeaderBar from "../components/layout/HeaderBar.tsx";
 
 const legalDocs = [
   { title: "AI Fair Use Policy", file: "ai-fair-use-policy.html", key: "ai" },
