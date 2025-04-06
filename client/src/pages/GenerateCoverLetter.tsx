@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import HeaderBar from "../components/HeaderBar.jsx";
+import HeaderBar from "../components/layout/HeaderBar.tsx";
 
 const GenerateCoverLetter: React.FC = () => {
   const [coverLetter, setCoverLetter] = useState<string>("");
