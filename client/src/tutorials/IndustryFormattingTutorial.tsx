@@ -1,6 +1,6 @@
 import React from "react";
 import { Info } from "lucide-react";
-import Modal from "../components/Modal";
+import Modal from "../components/core/modals/Modal.tsx";
 
 const IndustryFormattingTutorial: React.FC = () => {
   const [showModal, setShowModal] = React.useState<string | null>(null);
