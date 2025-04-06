@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth.jsx";
-import HeaderBar from "../components/HeaderBar.jsx";
-import ResumeList from "../components/ResumeList.jsx";
-import ResumeActionsPanel from "../components/ResumeActionsPanel.jsx";
-import RecentActivityLog from "../components/RecentActivityLog.jsx";
+import HeaderBar from "../components/layout/HeaderBar.tsx";
+import ResumeList from "../components/resume/display/ResumeList.tsx";
+import ResumeActionsPanel from "../components/resume/display/ResumeActionsPanel.tsx";
+import RecentActivityLog from "../components/resume/display/RecentActivityLog.tsx";
 import { useDashboardState } from "../hooks/useDashboardState.js";
 import { handleEnhanceResume, handleScoreResume } from "../helpers/resumeHandlers.js";
 
