@@ -1,6 +1,6 @@
 import React from "react";
-import HeaderBar from "../components/HeaderBar.jsx";
-import GenerateResumeForm from "../components/GenerateResumeForm.jsx";
+import HeaderBar from "../components/layout/HeaderBar.tsx";
+import GenerateResumeForm from "../components/resume/generation/GenerateResumeForm.tsx";
 
 
 const Resume: React.FC = () => {
