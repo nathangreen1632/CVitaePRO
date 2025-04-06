@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Info } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import Modal from "../components/Modal.jsx";
-import ResumePreviewCarousel from "../components/ResumePreviewCarousel.tsx";
+import Modal from "../components/core/modals/Modal.tsx";
+import ResumePreviewCarousel from "../components/resume/display/ResumePreviewCarousel.tsx";
 
 const ResumeTutorial: React.FC = () => {
   const [showModal, setShowModal] = useState<string | null>(null);
