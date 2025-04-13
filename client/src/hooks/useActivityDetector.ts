@@ -20,17 +20,19 @@ export const useActivityDetector = ({
   const [showWarning, setShowWarning] = useState(false);
 
   const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const expirationTimerRef = useRef<NodeJS.Timeout | null>(null);
   const countdownTimerRef = useRef<NodeJS.Timeout | null>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   const clearAllTimers = useCallback(() => {
     if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
+    if (expirationTimerRef.current) clearTimeout(expirationTimerRef.current);
     if (countdownTimerRef.current) clearTimeout(countdownTimerRef.current);
     if (debounceRef.current) clearTimeout(debounceRef.current);
   }, []);
 
   const startInactivityTimer = useCallback(() => {
-    clearAllTimers();
+    if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
 
     inactivityTimerRef.current = setTimeout(() => {
       setShowWarning(true);
@@ -41,12 +43,50 @@ export const useActivityDetector = ({
         navigate('/');
       }, countdownLimit);
     }, inactiveLimit);
-  }, [clearAllTimers, inactiveLimit, countdownLimit, onLogout, navigate]);
+  }, [inactiveLimit, countdownLimit, onLogout, navigate]);
+
+  const startExpirationTimer = useCallback(() => {
+    if (expirationTimerRef.current) clearTimeout(expirationTimerRef.current);
+
+    const token = localStorage.getItem('token');
+    const expiration = token ? getTokenExpirationTime(token) : null;
+
+    if (!expiration) return;
+
+    const timeUntilWarning = expiration - Date.now() - countdownLimit;
+
+    if (timeUntilWarning <= 0) {
+      setShowWarning(true);
+
+      countdownTimerRef.current = setTimeout(() => {
+        sessionStorage.removeItem('intentionalLogout');
+        onLogout();
+        navigate('/');
+      }, countdownLimit);
+    } else {
+      expirationTimerRef.current = setTimeout(() => {
+        setShowWarning(true);
+
+        countdownTimerRef.current = setTimeout(() => {
+          sessionStorage.removeItem('intentionalLogout');
+          onLogout();
+          navigate('/');
+        }, countdownLimit);
+      }, timeUntilWarning);
+    }
+  }, [countdownLimit, onLogout, navigate]);
+
+  const resetAllTimers = useCallback(() => {
+    clearAllTimers();
+
+    startInactivityTimer();
+    startExpirationTimer();
+  }, [clearAllTimers, startInactivityTimer, startExpirationTimer]);
 
   const resetInactivityTimer = useCallback(() => {
     if (showWarning) return;
 
-    clearAllTimers();
+    if (debounceRef.current) clearTimeout(debounceRef.current);
 
     debounceRef.current = setTimeout(() => {
       startInactivityTimer();
@@ -58,11 +98,12 @@ export const useActivityDetector = ({
         onExtendSession();
       }
     }, 500);
-  }, [clearAllTimers, showWarning, startInactivityTimer, onExtendSession]);
+  }, [startInactivityTimer, showWarning, onExtendSession]);
 
   const acknowledgeActivity = (): void => {
     setShowWarning(false);
-    resetInactivityTimer();
+    onExtendSession();
+    resetAllTimers();
   };
 
   useEffect(() => {
@@ -72,7 +113,7 @@ export const useActivityDetector = ({
     window.addEventListener('wheel', resetInactivityTimer, { passive: true });
     window.addEventListener('touchmove', resetInactivityTimer, { passive: true });
 
-    startInactivityTimer();
+    resetAllTimers();
 
     return () => {
       clearAllTimers();
@@ -82,7 +123,7 @@ export const useActivityDetector = ({
       window.removeEventListener('wheel', resetInactivityTimer);
       window.removeEventListener('touchmove', resetInactivityTimer);
     };
-  }, [resetInactivityTimer, clearAllTimers, startInactivityTimer]);
+  }, [resetAllTimers, clearAllTimers, resetInactivityTimer]);
 
   return {
     showWarning,
