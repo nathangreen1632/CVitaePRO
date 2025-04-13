@@ -4,11 +4,15 @@ export const parseResumeMarkdown = (markdown: string, inputData: any): Record<st
   if (!markdown) return buildFallbackResume(inputData);
 
   try {
-    markdown = markdown.replace(/^```[a-zA-Z]*\n/, "").replace(/\n```$/, "").trim();
-
     const jsonMatch = /```json\n([\s\S]*?)\n```/.exec(markdown);
+
     if (jsonMatch?.[1]) {
       const parsed = tryParseJsonMarkdown(jsonMatch[1], inputData);
+      if (parsed) return parsed;
+    }
+
+    if (markdown.trim().startsWith("{") && markdown.trim().endsWith("}")) {
+      const parsed = tryParseJsonMarkdown(markdown.trim(), inputData);
       if (parsed) return parsed;
     }
 
