@@ -27,7 +27,7 @@ const ProgressBar: React.FC<{ label: string; value: number; max: number }> = ({l
   );
 };
 
-const ATSScoreBreakdown: React.FC<ATSScoreBreakdownProps> = ({atsScore, keywordMatch, softSkillsMatch, industryTermsMatch, formattingErrors,}) => {
+const ATSScoreBreakdown: React.FC<ATSScoreBreakdownProps> = ({atsScore, keywordMatch, softSkillsMatch, industryTermsMatch, formattingErrors}) => {
   return (
     <div className="bg-gray-800 p-6 rounded-lg shadow-lg mt-8 w-full max-w-2xl mx-auto text-white">
       <h2 className="text-2xl font-semibold mb-4 text-center">ATS Score Breakdown</h2>
