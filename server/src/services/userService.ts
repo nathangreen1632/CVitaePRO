@@ -50,8 +50,6 @@ export async function loginUser(credentials: UserData): Promise<string | null> {
 
     const isMatch: boolean = await comparePassword(credentials.password, user.passwordhash);
 
-    logger.info(`Password match result for '${credentials.username}': ${isMatch}`);
-
     if (!isMatch) {
       logger.warn(`Login failed: Incorrect password for user '${credentials.username}'.`);
       return null;
