@@ -3,7 +3,6 @@ export const refreshToken = async (): Promise<boolean> => {
     const token = localStorage.getItem("token");
 
     if (!token) {
-      console.warn("⚠️ No token in localStorage — cannot refresh");
       return false;
     }
 
@@ -16,7 +15,6 @@ export const refreshToken = async (): Promise<boolean> => {
     });
 
     if (!response.ok) {
-      console.error("❌ Failed to refresh token: Bad response");
       return false;
     }
 
@@ -25,8 +23,6 @@ export const refreshToken = async (): Promise<boolean> => {
       localStorage.setItem("token", data.token);
       return true;
     }
-
-    console.warn("⚠️ No token returned from refresh endpoint");
     return false;
   } catch (err) {
     console.error("❌ Error refreshing token:", err);
