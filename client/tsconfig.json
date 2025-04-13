@@ -10,6 +10,7 @@
     "useDefineForClassFields": true,
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "moduleResolution": "Bundler",
+    "types": ["vitest/globals", "vite/client", "jest", "node"],
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
