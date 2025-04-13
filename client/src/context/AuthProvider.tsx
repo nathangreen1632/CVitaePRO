@@ -8,14 +8,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }): React
   const navigate = useNavigate();
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    const storedToken = localStorage.getItem("token");
+    if (typeof window !== 'undefined') {
+      const storedUser = localStorage.getItem("user");
+      const storedToken = localStorage.getItem("token");
 
-    if (storedUser && storedToken) {
-      setUser(storedUser);
-      setToken(storedToken);
+      if (storedUser && storedToken) {
+        setUser(storedUser);
+        setToken(storedToken);
+      }
     }
   }, []);
+
 
   const login = async (username: string, password: string): Promise<boolean> => {
     try {
@@ -65,10 +68,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }): React
   const logout = (): void => {
     localStorage.removeItem("user");
     localStorage.removeItem("token");
+    sessionStorage.removeItem("intentionalLogout");  // Optional cleanup for your session logic
+
     setUser(null);
     setToken(null);
-    navigate("/");
+
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("logout"));
+    }
+
+    navigate("/login", { replace: true });
   };
+
 
   const value = useMemo(
     () => ({ user, token, login, register, logout }),
