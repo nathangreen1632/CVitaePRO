@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "npx cypress open",
     "start": "npm run client:build && npm run server",
     "start:dev": "concurrently \"npm run server:dev\" \"wait-on tcp:3000 && npm run client:dev\"",
     "start:full": "concurrently \"redis-server\" \"sleep 2 && npm run start:dev\"",
@@ -32,12 +32,17 @@
     "pg": "^8.13.3",
     "pg-hstore": "^2.3.4",
     "sequelize": "^6.37.5",
+    "vitest": "^3.1.1",
     "wait-on": "^8.0.2"
   },
   "devDependencies": {
+    "@types/node": "^22.14.0",
     "@types/sequelize": "^4.28.20",
     "concurrently": "^9.1.2",
+    "cypress": "^14.3.0",
     "nodemon": "^3.1.9",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
     "ts-node": "^10.9.2"
   },
   "engines": {
