@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth.jsx";
+import { useAuth } from "../hooks/useAuth.js";
 
 const Login = (): React.JSX.Element => {
   const { login, token } = useAuth();
@@ -38,7 +38,6 @@ const Login = (): React.JSX.Element => {
       {loading && (
         <div className="fixed inset-0 bg-gray-800 bg-opacity-60 backdrop-blur-sm flex justify-center items-center z-50">
           <div className="flex flex-col items-center space-y-4">
-            {/* Bouncing Dots Row */}
             <div className="flex space-x-2">
               {[0, 1, 2, 3].map((i) => (
                 <div
@@ -51,7 +50,6 @@ const Login = (): React.JSX.Element => {
               ))}
             </div>
 
-            {/* Loading Text Below */}
             <p className="text-white font-medium text-lg">Logging in...</p>
           </div>
 
