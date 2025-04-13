@@ -65,25 +65,20 @@ describe("useActivityDetector", () => {
       })
     );
 
-    // Wait inactiveLimit → show warning
+    // Trigger inactivity limit
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(1000);
-      await Promise.resolve();
+      await vi.advanceTimersByTimeAsync(4000);
     });
 
     expect(result.current.showWarning).toBe(true);
 
-    // Wait countdownLimit → trigger logout
+    // Trigger countdown limit
     await act(async () => {
       await vi.advanceTimersByTimeAsync(1000);
-      await Promise.resolve();
     });
 
-    // Force ALL pending timers to run
-    await act(async () => {
-      await vi.runAllTimersAsync();
-      await Promise.resolve();
-    });
+    // Force all pending timers to run
+    await flushAllTimersAndTasks();
 
     expect(mockLogout).toHaveBeenCalledTimes(1);
   });
