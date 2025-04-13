@@ -77,7 +77,7 @@ Whether you’re a first-time applicant or a seasoned professional tailoring doc
 
 In an age where AI-written resumes are the new normal, CVitaePRO ensures yours is better written, better structured, and built to be seen.
 
-<img src="./client/src/assets/CVitaePRO_WireFrame.png" width="900px" height="480px" alt="CVitaePRO Wireframe" />
+<img src="client/public/assetsPub/CVitaePRO_WireFrame.png" width="900px" height="480px" alt="CVitaePRO Wireframe" />
  
 
 <div style="text-align: right;">
@@ -126,14 +126,14 @@ The platform solves:
 - Impersonal or low-impact cover letters
 - Manual re-editing of documents for each new job
 
-<img src="./client/src/assets/homepage.png" width="900px" height="480px" alt="CVitaePRO Wireframe" />
-<img src="./client/src/assets/register-page.png" width="900px" height="480px" alt="CVitaePRO Wireframe" />
-<img src="./client/src/assets/login-page.png" width="900px" height="480px" alt="CVitaePRO Wireframe" />
-<img src="./client/src/assets/features-page.png" width="900px" height="480px" alt="CVitaePRO Wireframe" />
-<img src="./client/src/assets/dashboard-page.png" width="900px" height="480px" alt="CVitaePRO Wireframe" />
-<img src="./client/src/assets/resume-page.png" width="900px" height="480px" alt="CVitaePRO Wireframe" />
-<img src="./client/src/assets/resume-editor.png" width="900px" height="480px" alt="CVitaePRO Wireframe" />
-<img src="./client/src/assets/cover-letter-page.png" width="900px" height="480px" alt="CVitaePRO Wireframe" />
+<img src="client/public/assetsPub/homepage.png" width="900px" height="480px" alt="CVitaePRO Wireframe" />
+<img src="client/public/assetsPub/register-page.png" width="900px" height="480px" alt="CVitaePRO Wireframe" />
+<img src="client/public/assetsPub/login-page.png" width="900px" height="480px" alt="CVitaePRO Wireframe" />
+<img src="client/public/assetsPub/features-page.png" width="900px" height="480px" alt="CVitaePRO Wireframe" />
+<img src="client/public/assetsPub/dashboard-page.png" width="900px" height="480px" alt="CVitaePRO Wireframe" />
+<img src="client/public/assetsPub/resume-page.png" width="900px" height="480px" alt="CVitaePRO Wireframe" />
+<img src="client/public/assetsPub/resume-editor.png" width="900px" height="480px" alt="CVitaePRO Wireframe" />
+<img src="client/public/assetsPub/cover-letter-page.png" width="900px" height="480px" alt="CVitaePRO Wireframe" />
 
 
 
