@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth.jsx";
+import { useAuth } from "../hooks/useAuth.ts";
 import HeaderBar from "../components/layout/HeaderBar.tsx";
 import ResumeList from "../components/resume/display/ResumeList.tsx";
 import ResumeActionsPanel from "../components/resume/display/ResumeActionsPanel.tsx";

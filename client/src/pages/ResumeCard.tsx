@@ -1,42 +1,9 @@
 import React, { useState } from "react";
 import { parseResumeMarkdown } from "../helpers/parseResumeMarkdown";
-import { sanitizeResumeForOpenAI} from "../helpers/sanitizeResumeForOpenAI.ts";
+import { sanitizeResumeForOpenAI} from "../helpers/sanitizeResumeForOpenAI.js";
+import { formatWorkDates } from "../utils/formatWorkDates.js";
+import type { ResumeCardProps } from '../types/resumeTypes.js';
 
-
-interface Experience {
-  company: string;
-  role: string;
-  start_date: string;
-  end_date: string;
-  responsibilities: string[];
-}
-
-interface Education {
-  institution: string;
-  degree: string;
-  graduation_year: string;
-}
-
-interface Certification {
-  name: string;
-  year: string;
-}
-
-interface ResumeCardProps {
-  id: string;
-  name: string;
-  resumeSnippet: string;
-  summary: string;
-  email: string;
-  phone: string;
-  linkedin: string;
-  portfolio: string;
-  experience?: Experience[];
-  education?: Education[];
-  skills?: string[];
-  certifications?: Certification[];
-  refreshResumes: () => void;
-}
 
 const ResumeCard: React.FC<ResumeCardProps> = ({id, name, resumeSnippet, summary, email, phone, experience = [], education = [], skills = [], certifications = [], portfolio, linkedin, refreshResumes}) => {
   let parsedSummary = summary;
@@ -220,24 +187,6 @@ const ResumeCard: React.FC<ResumeCardProps> = ({id, name, resumeSnippet, summary
       setIsEnhancing(false);
     }
   };
-
-  function formatWorkDates(startDate: string, endDate: string): string {
-    const cleanStart = startDate?.trim();
-    const cleanEnd = endDate?.trim();
-
-    const hasValidStart = !!cleanStart && cleanStart.toLowerCase() !== "null" && cleanStart.toLowerCase() !== "undefined";
-    const hasValidEnd = !!cleanEnd && cleanEnd.toLowerCase() !== "null" && cleanEnd.toLowerCase() !== "undefined";
-
-    if (hasValidStart && hasValidEnd) {
-      return `${cleanStart} to ${cleanEnd}`;
-    }
-
-    if (hasValidStart && !hasValidEnd) {
-      return `${cleanStart}`;
-    }
-
-    return "N/A";
-  }
 
   return (
     <div className="bg-gray-800 text-white p-6 rounded-lg shadow-lg w-full">

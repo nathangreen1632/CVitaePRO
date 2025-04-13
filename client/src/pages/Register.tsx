@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth.jsx";
+import { useAuth } from "../hooks/useAuth.ts";
 import LegalAgreementModal from "../components/agreements/LegalAgreementModal.tsx";
 
 const Register = (): React.JSX.Element => {

@@ -1,10 +1,5 @@
-import {
-  createContext,
-  useState,
-  useMemo,
-  useEffect,
-  ReactNode,
-} from "react";
+import { createContext, useState, useMemo, useEffect, ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 
 export interface AuthContextType {
   user: string | null;
@@ -21,19 +16,23 @@ export const AuthContext = createContext<AuthContextType | undefined>(
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const storedToken = localStorage.getItem("token");
-    const storedUser = localStorage.getItem("user");
+    if (typeof window !== 'undefined') {
+      const storedToken = localStorage.getItem("token");
+      const storedUser = localStorage.getItem("user");
 
-    if (storedToken) {
-      setToken(storedToken);
-    }
+      if (storedToken) {
+        setToken(storedToken);
+      }
 
-    if (storedUser) {
-      setUser(storedUser);
+      if (storedUser) {
+        setUser(storedUser);
+      }
     }
   }, []);
+
 
   const register = async (
     username: string,
@@ -50,13 +49,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (!response.ok || !data.token) {
         console.error(
-          "❌ Registration failed:",
+          "Registration failed:",
           data?.error || "Unknown error"
         );
         return { success: false };
       }
 
-      // ✅ Save token and user
       setUser(username);
       setToken(data.token);
       localStorage.setItem("token", data.token);
@@ -65,7 +63,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return { success: true, token: data.token };
     } catch (error) {
       console.error(
-        "❌ Unexpected registration error:",
+        "Unexpected registration error:",
         error instanceof Error ? error.message : error
       );
       return { success: false };
@@ -87,7 +85,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        console.error("❌ Login failed:", data?.error || "Unknown error");
+        console.error("Login failed:", data?.error || "Unknown error");
         return false;
       }
 
@@ -99,18 +97,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return true;
     } catch (error) {
       console.error(
-        "❌ Unexpected login error:",
+        "Unexpected login error:",
         error instanceof Error ? error.message : error
       );
       return false;
     }
   };
 
-  const logout = () => {
+  const logout = (): void => {
     setUser(null);
     setToken(null);
+
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    sessionStorage.removeItem("intentionalLogout");
+
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("logout"));
+    }
+
+    navigate('/login', { replace: true });
   };
 
   const authContextValue = useMemo(

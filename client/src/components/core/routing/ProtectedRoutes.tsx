@@ -1,6 +1,6 @@
 import React, { JSX } from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "../../../hooks/useAuth.tsx";
+import { useAuth } from "../../../hooks/useAuth.ts";
 
 interface ProtectedRouteProps {
   children: JSX.Element;
