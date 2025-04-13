@@ -4,9 +4,9 @@ export const buildFallbackResume = (inputData: any): Record<string, any> => ({
   phone: inputData.phone || "",
   linkedin: inputData.linkedin || "",
   portfolio: inputData.portfolio || "",
-  summary: inputData.summary || "No summary provided.",
+  summary: inputData.summary || "",
   experience: inputData.experience || [],
   education: inputData.education || [],
-  skills: inputData.skills || ["No skills listed."],
+  skills: inputData.skills || [],
   certifications: inputData.certifications || []
 });
