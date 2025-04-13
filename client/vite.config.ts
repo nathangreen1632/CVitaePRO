@@ -1,12 +1,15 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import tailwindcss from '@tailwindcss/vite'
+import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react-swc';
+import tailwindcss from '@tailwindcss/vite';
 
-
-// https://vite.dev/config/
 export default defineConfig({
-  base: "/",
-  plugins: [react(), tailwindcss()],
+  base: '/',
+  plugins: [
+    react({
+      jsxImportSource: 'react',
+    }),
+    tailwindcss(),
+  ],
   server: {
     port: 3000,
     proxy: {
@@ -18,7 +21,7 @@ export default defineConfig({
       '/auth': {
         target: 'http://localhost:3000',
         changeOrigin: true,
-        secure: false
+        secure: false,
       },
     },
   },
@@ -26,16 +29,22 @@ export default defineConfig({
     chunkSizeWarningLimit: 6000,
     rollupOptions: {
       output: {
-        // @ts-ignore
         manualChunks(id) {
-          if (id.includes("node_modules")) {
-            if (id.includes("@splinetool/react-spline")) {
-              return "spline";
+          if (id.includes('node_modules')) {
+            if (id.includes('@splinetool/react-spline')) {
+              return 'spline';
             }
-            return "vendor";
+            return 'vendor';
           }
         },
       },
     },
+  },
+  test: {
+    include: ['src/**/*.vitest.ts', 'src/**/*.vitest.tsx'],
+    exclude: ['**/*.test.ts', 'node_modules', 'dist'],
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: 'src/test/setup.ts',
   },
 });
