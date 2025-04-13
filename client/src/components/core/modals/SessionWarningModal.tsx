@@ -12,31 +12,24 @@ const SessionWarningModal: React.FC<SessionWarningModalProps> = ({
                                                                    countdownLimit = 2 * 60 * 1000,
                                                                  }) => {
   const [remainingTime, setRemainingTime] = useState(countdownLimit);
-  const [buttonsDisabled, setButtonsDisabled] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     intervalRef.current = setInterval(() => {
-      setRemainingTime((prev) => {
-        const next = prev - 1000;
-
-        if (next <= 500 && !buttonsDisabled) {
-          setButtonsDisabled(true);
-        }
-
-        if (next <= 0) {
-          clearInterval(intervalRef.current!);
-          onLogout();
-          return 0;
-        }
-
-        return next;
-      });
+      setRemainingTime((prev) => Math.max(prev - 1000, 0));
     }, 1000);
 
-    return () => clearInterval(intervalRef.current!);
-  }, [onLogout, buttonsDisabled]);
+    timeoutRef.current = setTimeout(() => {
+      clearInterval(intervalRef.current!);
+      onLogout();
+    }, countdownLimit);
 
+    return () => {
+      clearInterval(intervalRef.current!);
+      clearTimeout(timeoutRef.current!);
+    };
+  }, [countdownLimit, onLogout]);
 
   const formatTime = (ms: number) => {
     const totalSeconds = Math.floor(ms / 1000);
@@ -64,22 +57,18 @@ const SessionWarningModal: React.FC<SessionWarningModalProps> = ({
             aria-label="I'm still here"
             onClick={() => {
               clearInterval(intervalRef.current!);
+              clearTimeout(timeoutRef.current!);
               onStayLoggedIn();
             }}
-            disabled={buttonsDisabled}
-            className={`${
-              buttonsDisabled ? "bg-gray-400 cursor-not-allowed" : "bg-green-600 hover:bg-green-700"
-            } text-white font-medium px-4 py-2 rounded`}
+            className="bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded"
           >
             I'm still here
           </button>
+
           <button
             aria-label="Log me out"
             onClick={onLogout}
-            disabled={buttonsDisabled}
-            className={`${
-              buttonsDisabled ? "bg-gray-400 cursor-not-allowed" : "bg-red-600 hover:bg-red-700"
-            } text-white font-medium px-4 py-2 rounded`}
+            className="bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2 rounded"
           >
             Log me out
           </button>
