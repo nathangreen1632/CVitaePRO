@@ -137,7 +137,6 @@ const ResumeEditor: React.FC = () => {
       a.click();
       URL.revokeObjectURL(url);
     } catch (err) {
-      console.error("PDF download error:", err);
       setError("Could not download PDF.");
     }
     setIsDownloading(false);
@@ -179,7 +178,6 @@ const ResumeEditor: React.FC = () => {
       a.click();
       URL.revokeObjectURL(url);
     } catch (err) {
-      console.error("DOCX download error:", err);
       setError("Could not download DOCX.");
     }
     setIsDownloading(false);
