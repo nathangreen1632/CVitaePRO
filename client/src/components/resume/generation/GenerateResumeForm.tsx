@@ -49,7 +49,6 @@ const GenerateResumeForm: React.FC = () => {
       {isGenerating && (
         <div className="fixed inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center z-50">
           <div className="flex flex-col items-center space-y-4">
-            {/* Bouncing Dots Row */}
             <div className="flex space-x-2">
               {[0, 1, 2, 3].map((i) => (
                 <div
@@ -61,8 +60,6 @@ const GenerateResumeForm: React.FC = () => {
                 />
               ))}
             </div>
-
-            {/* Loading Text Below */}
             <p className="text-white font-medium text-lg">Generating Your Resume...</p>
           </div>
 
