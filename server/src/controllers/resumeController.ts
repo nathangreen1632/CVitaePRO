@@ -58,6 +58,7 @@ export const uploadResume: RequestHandler = async (req, res) => {
     await setCachedResponse(cacheKey, structuredResume, 86400);
     res.status(200).json(structuredResume);
   } catch (error) {
+    console.error("Error processing resume file:", error);
     res.status(500).json({ error: "Error processing resume file." });
   }
 };
@@ -110,6 +111,7 @@ export const enhanceResume: RequestHandler = async (req: AuthenticatedRequest, r
       resume: structuredResume,
     });
   } catch (error) {
+    console.error("Error enhancing resume:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -137,6 +139,7 @@ export const processResume: RequestHandler = async (req, res) => {
 
     res.status(200).json(structuredResume);
   } catch (error) {
+    console.error("Error processing resume data:", error);
     res.status(500).json({ error: "Error processing resume data." });
   }
 };
@@ -160,24 +163,25 @@ export const listResumes = async (req: AuthenticatedRequest, res: Response): Pro
 
     const formattedResumes = queryResult.rows.map(row => ({
       id: row.id,
-      name: row.title || "Untitled Resume",
+      name: row.title ?? "Untitled Resume",
       jobTitle: "N/A",
-      resumeSnippet: row.content || "",
-      summary: row.extracted_text || "",
-      email: row.email || "",
-      phone: row.phone || "",
-      linkedin: row.linkedin || "",
-      portfolio: row.portfolio || "",
-      experience: row.experience || [],
-      education: row.education || [],
-      skills: row.skills || [],
-      certifications: row.certifications || [],
+      resumeSnippet: row.content ?? "",
+      summary: row.extracted_text ?? "",
+      email: row.email ?? "",
+      phone: row.phone ?? "",
+      linkedin: row.linkedin ?? "",
+      portfolio: row.portfolio ?? "",
+      experience: row.experience ?? [],
+      education: row.education ?? [],
+      skills: row.skills ?? [],
+      certifications: row.certifications ?? [],
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     }));
 
     res.status(200).json({ success: true, resumes: formattedResumes });
   } catch (error) {
+    console.error("Error retrieving resumes:", error);
     res.status(500).json({ success: false, message: "Internal server error while retrieving resumes." });
   }
 };
@@ -204,6 +208,7 @@ export const getResumeById: RequestHandler = async (req, res) => {
 
     res.status(200).json({ success: true, resume: queryResult.rows[0] });
   } catch (error) {
+    console.error("Error retrieving resume:", error);
     res.status(500).json({ success: false, message: "Internal server error while retrieving the resume." });
   }
 };
@@ -235,6 +240,7 @@ export const deleteResume = async (req: Request, res: Response): Promise<void> =
 
     res.json({ success: true, message: "Resume deleted successfully" });
   } catch (error) {
+    console.error("Error deleting resume:", error);
     res.status(500).json({ success: false, message: "Server error while deleting resume" });
   }
 };
@@ -267,10 +273,10 @@ export const downloadResume: RequestHandler = async (req, res) => {
 
     const parsed = parseResumeMarkdown(resume.content, {
       name: resume.title,
-      email: resume.email || "",
-      phone: resume.phone || "",
-      linkedin: resume.linkedin || "",
-      portfolio: resume.portfolio || "",
+      email: resume.email ?? "",
+      phone: resume.phone ?? "",
+      linkedin: resume.linkedin ?? "",
+      portfolio: resume.portfolio ?? "",
       summary: resume.extracted_text,
       experience: resume.experience,
       education: resume.education,
@@ -525,8 +531,8 @@ export const downloadResume: RequestHandler = async (req, res) => {
                 ];
 
                 for (let i = 0; i < cleanedSkills.length; i += 2) {
-                  const rawLabel = cleanedSkills[i] || "";
-                  const rawContent = cleanedSkills[i + 1] || "";
+                  const rawLabel = cleanedSkills[i] ?? "";
+                  const rawContent = cleanedSkills[i + 1] ?? "";
 
                   const label = rawLabel.replace(/[:\s]+$/, "").trim();
                   const content = rawContent.trim();
@@ -569,7 +575,7 @@ export const downloadResume: RequestHandler = async (req, res) => {
               // CERTIFICATIONS (conditional)
               ...(() => {
                 const realCerts = parsed.certifications.filter((cert: any) => {
-                  const name = (cert.name || "").trim().toLowerCase();
+                  const name = (cert.name ?? "").trim().toLowerCase();
                   return (
                     name.length > 0 &&
                     name !== "certifications" &&
@@ -621,14 +627,14 @@ export const downloadResume: RequestHandler = async (req, res) => {
 
     else {
       const doc = new PDFDocument({ margin: 65 });
-      const filename = `${parsed.name || "Resume"}-resume.pdf`;
+      const filename = `${parsed.name ?? "Resume"}-resume.pdf`;
 
       res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
       res.setHeader("Content-Type", "application/pdf");
 
       doc.pipe(res);
 
-      doc.font("Times-Roman").fontSize(20).text(parsed.name || "Untitled Resume", {
+      doc.font("Times-Roman").fontSize(20).text(parsed.name ?? "Untitled Resume", {
         align: "center",
         underline: true,
       });
@@ -703,8 +709,8 @@ export const downloadResume: RequestHandler = async (req, res) => {
 
 // Loop through pairs of [label, content]
       for (let i = 0; i < parsed.skills.length; i += 2) {
-        const rawLabel = parsed.skills[i] || "";
-        const rawContent = parsed.skills[i + 1] || "";
+        const rawLabel = parsed.skills[i] ?? "";
+        const rawContent = parsed.skills[i + 1] ?? "";
 
         // Sanitize label and content
         const label = rawLabel
@@ -736,7 +742,7 @@ export const downloadResume: RequestHandler = async (req, res) => {
       }
 
       const realCerts = parsed.certifications.filter((cert: any) => {
-        const name = (cert.name || "").trim().toLowerCase();
+        const name = (cert.name ?? "").trim().toLowerCase();
         return (
           name.length > 0 &&
           name !== "certifications" &&
@@ -762,6 +768,7 @@ export const downloadResume: RequestHandler = async (req, res) => {
     }
 
   } catch (error) {
+    console.error("Error downloading resume:", error);
     res.status(500).json({ error: "Failed to download resume." });
   }
 };
@@ -792,9 +799,10 @@ export const downloadEditorDocx: RequestHandler = async (req, res): Promise<void
 
     const buffer = await Packer.toBuffer(doc);
     res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
-    res.setHeader("Content-Disposition", `attachment; filename="${name || "Enhanced_Resume"}.docx"`);
+    res.setHeader("Content-Disposition", `attachment; filename="${name ?? "Enhanced_Resume"}.docx"`);
     res.send(buffer);
   } catch (err) {
+    console.error("Error generating DOCX:", err);
     res.status(500).json({ error: "Failed to generate DOCX from editor text." });
   }
 };
@@ -809,7 +817,7 @@ export const downloadEditorPdf: RequestHandler = async (req, res): Promise<void>
     }
 
     const doc = new PDFDocument();
-    const filename = `${name || "Enhanced_Resume"}.pdf`;
+    const filename = `${name ?? "Enhanced_Resume"}.pdf`;
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
@@ -821,6 +829,7 @@ export const downloadEditorPdf: RequestHandler = async (req, res): Promise<void>
     });
     doc.end();
   } catch (err) {
+    console.error("Error generating PDF:", err);
     res.status(500).json({ error: "Failed to generate PDF from editor text." });
   }
 };
