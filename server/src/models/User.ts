@@ -1,9 +1,9 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 
 export interface IUser extends Model {
+  passwordHash: string;
   id: string;
   username: string;
-  passwordhash: string;
   role: string;
 }
 
@@ -16,33 +16,34 @@ export default (sequelize: Sequelize) => {
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
       },
-      username: {
+      firstName: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      lastName: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      email: {
         type: DataTypes.STRING(255),
         allowNull: false,
         unique: true,
       },
-      passwordhash: {
-        type: DataTypes.STRING(255),
+      passwordHash: {
+        type: DataTypes.STRING,
         allowNull: false,
+        field: "passwordHash",
       },
       role: {
-        type: DataTypes.STRING(50),
+        type: DataTypes.STRING,
         allowNull: false,
         defaultValue: "user",
       },
-      created_at: {
-        type: DataTypes.DATE,
-        defaultValue: DataTypes.NOW,
-      },
-      updated_at: {
-        type: DataTypes.DATE,
-        defaultValue: DataTypes.NOW,
-      },
     },
     {
-      tableName: "users",
+      tableName: "Users",
       timestamps: true,
-      underscored: true,
     }
   );
 };
+
