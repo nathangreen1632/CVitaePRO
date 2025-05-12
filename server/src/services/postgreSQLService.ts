@@ -29,7 +29,7 @@ export const saveToPostgreSQL = async (
   }
 
   try {
-    const userCheckResult = await pool.query('SELECT id FROM "users" WHERE id = $1', [userId]);
+    const userCheckResult = await pool.query('SELECT id FROM "Users" WHERE id = $1', [userId]);
     if (userCheckResult.rowCount === 0) {
       return { success: false, message: `User with ID ${userId} does not exist.` };
     }
@@ -79,6 +79,11 @@ export const saveToPostgreSQL = async (
 
     return { success: true, message: "Resume saved successfully." };
   } catch (error) {
+    if (error instanceof Error) {
+      console.error("Error saving resume to PostgreSQL:", error.message);
+    } else {
+      console.error("Error saving resume to PostgreSQL:", String(error));
+    }
     return { success: false, message: "An error occurred while saving the resume. Please try again." };
   }
 };
