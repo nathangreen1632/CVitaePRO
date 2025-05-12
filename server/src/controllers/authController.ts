@@ -8,45 +8,45 @@ import { verifyToken, generateToken } from "../utils/jwtUtils.js";
 
 export async function register(req: Request, res: Response): Promise<void> {
   try {
-    const { username, password, role } = req.body;
+    const { firstName, lastName, email, password, role } = req.body;
 
-    if (!username || !password) {
-      res.status(400).json({ error: "Username and password are required." });
+    if (!firstName || !lastName || !email || !password) {
+      res.status(400).json({ error: "All fields are required." });
       return;
     }
 
     const userRole = role === "admin" ? "admin" : "user";
     const { user: newUser, token } =
-    (await registerUser({ username, password, role: userRole })) ||
+    (await registerUser({ firstName, lastName, email, password, role: userRole })) ||
     { user: null, token: null };
 
     if (!newUser || !token) {
-      logger.error(`❌ Registration failed for '${username}'.`);
+      logger.error(`❌ Registration failed for '${email}'.`);
       res.status(500).json({ error: "User registration failed. Please try again." });
       return;
     }
 
-    logger.info(`✅ New user registered: '${username}' with role '${userRole}'`);
+    logger.info(`✅ New user registered: '${email}' with role '${userRole}'`);
     res.status(201).json({
       message: "User registered successfully",
       userId: newUser.getDataValue("id"),
       token,
     });
-
-
   } catch (error) {
     logger.error(`❌ Registration Error: ${error instanceof Error ? error.message : "Unknown error"}`);
     res.status(400).json({ error: error instanceof Error ? error.message : "Unknown error" });
   }
 }
 
+
 export async function login(req: Request, res: Response): Promise<void> {
   try {
-    const { username, password } = req.body;
-    const token = await loginUser({ username, password });
+    const { email, password } = req.body;
+
+    const token = await loginUser({ email, password });
 
     if (!token) {
-      const result = await validateUserCredentials(username, password);
+      const result = await validateUserCredentials(email, password);
       if (result.error) {
         res.status(401).json({ error: result.error });
         return;
@@ -72,14 +72,14 @@ export async function changePassword(req: Request, res: Response): Promise<void>
       return;
     }
 
-    const result = await pool.query("SELECT passwordhash FROM users WHERE id = $1", [userId]);
+    const result = await pool.query("SELECT passwordHash FROM Users WHERE id = $1", [userId]);
 
     if (result.rowCount === 0) {
       res.status(404).json({ error: "User not found." });
       return;
     }
 
-    const isValid = await bcrypt.compare(currentPassword, result.rows[0].passwordhash);
+    const isValid = await bcrypt.compare(currentPassword, result.rows[0].passwordHash);
 
     if (!isValid) {
       res.status(401).json({ error: "Incorrect current password." });
@@ -89,7 +89,7 @@ export async function changePassword(req: Request, res: Response): Promise<void>
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
 
-    await pool.query("UPDATE users SET passwordhash = $1 WHERE id = $2", [hashedPassword, userId]);
+    await pool.query("UPDATE Users SET passwordHash = $1 WHERE id = $2", [hashedPassword, userId]);
 
     logger.info(`🔑 Password changed for user ${userId}`);
     res.status(200).json({ message: "Password changed successfully." });
