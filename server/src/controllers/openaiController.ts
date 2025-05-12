@@ -49,11 +49,12 @@ export const generateResume = async (req: Request, res: Response): Promise<void>
     await redisClient.set(cacheKey, JSON.stringify(formattedResume), { EX: 86400 });
 
     const resumeHash = crypto.createHash("sha256").update(aiResponse.message).digest("hex");
-    await saveToPostgreSQL(resumeHash, aiResponse.message, req.user?.id ?? "guest", formattedResume);
+        await saveToPostgreSQL(resumeHash, aiResponse.message, req.user?.id ?? "guest", formattedResume);
 
     res.status(200).json({ resume: formattedResume });
   } catch (error) {
     if (!res.headersSent) {
+      console.error("Error generating resume:", error);
       res.status(500).json({ error: "Failed to generate resume." });
     }
   }
