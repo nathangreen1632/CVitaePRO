@@ -5,7 +5,7 @@ import { useAuth } from "../hooks/useAuth.js";
 const Login = (): React.JSX.Element => {
   const { login, token } = useAuth();
   const navigate = useNavigate();
-  const [username, setUsername] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
@@ -16,11 +16,12 @@ const Login = (): React.JSX.Element => {
     setLoading(true);
 
     try {
-      const success: boolean = await login(username, password);
+      const success: boolean = await login(email, password);
       if (!success) {
         setError("Invalid credentials. Please try again.");
       }
     } catch (err) {
+      console.error("Registration error:", err);
       setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
@@ -43,13 +44,10 @@ const Login = (): React.JSX.Element => {
                 <div
                   key={i}
                   className="w-3 h-3 bg-red-500 rounded-full"
-                  style={{
-                    animation: `highBounce 0.8s ease-in-out ${i * 0.7}s infinite`,
-                  }}
+                  style={{ animation: `highBounce 0.8s ease-in-out ${i * 0.7}s infinite` }}
                 />
               ))}
             </div>
-
             <p className="text-white font-medium text-lg">Logging in...</p>
           </div>
 
@@ -69,11 +67,11 @@ const Login = (): React.JSX.Element => {
         {error && <p className="text-red-500 text-sm mb-3 text-center">{error}</p>}
 
         <input
-          type="text"
-          placeholder="Username"
-          autoComplete="username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          type="email"
+          placeholder="Email"
+          autoComplete="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           required
           className="w-full p-2 mb-4 border border-black rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
         />

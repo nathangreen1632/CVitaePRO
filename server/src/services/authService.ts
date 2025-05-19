@@ -52,14 +52,14 @@ export const generateUserToken = (
   }
 };
 
-export async function validateUserCredentials(username: string, password: string): Promise<{ token?: string; error?: string }> {
-  const user = await User.findOne({ where: { username } });
+export async function validateUserCredentials(email: string, password: string): Promise<{ token?: string; error?: string }> {
+  const user = await User.findOne({ where: { email } });
 
   if (!user) {
     return { error: "Invalid credentials." };
   }
 
-  const isMatch = await bcrypt.compare(password, user.passwordhash);
+  const isMatch = await bcrypt.compare(password, user.passwordHash);
 
   if (!isMatch) {
     return { error: "Invalid credentials." };
@@ -68,3 +68,4 @@ export async function validateUserCredentials(username: string, password: string
   const token = generateToken(user.id, user.role);
   return { token };
 }
+

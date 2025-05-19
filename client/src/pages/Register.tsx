@@ -7,7 +7,9 @@ const Register = (): React.JSX.Element => {
   const { register } = useAuth();
   const navigate = useNavigate();
 
-  const [username, setUsername] = useState<string>("");
+  const [firstName, setFirstName] = useState<string>("");
+  const [lastName, setLastName] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
   const [error, setError] = useState<string>("");
@@ -23,10 +25,10 @@ const Register = (): React.JSX.Element => {
     }
 
     try {
-      const { success, token } = await register(username, password);
+      const { success, token } = await register({ firstName, lastName, email, password });
 
       if (!success || !token) {
-        setError("Registration failed. Try a different username.");
+        setError("Registration failed. Try again.");
         return;
       }
 
@@ -67,11 +69,29 @@ const Register = (): React.JSX.Element => {
 
           <input
             type="text"
-            placeholder="Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            placeholder="First Name"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
             required
-            autoComplete={"username"}
+            className="w-full p-2 mb-4 border border-black rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+          />
+
+          <input
+            type="text"
+            placeholder="Last Name"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            required
+            className="w-full p-2 mb-4 border border-black rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+          />
+
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            autoComplete={"email"}
             className="w-full p-2 mb-4 border border-black rounded focus:outline-none focus:ring-2 focus:ring-green-500"
           />
 
@@ -106,5 +126,6 @@ const Register = (): React.JSX.Element => {
     </div>
   );
 };
+
 
 export default Register;

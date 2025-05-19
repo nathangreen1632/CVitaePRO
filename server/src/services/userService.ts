@@ -10,14 +10,21 @@ const { User } = initModels(sequelize);
 
 
 interface UserData {
-  username: string;
+  firstName: string;
+  lastName: string;
+  email: string;
   password: string;
   role?: "admin" | "user";
 }
 
+interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
 export async function registerUser(userData: UserData): Promise<{ user: InstanceType<typeof User>; token: string } | null> {
   try {
-    if (!userData.username || !userData.password) {
+    if (!userData.email || !userData.password) {
       logger.warn("Registration failed: Missing username or password.");
       return null;
     }
@@ -26,8 +33,10 @@ export async function registerUser(userData: UserData): Promise<{ user: Instance
     const hashedPassword: string = await hashPassword(userData.password);
 
     const newUser: IUser = await User.create({
-      username: userData.username,
-      passwordhash: hashedPassword,
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      email: userData.email,
+      passwordHash: hashedPassword,
       role,
     });
 
@@ -39,19 +48,19 @@ export async function registerUser(userData: UserData): Promise<{ user: Instance
   }
 }
 
-export async function loginUser(credentials: UserData): Promise<string | null> {
+export async function loginUser(credentials: LoginCredentials): Promise<string | null> {
   try {
-    const user: IUser | null = await User.findOne({ where: { username: credentials.username } });
+    const user: IUser | null = await User.findOne({ where: { email: credentials.email } });
 
     if (!user) {
-      logger.warn(`Login failed: User '${credentials.username}' not found.`);
+      logger.warn(`Login failed: User '${credentials.email}' not found.`);
       return null;
     }
 
-    const isMatch: boolean = await comparePassword(credentials.password, user.passwordhash);
+    const isMatch: boolean = await comparePassword(credentials.password, user.passwordHash);
 
     if (!isMatch) {
-      logger.warn(`Login failed: Incorrect password for user '${credentials.username}'.`);
+      logger.warn(`Login failed: Incorrect password for user '${credentials.email}'.`);
       return null;
     }
 

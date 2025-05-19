@@ -4,8 +4,8 @@ import { useNavigate } from "react-router-dom";
 export interface AuthContextType {
   user: string | null;
   token: string | null;
-  login: (username: string, password: string) => Promise<boolean>;
-  register: (username: string, password: string) => Promise<{ success: boolean; token?: string }>;
+  login: (email: string, password: string) => Promise<boolean>;
+  register: (data: { firstName: string; lastName: string; email: string; password: string }) => Promise<{ success: boolean; token?: string }>;
   logout: () => void;
 }
 
@@ -34,31 +34,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
 
-  const register = async (
-    username: string,
-    password: string
-  ): Promise<{ success: boolean; token?: string }> => {
+  const register = async ({
+                            firstName,
+                            lastName,
+                            email,
+                            password
+                          }: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+  }): Promise<{ success: boolean; token?: string }> => {
     try {
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ firstName, lastName, email, password }),
       });
 
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok || !data.token) {
-        console.error(
-          "Registration failed:",
-          data?.error || "Unknown error"
-        );
+        console.error("Registration failed:", data?.error ?? "Unknown error");
         return { success: false };
       }
 
-      setUser(username);
+      setUser(email);
       setToken(data.token);
       localStorage.setItem("token", data.token);
-      localStorage.setItem("user", username);
+      localStorage.setItem("user", email);
 
       return { success: true, token: data.token };
     } catch (error) {
@@ -71,28 +75,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
 
+
   const login = async (
-    username: string,
+    email: string,
     password: string
   ): Promise<boolean> => {
     try {
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        console.error("Login failed:", data?.error || "Unknown error");
+        console.error("Login failed:", data?.error ?? "Unknown error");
         return false;
       }
 
-      setUser(username);
+      setUser(email);
       setToken(data.token);
       localStorage.setItem("token", data.token);
-      localStorage.setItem("user", username);
+      localStorage.setItem("user", email);
 
       return true;
     } catch (error) {
