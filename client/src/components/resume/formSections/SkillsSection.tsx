@@ -2,13 +2,44 @@ import React from 'react';
 
 interface Props {
   resumeData: {
-    currentSkill: "";
+    currentSkill: string;
     skills: string[];
   };
   setResumeData: React.Dispatch<React.SetStateAction<any>>;
 }
 
 const SkillsSection: React.FC<Props> = ({ resumeData, setResumeData }) => {
+  const handleRemoveSkill = (index: number) => {
+    setResumeData((prev: any) => ({
+      ...prev,
+      skills: prev.skills.filter((_: string, i: number) => i !== index),
+    }));
+  };
+
+  const handleAddSkill = () => {
+    if (resumeData.currentSkill?.trim()) {
+      setResumeData((prev: any) => ({
+        ...prev,
+        skills: [...prev.skills, prev.currentSkill.trim()],
+        currentSkill: "",
+      }));
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setResumeData((prev: any) => ({
+      ...prev,
+      currentSkill: e.target.value,
+    }));
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && resumeData.currentSkill?.trim()) {
+      e.preventDefault();
+      handleAddSkill();
+    }
+  };
+
   return (
     <div className="mb-6">
       <h3 className="text-xl font-semibold text-white mb-2 mt-8">Skills</h3>
@@ -18,36 +49,14 @@ const SkillsSection: React.FC<Props> = ({ resumeData, setResumeData }) => {
           type="text"
           placeholder="Type a skill and press Enter"
           className="flex-grow px-3 py-2 rounded border border-gray-600 bg-gray-700 text-white"
-          value={resumeData.currentSkill || ""}
-          onChange={(e) =>
-            setResumeData((prev: any) => ({
-              ...prev,
-              currentSkill: e.target.value,
-            }))
-          }
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && resumeData.currentSkill?.trim()) {
-              e.preventDefault();
-              setResumeData((prev: any) => ({
-                ...prev,
-                skills: [...prev.skills, prev.currentSkill.trim()],
-                currentSkill: "",
-              }));
-            }
-          }}
+          value={resumeData.currentSkill ?? ""}
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
         />
         <button
           type="button"
           className="px-3 py-2 bg-gray-800 text-white font-medium rounded hover:bg-gray-600"
-          onClick={() => {
-            if (resumeData.currentSkill?.trim()) {
-              setResumeData((prev: any) => ({
-                ...prev,
-                skills: [...prev.skills, prev.currentSkill.trim()],
-                currentSkill: "",
-              }));
-            }
-          }}
+          onClick={handleAddSkill}
         >
           Add
         </button>
@@ -63,12 +72,7 @@ const SkillsSection: React.FC<Props> = ({ resumeData, setResumeData }) => {
             <button
               type="button"
               className="text-sm hover:text-red-500"
-              onClick={() =>
-                setResumeData((prev: any) => ({
-                  ...prev,
-                  skills: prev.skills.filter((_: string, i: number) => i !== idx),
-                }))
-              }
+              onClick={() => handleRemoveSkill(idx)}
             >
               ❌
             </button>
