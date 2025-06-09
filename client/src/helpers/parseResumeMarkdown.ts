@@ -167,11 +167,11 @@ const parseCertificationsSection = (content: string[]): { name: string; year: st
 
       const lower = cert.toLowerCase();
       const isGarbage =
-        lower.includes("placeholder") ??
-        lower.includes("left blank") ??
-        lower.includes("no certifications") ??
-        lower.includes("n/a") ??
-        lower.includes("none") ??
+        lower.includes("placeholder") ||
+        lower.includes("left blank") ||
+        lower.includes("no certifications") ||
+        lower.includes("n/a") ||
+        lower.includes("none") ||
         lower === "";
 
       return isGarbage ? null : { name, year };
