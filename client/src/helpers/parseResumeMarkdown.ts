@@ -4,10 +4,9 @@ export const parseResumeMarkdown = (markdown: string, inputData: any): Record<st
   if (!markdown) return buildFallbackResume(inputData);
 
   try {
-    const jsonMatch = /```json\n([\s\S]*?)\n```/.exec(markdown);
-
-    if (jsonMatch?.[1]) {
-      const parsed = tryParseJsonMarkdown(jsonMatch[1], inputData);
+    const jsonBlock = extractJsonBlock(markdown);
+    if (jsonBlock) {
+      const parsed = tryParseJsonMarkdown(jsonBlock, inputData);
       if (parsed) return parsed;
     }
 
@@ -17,9 +16,17 @@ export const parseResumeMarkdown = (markdown: string, inputData: any): Record<st
     }
 
     return parseStructuredMarkdown(markdown, inputData);
-  } catch (err) {
+  } catch (err: any) {
+    console.error("❌ Error parsing resume markdown:", err?.message ?? err);
     return buildFallbackResume(inputData);
   }
+};
+
+
+const extractJsonBlock = (text: string): string | null => {
+  const start = text.indexOf("```json\n");
+  const end = text.indexOf("\n```", start + 8);
+  return start !== -1 && end !== -1 ? text.slice(start + 8, end) : null;
 };
 
 const tryParseJsonMarkdown = (jsonBlock: string, inputData: any): Record<string, any> | null => {
@@ -47,15 +54,15 @@ const tryParseJsonMarkdown = (jsonBlock: string, inputData: any): Record<string,
     }
 
     return {
-      name: parsedJson.name || inputData.name,
-      email: parsedJson.email || inputData.email,
-      phone: parsedJson.phone || inputData.phone,
-      linkedin: parsedJson.linkedin || inputData.linkedin,
-      portfolio: parsedJson.portfolio || inputData.portfolio,
+      name: parsedJson.name ?? inputData.name,
+      email: parsedJson.email ?? inputData.email,
+      phone: parsedJson.phone ?? inputData.phone,
+      linkedin: parsedJson.linkedin ?? inputData.linkedin,
+      portfolio: parsedJson.portfolio ?? inputData.portfolio,
       summary,
-      experience: parsedJson.experience || inputData.experience || [],
-      education: parsedJson.education || inputData.education || [],
-      skills: parsedJson.skills || inputData.skills || ["No skills listed."],
+      experience: parsedJson.experience ?? inputData.experience ?? [],
+      education: parsedJson.education ?? inputData.education ?? [],
+      skills: parsedJson.skills ?? inputData.skills ?? ["No skills listed."],
       certifications,
     };
   } catch (error) {
@@ -66,16 +73,16 @@ const tryParseJsonMarkdown = (jsonBlock: string, inputData: any): Record<string,
 
 const parseStructuredMarkdown = (markdown: string, inputData: any): Record<string, any> => {
   const resume: Record<string, any> = {
-    name: inputData.name || "",
-    email: inputData.email || "",
-    phone: inputData.phone || "",
-    linkedin: inputData.linkedin || "",
-    portfolio: inputData.portfolio || "",
-    summary: inputData.summary || "No summary provided.",
-    experience: inputData.experience || [],
-    education: inputData.education || [],
-    skills: inputData.skills || ["No skills listed."],
-    certifications: inputData.certifications || []
+    name: inputData.name ?? "",
+    email: inputData.email ?? "",
+    phone: inputData.phone ?? "",
+    linkedin: inputData.linkedin ?? "",
+    portfolio: inputData.portfolio ?? "",
+    summary: inputData.summary ?? "No summary provided.",
+    experience: inputData.experience ?? [],
+    education: inputData.education ?? [],
+    skills: inputData.skills ?? ["No skills listed."],
+    certifications: inputData.certifications ?? []
   };
 
   const sections = markdown.split(/\n(?=## )/);
@@ -91,26 +98,26 @@ const parseStructuredMarkdown = (markdown: string, inputData: any): Record<strin
       case "contact information":
         content.forEach((line) => {
           if (line.toLowerCase().includes("email:")) {
-            resume.email = line.split(":")[1]?.trim() || inputData.email || "";
+            resume.email = line.split(":")[1]?.trim() ?? inputData.email ?? "";
           } else if (line.toLowerCase().includes("phone:")) {
-            resume.phone = line.split(":")[1]?.trim() || inputData.phone || "";
+            resume.phone = line.split(":")[1]?.trim() ?? inputData.phone ?? "";
           }
         });
         break;
       case "summary":
-        resume.summary = content.join(" ") || inputData.summary || "No summary provided.";
+        resume.summary = content.join(" ") ?? inputData.summary ?? "No summary provided.";
         break;
       case "experience":
-        resume.experience = parseExperienceSection(content, inputData.experience || []);
+        resume.experience = parseExperienceSection(content, inputData.experience ?? []);
         break;
       case "education":
-        resume.education = parseEducationSection(content, inputData.education || []);
+        resume.education = parseEducationSection(content, inputData.education ?? []);
         break;
       case "skills":
-        resume.skills = parseSkillsSection(content, inputData.skills || []) || ["No skills listed."];
+        resume.skills = parseSkillsSection(content, inputData.skills ?? []) ?? ["No skills listed."];
         break;
       case "certifications":
-        resume.certifications = parseCertificationsSection(content) || [];
+        resume.certifications = parseCertificationsSection(content) ?? [];
         break;
       default:
         break;
@@ -155,8 +162,8 @@ const parseCertificationsSection = (content: string[]): { name: string; year: st
   return content
     .map((cert) => {
       const parts = cert.split(",");
-      const name = parts[0]?.trim() || "";
-      const year = parts[1]?.trim() || "";
+      const name = parts[0]?.trim() ?? "";
+      const year = parts[1]?.trim() ?? "";
 
       const lower = cert.toLowerCase();
       const isGarbage =
@@ -167,14 +174,14 @@ const parseCertificationsSection = (content: string[]): { name: string; year: st
         lower.includes("none") ||
         lower === "";
 
-      return isGarbage ? null : {name, year};
+      return isGarbage ? null : { name, year };
     })
     .filter((cert: { name: string; year: string } | null): cert is { name: string; year: string } =>
       cert !== null && cert.name.length > 2
     );
-  };
+};
 
-  const parseEducationSection = (content: string[], inputEducation: any[]): any[] => {
+const parseEducationSection = (content: string[], inputEducation: any[]): any[] => {
   const education: any[] = [];
   let currentEducation: any = {};
 
@@ -183,10 +190,10 @@ const parseCertificationsSection = (content: string[]): { name: string; year: st
       currentEducation.graduation_year = line.replace("Graduation Year:", "").trim();
       education.push(currentEducation);
       currentEducation = {};
-    } else if (!currentEducation?.degree) {
-      currentEducation.degree = line.trim();
-    } else if (!currentEducation?.institution) {
-      currentEducation.institution = line.trim();
+    } else if (line.match(/(Bachelor|Master|PhD|Associate|Diploma|Certificate)/i)) {
+      currentEducation.degree ??= line.trim();
+    } else if (line.match(/(University|College|Institute|Academy|School)/i)) {
+      currentEducation.institution ??= line.trim();
     }
   });
 
@@ -202,7 +209,7 @@ const formatDate = (dateStr: string): string => {
   };
   const parts = dateStr.split(" ");
   if (parts.length === 2) {
-    const month = months[parts[0]] || "01";
+    const month = months[parts[0]] ?? "01";
     return `${parts[1]}-${month}-01`;
   }
   return dateStr;

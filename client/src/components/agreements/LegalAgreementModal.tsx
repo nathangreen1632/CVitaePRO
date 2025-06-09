@@ -102,7 +102,7 @@ const LegalAgreementModal: React.FC<LegalAgreementModalProps> = ({ onComplete, o
           <input
             id="agree-checkbox"
             type="checkbox"
-            checked={accepted[currentDoc.key] || false}
+            checked={accepted[currentDoc.key] ?? false}
             onChange={handleCheckbox}
             className="mr-2"
           />

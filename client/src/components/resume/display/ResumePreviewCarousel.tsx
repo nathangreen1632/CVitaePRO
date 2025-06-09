@@ -74,8 +74,8 @@ const ResumePreviewCarousel: React.FC<ResumePreviewCarouselProps> = ({ title, im
       </div>
 
       <ul className="text-sm text-neutral-700 dark:text-neutral-200 list-disc list-inside mt-6">
-        {points.map((point, idx) => (
-          <li key={idx}>{point}</li>
+        {points.map((point) => (
+          <li key={point}>{point}</li>
         ))}
       </ul>
     </div>

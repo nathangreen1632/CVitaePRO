@@ -116,17 +116,17 @@ const ResumeList: React.FC<ResumeListProps> = ({
             <div key={resume.id} id={`resume-${resume.id}-${resume.name.replace(/\s+/g, "-")}`}>
               <ResumeCard
                 id={resume.id}
-                name={resume.name || "Untitled Resume"}
-                resumeSnippet={resume.resumeSnippet || ""}
-                summary={resume.summary || ""}
-                email={resume.email || ""}
-                phone={resume.phone || ""}
-                linkedin={resume.linkedin || ""}
-                portfolio={resume.portfolio || ""}
-                experience={resume.experience || []}
-                education={resume.education || []}
-                skills={resume.skills || []}
-                certifications={resume.certifications || []}
+                name={resume.name ?? "Untitled Resume"}
+                resumeSnippet={resume.resumeSnippet ?? ""}
+                summary={resume.summary ?? ""}
+                email={resume.email ?? ""}
+                phone={resume.phone ?? ""}
+                linkedin={resume.linkedin ?? ""}
+                portfolio={resume.portfolio ?? ""}
+                experience={resume.experience ?? []}
+                education={resume.education ?? []}
+                skills={resume.skills ?? []}
+                certifications={resume.certifications ?? []}
                 refreshResumes={refreshResumes}
               />
 
@@ -142,7 +142,7 @@ const ResumeList: React.FC<ResumeListProps> = ({
                   className="w-full p-3 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   rows={4}
                   placeholder="Paste the job description here..."
-                  value={jobDescriptions[resume.id] || ""}
+                  value={jobDescriptions[resume.id] ?? ""}
                   onChange={(e) =>
                     setJobDescriptions((prev) => ({
                       ...prev,
@@ -165,7 +165,7 @@ const ResumeList: React.FC<ResumeListProps> = ({
                     certifications: resume.certifications,
                   });
 
-                  void handleScore(resume.id, html, jobDescriptions[resume.id] || "");
+                  void handleScore(resume.id, html, jobDescriptions[resume.id] ?? "");
                 }}
                 disabled={loadingScore[resume.id]}
                 className={`bg-yellow-600 hover:bg-yellow-800 text-black font-medium px-4 py-2 rounded mt-2 transition ${

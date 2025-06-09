@@ -47,7 +47,7 @@ const ResumeDetailsForm: React.FC<ResumeDetailsFormProps> = ({ resumeData, setRe
         <span className="text-gray-300">Job Description</span>
         <textarea
           name="jobDescription"
-          value={resumeData.jobDescription || ""}
+          value={resumeData.jobDescription ?? ""}
           onChange={handleChange}
           placeholder="Paste the job description here to optimize your resume..."
           rows={6}
