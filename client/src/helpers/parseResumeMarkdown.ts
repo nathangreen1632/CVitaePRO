@@ -17,7 +17,8 @@ export const parseResumeMarkdown = (markdown: string, inputData: any): Record<st
 
     return parseStructuredMarkdown(markdown, inputData);
   } catch (err: any) {
-    return { error: err?.message ?? "Failed to parse resume." };
+    console.error("❌ Error parsing resume markdown:", err?.message ?? err);
+    return buildFallbackResume(inputData);
   }
 };
 
