@@ -21,13 +21,13 @@ const SessionWarningModal: React.FC<SessionWarningModalProps> = ({
     }, 1000);
 
     timeoutRef.current = setTimeout(() => {
-      clearInterval(intervalRef.current!);
+      if (intervalRef.current !== null) clearInterval(intervalRef.current);
       onLogout();
     }, countdownLimit);
 
     return () => {
-      clearInterval(intervalRef.current!);
-      clearTimeout(timeoutRef.current!);
+      if (intervalRef.current !== null) clearInterval(intervalRef.current);
+      if (timeoutRef.current !== null) clearTimeout(timeoutRef.current);
     };
   }, [countdownLimit, onLogout]);
 
@@ -56,8 +56,8 @@ const SessionWarningModal: React.FC<SessionWarningModalProps> = ({
           <button
             aria-label="I'm still here"
             onClick={() => {
-              clearInterval(intervalRef.current!);
-              clearTimeout(timeoutRef.current!);
+              if (intervalRef.current !== null) clearInterval(intervalRef.current);
+              if (timeoutRef.current !== null) clearTimeout(timeoutRef.current);
               onStayLoggedIn();
             }}
             className="bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded"
