@@ -190,8 +190,9 @@ const parseEducationSection = (content: string[], inputEducation: any[]): any[] 
       currentEducation.graduation_year = line.replace("Graduation Year:", "").trim();
       education.push(currentEducation);
       currentEducation = {};
-    } else {
+    } else if (line.match(/(Bachelor|Master|PhD|Associate|Diploma|Certificate)/i)) {
       currentEducation.degree ??= line.trim();
+    } else if (line.match(/(University|College|Institute|Academy|School)/i)) {
       currentEducation.institution ??= line.trim();
     }
   });
