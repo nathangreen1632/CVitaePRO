@@ -1,39 +1,25 @@
 import express, { Request, Response, NextFunction, Router } from "express";
-import multer, { Multer } from "multer";
+import { Multer } from "multer";
 import dotenv from "dotenv";
 import { v4 as uuidv4 } from "uuid";
 import fs from "fs";
-import os from "os";
-import path from "path";
 
 import { processAdobePDF } from "../services/adobeService.js";
 import { storeExtractedText, getExtractedText } from "../services/redisService.js";
 import { saveToPostgreSQL, getFromPostgreSQL } from "../services/postgreSQLService.js";
 import { rateLimiter } from "../middleware/rateLimiter.js";
 import { authenticateUser } from "../services/authService.js";
+import { createTempUploadDir, createMulterUpload, handleMulterErrors } from "../utils/uploadUtils.js";
 
 dotenv.config();
 
-const TMP_UPLOAD_DIR: string = fs.mkdtempSync(path.join(os.tmpdir(), "adobe-"));
-fs.chmodSync(TMP_UPLOAD_DIR, 0o700);
-
+const TMP_UPLOAD_DIR: string = createTempUploadDir("adobe-");
 const MAX_UPLOAD_SIZE_MB: number = Number(process.env.ADOBE_PDF_MAX_UPLOAD_MB ?? "10");
 
-const upload: Multer = multer({
-  storage: multer.diskStorage({
-    destination: (_req, _file, cb) => cb(null, TMP_UPLOAD_DIR),
-    filename: (_req, _file, cb) => cb(null, `${Date.now()}-${uuidv4()}.pdf`),
-  }),
-  limits: {
-    fileSize: MAX_UPLOAD_SIZE_MB * 1024 * 1024,
-  },
-  fileFilter: (_req, file, cb): void => {
-    if (file.mimetype !== "application/pdf") {
-      cb(new Error("Only PDF files are allowed"));
-    } else {
-      cb(null, true);
-    }
-  },
+const upload: Multer = createMulterUpload({
+  maxSizeMB: MAX_UPLOAD_SIZE_MB,
+  fileFilter: (type) => type === "application/pdf",
+  storagePath: TMP_UPLOAD_DIR,
 });
 
 const router: Router = express.Router();
@@ -113,20 +99,12 @@ router.get(
   }
 );
 
-router.use((err: unknown, _req: Request, res: Response, next: NextFunction) => {
-  if (err instanceof multer.MulterError) {
-    if (err.code === "LIMIT_FILE_SIZE") {
-      res
-        .status(413)
-        .json({ error: `PDF exceeds ${MAX_UPLOAD_SIZE_MB} MB limit` });
-    } else {
-      res.status(400).json({ error: err.message });
-    }
-  } else if (err instanceof Error && err.message === "Only PDF files are allowed") {
-    res.status(415).json({ error: err.message });
-  } else {
-    next(err);
-  }
-});
+// 🧼 Centralized multer error handling
+router.use(
+  handleMulterErrors(
+    `PDF exceeds ${MAX_UPLOAD_SIZE_MB} MB limit`,
+    "Unsupported file type"
+  )
+);
 
 export default router;
