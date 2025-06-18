@@ -19,11 +19,6 @@ import {
   TextRun,
   HeadingLevel,
   AlignmentType,
-  TableCell,
-  WidthType,
-  Table,
-  TableRow,
-  BorderStyle,
 } from "docx";
 
 declare module "express" {
@@ -434,80 +429,31 @@ export const downloadResume: RequestHandler = async (req, res) => {
                 heading: HeadingLevel.HEADING_2,
                 spacing: { after: 200 },
               }),
-              ...parsed.experience.map((job: any) => {
-                const left = `${job.company} — ${job.role}`;
-                const right = formatWorkDates(job.start_date, job.end_date);
+              ...parsed.experience.flatMap((job: any) => {
+                const companyAndRole = `${job.company} — ${job.role}`;
+                const dates = formatWorkDates(job.start_date, job.end_date);
 
-                return new Table({
-                  width: { size: 100, type: WidthType.PERCENTAGE },
-                  borders: { top: { style: BorderStyle.NONE } },
-                  rows: [
-                    new TableRow({
-                      children: [
-                        new TableCell({
-                          columnSpan: 2,
-                          children: [
-                            new Table({
-                              width: { size: 100, type: WidthType.PERCENTAGE },
-                              borders: { top: { style: BorderStyle.NONE } },
-                              rows: [
-                                new TableRow({
-                                  children: [
-                                    new TableCell({
-                                      width: {
-                                        size: 70,
-                                        type: WidthType.PERCENTAGE,
-                                      },
-                                      children: [
-                                        new Paragraph({
-                                          spacing: { after: 100 },
-                                          children: [
-                                            new TextRun({
-                                              text: left,
-                                              bold: true,
-                                              size: 24,
-                                            }),
-                                          ],
-                                        }),
-                                      ],
-                                    }),
-                                    new TableCell({
-                                      width: {
-                                        size: 30,
-                                        type: WidthType.PERCENTAGE,
-                                      },
-                                      children: [
-                                        new Paragraph({
-                                          alignment: AlignmentType.RIGHT,
-                                          children: [
-                                            new TextRun({
-                                              text: right,
-                                              bold: true,
-                                              size: 24,
-                                            }),
-                                          ],
-                                        }),
-                                      ],
-                                    }),
-                                  ],
-                                }),
-                              ],
-                            }),
-                            ...job.responsibilities.map(
-                              (r: string) =>
-                                new Paragraph({
-                                  spacing: { after: 100 },
-                                  bullet: { level: 0 },
-                                  children: [new TextRun({ text: r, size: 24 })],
-                                })
-                            ),
-                            new Paragraph(""),
-                          ],
-                        }),
-                      ],
-                    }),
+                const experienceHeader = new Paragraph({
+                  spacing: { after: 100 },
+                  tabStops: [{ type: AlignmentType.RIGHT, position: 9000 }],
+                  children: [
+                    new TextRun({ text: companyAndRole, bold: true, size: 24 }),
+                    new TextRun({ text: "\t" }),
+                    new TextRun({ text: dates, bold: true, size: 24 }),
                   ],
                 });
+
+
+                const bulletPoints = job.responsibilities.map(
+                  (r: string) =>
+                    new Paragraph({
+                      spacing: { after: 100 },
+                      bullet: { level: 0 },
+                      children: [new TextRun({ text: r, size: 24 })],
+                    })
+                );
+
+                return [experienceHeader, ...bulletPoints];
               }),
 
               ...(() => {
