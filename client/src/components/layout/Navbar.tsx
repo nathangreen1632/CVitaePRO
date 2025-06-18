@@ -28,6 +28,11 @@ const Navbar: React.FC = () => {
 
   const visiblePages = isAuthenticated ? privatePages : publicPages;
 
+  const isActive = (path: string) => {
+    const route = path === "Home" ? "/" : `/${path.toLowerCase()}`;
+    return location.pathname === route;
+  };
+
   return (
     <nav className="bg-gray-900 text-white py-4 shadow-md">
       <div className="container mx-auto flex justify-between items-center px-6">
@@ -37,20 +42,26 @@ const Navbar: React.FC = () => {
         </Link>
 
         <div className="hidden md:flex space-x-6">
-          {visiblePages.map((item) => (
-            <Link
-              key={item}
-              to={item === "Home" ? "/" : `/${item.toLowerCase()}`}
-              className="hover:text-red-400 transition-all duration-200"
-            >
-              {item.replace(/-/g, " ")}
-            </Link>
-          ))}
+          {visiblePages.map((item) => {
+            const path = item === "Home" ? "/" : `/${item.toLowerCase()}`;
+            return (
+              <Link
+                key={item}
+                to={path}
+                className={`transition-all duration-200 ${
+                  isActive(item) ? "text-red-500" : "hover:text-red-400"
+                }`}
+              >
+                {item.replace(/-/g, " ")}
+              </Link>
+            );
+          })}
 
-          {/* ✅ New Resources Link */}
           <Link
             to="/help-center"
-            className="hover:text-red-400 transition-all duration-200"
+            className={`transition-all duration-200 ${
+              location.pathname === "/help-center" ? "text-red-500" : "hover:text-red-400"
+            }`}
           >
             Help Center
           </Link>
@@ -58,7 +69,9 @@ const Navbar: React.FC = () => {
           {isAdmin && (
             <Link
               to="/admin"
-              className="hover:text-red-400 transition-all duration-200 font-semibold"
+              className={`font-semibold transition-all duration-200 ${
+                location.pathname === "/admin" ? "text-red-500" : "hover:text-red-400"
+              }`}
             >
               Admin Panel
             </Link>
@@ -66,7 +79,9 @@ const Navbar: React.FC = () => {
 
           <Link
             to="/legal"
-            className="hover:text-red-400 transition-all duration-200"
+            className={`transition-all duration-200 ${
+              location.pathname === "/legal" ? "text-red-500" : "hover:text-red-400"
+            }`}
           >
             Legal
           </Link>
@@ -83,21 +98,27 @@ const Navbar: React.FC = () => {
 
       {menuOpen && (
         <div className="md:hidden bg-gray-800 py-4 px-6">
-          {visiblePages.map((item) => (
-            <Link
-              key={item}
-              to={item === "Home" ? "/" : `/${item.toLowerCase()}`}
-              className="block py-2 text-white hover:text-red-400 transition-all duration-200"
-              onClick={() => setMenuOpen(false)}
-            >
-              {item.replace(/-/g, " ")}
-            </Link>
-          ))}
+          {visiblePages.map((item) => {
+            const path = item === "Home" ? "/" : `/${item.toLowerCase()}`;
+            return (
+              <Link
+                key={item}
+                to={path}
+                className={`block py-2 transition-all duration-200 ${
+                  isActive(item) ? "text-red-500" : "text-white hover:text-red-400"
+                }`}
+                onClick={() => setMenuOpen(false)}
+              >
+                {item.replace(/-/g, " ")}
+              </Link>
+            );
+          })}
 
-          {/* ✅ New Resources Link for Mobile */}
           <Link
             to="/help-center"
-            className="block py-2 text-white hover:text-red-400 transition-all duration-200"
+            className={`block py-2 transition-all duration-200 ${
+              location.pathname === "/help-center" ? "text-red-500" : "text-white hover:text-red-400"
+            }`}
             onClick={() => setMenuOpen(false)}
           >
             Help Center
@@ -106,7 +127,9 @@ const Navbar: React.FC = () => {
           {isAdmin && (
             <Link
               to="/admin"
-              className="block py-2 text-white hover:text-red-400 font-semibold transition-all duration-200"
+              className={`block py-2 font-semibold transition-all duration-200 ${
+                location.pathname === "/admin" ? "text-red-500" : "text-white hover:text-red-400"
+              }`}
               onClick={() => setMenuOpen(false)}
             >
               Admin Panel
@@ -115,7 +138,9 @@ const Navbar: React.FC = () => {
 
           <Link
             to="/legal"
-            className="block py-2 text-white hover:text-red-400 transition-all duration-200"
+            className={`block py-2 transition-all duration-200 ${
+              location.pathname === "/legal" ? "text-red-500" : "text-white hover:text-red-400"
+            }`}
             onClick={() => setMenuOpen(false)}
           >
             Legal
