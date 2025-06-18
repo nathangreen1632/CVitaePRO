@@ -5,16 +5,12 @@ interface RecentActivityLogProps {
 }
 
 const RecentActivityLog: React.FC<RecentActivityLogProps> = ({ activityLog }) => {
-  const scrollToResume = (resumeName: string) => {
-    const el = document.querySelector(
-      `[id^="resume-"][id$="-${resumeName.replace(/\s+/g, "-")}"]`
-    );
+  const scrollToResume = (resumeId: string) => {
+    const el = document.getElementById(`resume-${resumeId}`);
 
     if (el instanceof HTMLElement) {
       el.scrollIntoView({ behavior: "smooth", block: "start" });
-
       el.classList.add("ring-10", "ring-blue-800", "animate-pulse");
-
       setTimeout(() => {
         el.classList.remove("ring-10", "ring-blue-800", "animate-pulse");
       }, 1500);
@@ -27,12 +23,15 @@ const RecentActivityLog: React.FC<RecentActivityLogProps> = ({ activityLog }) =>
       <ul>
         {activityLog.length > 0 ? (
           activityLog.map((item: string) => {
-            const resumeName = item.split(" - ")[1];
+            const match = RegExp(/- (.*?) \[(.*?)]$/).exec(item);
+            const resumeName = match?.[1] ?? "Unknown";
+            const resumeId = match?.[2] ?? "";
+
             return (
               <li key={item} className="py-2 border-b">
                 <button
                   className="hover:underline text-left w-full"
-                  onClick={() => scrollToResume(resumeName)}
+                  onClick={() => scrollToResume(resumeId)}
                 >
                   {item.includes("Generated") ? (
                     <>
