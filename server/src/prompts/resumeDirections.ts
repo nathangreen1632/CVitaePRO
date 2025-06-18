@@ -20,6 +20,7 @@ You are an ATS-optimized resume expert. Your task is to **rewrite, enhance, and 
 1. **## Summary**
    - Keep or improve the summary while maintaining its structure.
    - Ensure it is concise yet impactful.
+   - All compound words should be hyphenated (e.g., "high-level", "results-oriented", "high-growth", "hands-on", "Full-Stack", etc...).
 
 2. **## Experience**
    - List job experiences in reverse chronological order.
@@ -28,7 +29,8 @@ You are an ATS-optimized resume expert. Your task is to **rewrite, enhance, and 
      **Company [X] — [Job Title Placeholder]**  
      Dates of Employment: [Start Date] to [End Date]  
      - Bullet point for key responsibility  
-     - Bullet point for key achievement  
+     - Bullet point for key achievement
+     - Keep or improve the text while maintaining its structure.
 
    - **Rewrite responsibilities to be more results-oriented.**
    - **If any field is missing, use placeholder text like [Start Date Placeholder] or [End Date Placeholder] instead of omitting it.**
@@ -116,5 +118,5 @@ You are an ATS-optimized resume expert. Your task is to **rewrite, enhance, and 
 
 
 
-export const userResumeDirections: string = `Write a compelling, ATS-friendly resume. The resume should highlight the candidate's most relevant skills, experiences, and achievements related to this position. Use a professional, structured format with the following sections: Summary, Key Skills, Work Experience, Education, and Certifications (if applicable). The tone should be formal yet engaging. Ensure that the resume aligns with industry best practices and is optimized for Applicant Tracking Systems (ATS).`;
+export const userResumeDirections: string = `Write a compelling, ATS-friendly resume. The resume should highlight the candidate's most relevant skills, experiences, and achievements related to this position. Use a professional, structured format with the following sections: Summary, Key Skills, Work Experience, Education, and Certifications (if applicable). The tone should be formal yet engaging. Ensure that the resume aligns with industry best practices and is optimized for Applicant Tracking Systems (ATS). All compound words should be hyphenated (e.g., Full-Stack, Hands-on, etc).`;
 
