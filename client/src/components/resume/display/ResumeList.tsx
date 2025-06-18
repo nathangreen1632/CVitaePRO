@@ -113,7 +113,7 @@ const ResumeList: React.FC<ResumeListProps> = ({
       ) : (
         <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2">
           {resumes.map((resume) => (
-            <div key={resume.id} id={`resume-${resume.id}-${resume.name.replace(/\s+/g, "-")}`}>
+            <div key={resume.id} id={`resume-${resume.id}`}>
               <ResumeCard
                 id={resume.id}
                 name={resume.name ?? "Untitled Resume"}
