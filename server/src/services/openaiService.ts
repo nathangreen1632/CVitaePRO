@@ -26,44 +26,42 @@ interface ResumeContent {
   certifications?: any[];
 }
 
+function isValidCoverLetterContent(content: any): content is CoverLetterContent {
+  const { userInput, applicantDetails, resumeSummary } = content ?? {};
+  if (!userInput?.jobTitle || !userInput?.companyName) {
+    logger.error("Missing jobTitle or companyName in userInput:", userInput);
+    return false;
+  }
+  if (!applicantDetails?.name) {
+    logger.error("Missing applicant name:", applicantDetails);
+    return false;
+  }
+  if (!resumeSummary?.summary) {
+    logger.error("Missing resume summary:", resumeSummary);
+    return false;
+  }
+  return true;
+}
+
 export const generateFromOpenAI = async (
   userId: string,
   type: "coverLetter" | "resume",
-  content: CoverLetterContent | ResumeContent & { jobDescription?: string }
+  content: CoverLetterContent | (ResumeContent & { jobDescription?: string })
 ): Promise<{ success: boolean; message: string }> => {
   try {
     const contentHash = crypto.createHash("sha256").update(JSON.stringify(content)).digest("hex");
     const cacheKey = `resume:${contentHash}`;
 
-    const cachedEnhanced = await getCachedResponse(cacheKey);
-    if (cachedEnhanced) {
-      return { success: true, message: cachedEnhanced };
-    }
-
-    const cachedResponse = await getFromPostgreSQL(cacheKey);
-    if (cachedResponse) {
-      return { success: true, message: cachedResponse };
-    }
+    const cached = await getCachedResponse(cacheKey) ?? await getFromPostgreSQL(cacheKey);
+    if (cached) return { success: true, message: cached };
 
     if (!content || typeof content !== "object") {
       logger.error("Invalid content sent to OpenAI:", content);
       return { success: false, message: "Invalid request. Content must be a valid object." };
     }
 
-    if (type === "coverLetter") {
-      const { userInput, applicantDetails, resumeSummary } = content as CoverLetterContent;
-      if (!userInput?.jobTitle || !userInput?.companyName) {
-        logger.error("Missing jobTitle or companyName in userInput:", userInput);
-        return { success: false, message: "Job title and company name are required." };
-      }
-      if (!applicantDetails?.name) {
-        logger.error("Missing applicant name:", applicantDetails);
-        return { success: false, message: "Applicant name is required." };
-      }
-      if (!resumeSummary?.summary) {
-        logger.error("Missing resume summary:", resumeSummary);
-        return { success: false, message: "Resume is required." };
-      }
+    if (type === "coverLetter" && !isValidCoverLetterContent(content)) {
+      return { success: false, message: "Missing required cover letter fields." };
     }
 
     const jobDescription = type === "resume" && "jobDescription" in content && content.jobDescription
@@ -72,8 +70,8 @@ export const generateFromOpenAI = async (
 
     const userMessage =
       type === "resume"
-        ? `${userResumeDirections}${jobDescription}\n\nResume Data:\n${JSON.stringify(content, null, 2)}\n\n### INSTRUCTIONS: Return the full resume in proper markdown format. Every section (Summary, Experience, Education, Skills, Certifications) must be present. If a section is missing data, use placeholder text instead of removing it.`
-        : `${userCoverLetterDirections}\n\nCover Letter Data:\n${JSON.stringify(content, null, 2)}\n\n### INSTRUCTIONS: Ensure the response is formatted correctly in markdown.`;
+        ? `${userResumeDirections}${jobDescription}\n\nResume Data:\n${JSON.stringify(content, null, 2)}\n\n### INSTRUCTIONS: Return the full resume in proper markdown format. Every section (Summary, Experience, Education, Skills, Certifications) must be present. If a section is missing data, use placeholder text instead of removing it. All compound words should be hyphenated (e.g. Full-Stack, Hands-on, etc), and ensure the response is formatted correctly in markdown.`
+        : `${userCoverLetterDirections}\n\nCover Letter Data:\n${JSON.stringify(content, null, 2)}\n\n### INSTRUCTIONS: Ensure the response is formatted correctly in markdown. All compound words should be hyphenated. Return the cover letter in markdown format, ensuring it is well-structured and professional.`;
 
     const requestBody = {
       model: "gpt-4o",
@@ -87,7 +85,14 @@ export const generateFromOpenAI = async (
         },
         {
           role: "user",
-          content: `### Input Data\n\n${userMessage}\n\n### INSTRUCTIONS: Return the full resume in markdown format. Every section (Summary, Experience, Education, Skills, Certifications) must be present.`,
+          content: `### Input Data\n\n${userMessage}\n\n### FINAL INSTRUCTIONS:
+            - Return the full resume in **markdown format**
+            - Every section (Summary, Experience, Education, Skills, Certifications) must be present unless otherwise forbidden.
+            - **All compound words MUST be hyphenated** (e.g. Full-Stack, Hands-on, High-Level, Results-Oriented, etc).
+            - If a compound word is not hyphenated, **rephrase or fix it before finalizing the section.**
+            - Do NOT add any section not present in the user data.
+            - Do NOT use placeholder content in Education, Skills, or Certifications.
+            - Ensure the resume is clean, professional, and ATS-optimized.`,
         },
       ],
     };
@@ -108,14 +113,13 @@ export const generateFromOpenAI = async (
       return { success: false, message: `OpenAI API Error: ${openAiResponse.status} ${JSON.stringify(jsonResponse)}` };
     }
 
-    const aiMessage = jsonResponse.choices?.[0]?.message?.content || "Error: No valid response from OpenAI";
+    const aiMessage = jsonResponse.choices?.[0]?.message?.content ?? "Error: No valid response from OpenAI";
 
     if (process.env.NODE_ENV !== "production") {
       userId = "a6127972-0e36-4e91-b4b8-eccdcfc0c757";
     }
 
     const parsedResume = parseResumeMarkdown(aiMessage, content);
-
     await saveToPostgreSQL(contentHash, aiMessage, userId, parsedResume);
     await setCachedResponse(cacheKey, aiMessage, 7200);
 
