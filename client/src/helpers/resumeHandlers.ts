@@ -4,10 +4,10 @@ import React from "react";
 
 const cleanText = (input: string): string =>
   input
-    .replace(/```[\s\S]*?```/g, "")
-    .replace(/^#+\s*/gm, "")
+    .replace(/```[^]*?```/g, "")
+    .replace(/^#+\s+/gm, "")
     .replace(/[*_~`>]/g, "")
-    .replace(/\[([^\]]+)]\([^)]+\)/g, "$1")
+    .replace(/\[([^\]\r\n]{1,200})]\([^()\r\n]{1,300}\)/g, "$1")
     .replace(/^- /gm, "")
     .replace(/\n{2,}/g, "\n")
     .trim();
@@ -55,9 +55,8 @@ export const convertResumeToHTML = (resume: {
 
   const rawSummary = resume.summary || "";
   const cleanedSummary = cleanText(rawSummary);
-  const summaryText = cleanedSummary.length > 0
-    ? cleanedSummary
-    : "No summary provided.";
+  const summaryText =
+    cleanedSummary.length > 0 ? cleanedSummary : "No summary provided.";
 
   return `
     <section>
@@ -77,7 +76,9 @@ export const convertResumeToHTML = (resume: {
     .map(
       (exp) => `
               <li>
-                <strong>${cleanText(exp.role)}</strong> at ${cleanText(exp.company)}<br />
+                <strong>${cleanText(exp.role)}</strong> at ${cleanText(
+        exp.company
+      )}<br />
                 ${formatDateRange(exp.start_date, exp.end_date)}
                 <ul>
                   ${exp.responsibilities
@@ -96,9 +97,9 @@ export const convertResumeToHTML = (resume: {
     .map(
       (edu) => `
               <li>
-                ${cleanText(edu.degree)}, ${cleanText(edu.institution)} (${cleanText(
-        edu.graduation_year
-      )})
+                ${cleanText(edu.degree)}, ${cleanText(
+        edu.institution
+      )} (${cleanText(edu.graduation_year)})
               </li>
             `
     )
@@ -123,7 +124,13 @@ export const convertResumeToHTML = (resume: {
   `;
 };
 
-export const handleGenerateResume = async ({resumeData, setLoading, setError, setActivityLog, fetchResumes}: {
+export const handleGenerateResume = async ({
+                                             resumeData,
+                                             setLoading,
+                                             setError,
+                                             setActivityLog,
+                                             fetchResumes,
+                                           }: {
   resumeData: any;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   setError: React.Dispatch<React.SetStateAction<string | null>>;
@@ -135,7 +142,7 @@ export const handleGenerateResume = async ({resumeData, setLoading, setError, se
 
   const formattedResumeData = {
     type: "resume",
-    jobDescription: resumeData.jobDescription || "",
+    jobDescription: resumeData.jobDescription ?? "",
     resumeData: {
       name: resumeData.name,
       email: resumeData.email,
@@ -182,7 +189,9 @@ export const handleGenerateResume = async ({resumeData, setLoading, setError, se
       return;
     }
 
-    const activityItem = `Generated Resume - ${resumeData.name || "Untitled Resume"}`;
+    const activityItem = `Generated Resume - ${
+      resumeData.name ?? "Untitled Resume"
+    }`;
     const updatedLog = [
       activityItem,
       ...(JSON.parse(localStorage.getItem("activityLog") ?? "[]")),
@@ -199,7 +208,12 @@ export const handleGenerateResume = async ({resumeData, setLoading, setError, se
   }
 };
 
-export const handleEnhanceResume = async ({resumeData, setLoading, setError, setActivityLog}: {
+export const handleEnhanceResume = async ({
+                                            resumeData,
+                                            setLoading,
+                                            setError,
+                                            setActivityLog,
+                                          }: {
   resumeData: any;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   setError: React.Dispatch<React.SetStateAction<string | null>>;
@@ -225,13 +239,15 @@ export const handleEnhanceResume = async ({resumeData, setLoading, setError, set
     const data = await response.json();
 
     if (!response.ok || !data.resume) {
-      setError(data.error || "Failed to enhance resume.");
+      setError(data.error ?? "Failed to enhance resume.");
       return;
     }
 
     const enhancedResume = parseResumeMarkdown(data.resume, resumeData);
 
-    const activityItem = `Enhanced Resume - ${enhancedResume.name || "Untitled Resume"}`;
+    const activityItem = `Enhanced Resume - ${
+      enhancedResume.name ?? "Untitled Resume"
+    }`;
     const updatedLog = [
       activityItem,
       ...(JSON.parse(localStorage.getItem("activityLog") ?? "[]")),
@@ -239,6 +255,7 @@ export const handleEnhanceResume = async ({resumeData, setLoading, setError, set
     localStorage.setItem("activityLog", JSON.stringify(updatedLog));
     setActivityLog(updatedLog);
   } catch (error) {
+    console.error("Error enhancing resume:", error);
     setError("Something went wrong while enhancing the resume.");
   } finally {
     setLoading(false);
@@ -265,9 +282,16 @@ interface ScoreResumeParams {
   >;
 }
 
-export const handleScoreResume = async ({resumeId, htmlResume, jobDescription, setAtsScores}: ScoreResumeParams): Promise<void> => {
+export const handleScoreResume = async ({
+                                          resumeId,
+                                          htmlResume,
+                                          jobDescription,
+                                          setAtsScores,
+                                        }: ScoreResumeParams): Promise<void> => {
   if (!jobDescription || jobDescription.trim().length < 20) {
-    alert("⚠️ Please enter a valid job description with at least 20 characters.");
+    alert(
+      "⚠️ Please enter a valid job description with at least 20 characters."
+    );
     return;
   }
 

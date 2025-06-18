@@ -54,9 +54,10 @@ const Dashboard: React.FC = () => {
   const buildActivityLogFromResumes = (resumeList: typeof resumes): string[] => {
     return resumeList.map((resume) => {
       const type = resume.resumeSnippet?.length > 0 ? "Edited" : "Generated";
-      return `${type} Resume - ${resume.name}`;
+      return `${type} Resume - ${resume.name} [${resume.id}]`;
     });
   };
+
 
   const fetchResumes = async (): Promise<void> => {
     setLoading(true);
@@ -86,15 +87,15 @@ const Dashboard: React.FC = () => {
       const data = await response.json();
 
       const formattedResumes = data.resumes.map((resume: any) => {
-        const mappedExperience = (resume.experience || []).map((exp: any) => {
+        const mappedExperience = (resume.experience ?? []).map((exp: any) => {
           let cleanEndDate = "";
           if (typeof exp.end_date === "string") {
             cleanEndDate = exp.end_date.trim();
           }
 
           return {
-            company: exp.company || '',
-            role: exp.role || '',
+            company: exp.company ?? '',
+            role: exp.role ?? '',
             start_date: typeof exp.start_date === 'string' ? exp.start_date.trim() : '',
             end_date: cleanEndDate,
             responsibilities: Array.isArray(exp.responsibilities) ? exp.responsibilities : [],
@@ -102,24 +103,24 @@ const Dashboard: React.FC = () => {
         });
 
         return {
-          id: resume.id || "",
-          name: resume.name || resume.title || "Untitled Resume",
-          resumeSnippet: resume.resumeSnippet || resume.content || "",
-          summary: resume.summary || resume.extracted_text || "",
-          email: resume.email || "",
-          phone: resume.phone || "",
-          linkedin: resume.linkedin || "",
-          portfolio: resume.portfolio || "",
+          id: resume.id ?? "",
+          name: resume.name ?? resume.title ?? "Untitled Resume",
+          resumeSnippet: resume.resumeSnippet ?? resume.content ?? "",
+          summary: resume.summary ?? resume.extracted_text ?? "",
+          email: resume.email ?? "",
+          phone: resume.phone ?? "",
+          linkedin: resume.linkedin ?? "",
+          portfolio: resume.portfolio ?? "",
           experience: mappedExperience,
-          education: (resume.education || []).map((edu: any) => ({
-            institution: edu.institution || '',
-            degree: edu.degree || '',
-            graduation_year: edu.graduation_year || '',
+          education: (resume.education ?? []).map((edu: any) => ({
+            institution: edu.institution ?? '',
+            degree: edu.degree ?? '',
+            graduation_year: edu.graduation_year ?? '',
           })),
           skills: Array.isArray(resume.skills) ? resume.skills : [],
-          certifications: (resume.certifications || []).map((cert: any) => ({
-            name: cert.name || '',
-            year: cert.year || '',
+          certifications: (resume.certifications ?? []).map((cert: any) => ({
+            name: cert.name ?? '',
+            year: cert.year ?? '',
           })),
         };
       });

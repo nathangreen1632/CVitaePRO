@@ -1,18 +1,28 @@
 import express, { Request, Response, NextFunction, Router } from "express";
-import multer, { Multer } from "multer";
+import { Multer } from "multer";
 import dotenv from "dotenv";
+import { v4 as uuidv4 } from "uuid";
+import fs from "fs";
+
 import { processAdobePDF } from "../services/adobeService.js";
 import { storeExtractedText, getExtractedText } from "../services/redisService.js";
 import { saveToPostgreSQL, getFromPostgreSQL } from "../services/postgreSQLService.js";
 import { rateLimiter } from "../middleware/rateLimiter.js";
 import { authenticateUser } from "../services/authService.js";
-import { v4 as uuidv4 } from "uuid";
-import fs from "fs";
+import { createTempUploadDir, createMulterUpload, handleMulterErrors } from "../utils/uploadUtils.js";
 
 dotenv.config();
 
+const TMP_UPLOAD_DIR: string = createTempUploadDir("adobe-");
+const MAX_UPLOAD_SIZE_MB: number = Number(process.env.ADOBE_PDF_MAX_UPLOAD_MB ?? "10");
+
+const upload: Multer = createMulterUpload({
+  maxSizeMB: MAX_UPLOAD_SIZE_MB,
+  fileFilter: (type) => type === "application/pdf",
+  storagePath: TMP_UPLOAD_DIR,
+});
+
 const router: Router = express.Router();
-const upload: Multer = multer({ dest: "/tmp/" });
 
 interface AuthenticatedRequest extends Request {
   user?: { id: string };
@@ -23,7 +33,7 @@ router.post(
   authenticateUser,
   rateLimiter("adobe_upload"),
   upload.single("pdf"),
-  (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
     (async () => {
       try {
         if (!req.file) {
@@ -87,6 +97,14 @@ router.get(
       }
     })();
   }
+);
+
+// 🧼 Centralized multer error handling
+router.use(
+  handleMulterErrors(
+    `PDF exceeds ${MAX_UPLOAD_SIZE_MB} MB limit`,
+    "Unsupported file type"
+  )
 );
 
 export default router;
