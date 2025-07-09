@@ -305,7 +305,7 @@ function isValidResumeId(id: string | undefined): boolean {
 }
 
 function formatWorkDates(start: string, end?: string): string {
-  if (!start.trim() || !start) return "";
+  if (!start.trim()) return "";
   const trimmedStart = start.trim();
   const trimmedEnd = end?.trim() ?? "";
   if (trimmedStart && trimmedEnd) return `${trimmedStart} to ${trimmedEnd}`;
