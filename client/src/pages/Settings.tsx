@@ -45,14 +45,15 @@ const Settings: React.FC = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || "Failed to change password.");
+        setError(data.error ?? "Failed to change password.");
       } else {
-        setSuccess(data.message || "Password updated successfully.");
+        setSuccess(data.message ?? "Password updated successfully.");
         setCurrentPassword("");
         setNewPassword("");
         setConfirmPassword("");
       }
     } catch (err) {
+      console.error("Change password error:", err);
       setError("Network error occurred.");
     } finally {
       setLoading(false);
