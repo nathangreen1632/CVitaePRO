@@ -300,13 +300,368 @@ export const deleteResume = async (
 /* ─────────────────────────────────────────────────────────────
    DOWNLOAD RESUME (PDF / DOCX)
 ──────────────────────────────────────────────────────────── */
+function isValidResumeId(id: string | undefined): boolean {
+  return !!id && uuidValidate(id);
+}
+
+function formatWorkDates(start: string, end?: string): string {
+  if (!start.trim() || !start) return "";
+  const trimmedStart = start.trim();
+  const trimmedEnd = end?.trim() ?? "";
+  if (trimmedStart && trimmedEnd) return `${trimmedStart} to ${trimmedEnd}`;
+  return trimmedStart;
+}
+
+async function handleDocxDownload(parsed: any, res: Response) {
+  const doc = new Document({
+    sections: [
+      {
+        properties: {
+          page: {
+            margin: { top: 1000, right: 1440, bottom: 1000, left: 1440 },
+          },
+        },
+        children: buildDocxSections(parsed),
+      },
+    ],
+  });
+  const buffer = await Packer.toBuffer(doc);
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename="${parsed.name}-resume.docx"`
+  );
+  res.setHeader(
+    "Content-Type",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+  );
+  res.send(buffer);
+}
+
+function buildDocxSections(parsed: any) {
+  return [
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 175 },
+      children: [
+        new TextRun({
+          text: parsed.name,
+          bold: true,
+          font: "Times New Roman",
+          size: 36,
+        }),
+      ],
+    }),
+    ...[
+      parsed.email &&
+      new Paragraph({
+        spacing: { after: 40 },
+        children: [
+          new TextRun({ text: "Email: ", bold: true, size: 24 }),
+          new TextRun({ text: parsed.email, size: 24 }),
+        ],
+      }),
+      parsed.phone &&
+      new Paragraph({
+        spacing: { after: 40 },
+        children: [
+          new TextRun({ text: "Phone: ", bold: true, size: 24 }),
+          new TextRun({ text: parsed.phone, size: 24 }),
+        ],
+      }),
+      parsed.linkedin &&
+      new Paragraph({
+        spacing: { after: 40 },
+        children: [
+          new TextRun({ text: "LinkedIn: ", bold: true, size: 24 }),
+          new TextRun({ text: parsed.linkedin, size: 24 }),
+        ],
+      }),
+      parsed.portfolio &&
+      new Paragraph({
+        spacing: { after: 200 },
+        children: [
+          new TextRun({ text: "Portfolio: ", bold: true, size: 24 }),
+          new TextRun({ text: parsed.portfolio, size: 24 }),
+        ],
+      }),
+    ].filter(Boolean),
+    new Paragraph({
+      text: "Summary",
+      heading: HeadingLevel.HEADING_2,
+      spacing: { after: 100 },
+    }),
+    new Paragraph({
+      spacing: { after: 200 },
+      children: [new TextRun({ text: parsed.summary, size: 24 })],
+    }),
+    new Paragraph({
+      text: "Experience",
+      heading: HeadingLevel.HEADING_2,
+      spacing: { after: 200 },
+    }),
+    ...parsed.experience.flatMap((job: any) => {
+      const companyAndRole = `${job.company} — ${job.role}`;
+      const dates = formatWorkDates(job.start_date, job.end_date);
+      const experienceHeader = new Paragraph({
+        spacing: { after: 100 },
+        tabStops: [{ type: AlignmentType.RIGHT, position: 9000 }],
+        children: [
+          new TextRun({ text: companyAndRole, bold: true, size: 24 }),
+          new TextRun({ text: "\t" }),
+          new TextRun({ text: dates, bold: true, size: 24 }),
+        ],
+      });
+      const bulletPoints = job.responsibilities.map(
+        (r: string) =>
+          new Paragraph({
+            spacing: { after: 100 },
+            bullet: { level: 0 },
+            children: [new TextRun({ text: r, size: 24 })],
+          })
+      );
+      return [experienceHeader, ...bulletPoints];
+    }),
+    ...buildDocxEducation(parsed),
+    ...buildDocxSkills(parsed),
+    ...buildDocxCerts(parsed),
+  ].flat();
+}
+
+function buildDocxEducation(parsed: any) {
+  const realEdu = parsed.education.filter(
+    (e: any) =>
+      e.degree?.trim() && e.institution?.trim() && e.graduation_year?.trim()
+  );
+  if (realEdu.length === 0) return [];
+  return [
+    new Paragraph({
+      text: "Education",
+      heading: HeadingLevel.HEADING_2,
+      spacing: { after: 100 },
+    }),
+    ...realEdu.map(
+      (edu: any) =>
+        new Paragraph({
+          spacing: { after: 100 },
+          indent: { left: 400 },
+          children: [
+            new TextRun({
+              text: `${edu.degree} at ${edu.institution} (${edu.graduation_year})`,
+              size: 24,
+            }),
+          ],
+        })
+    ),
+  ];
+}
+
+function buildDocxSkills(parsed: any) {
+  const skills = parsed.skills
+    .map((s: string) => s.trim())
+    .filter(Boolean);
+  if (skills.length < 2) return [];
+  const blocks: Paragraph[] = [
+    new Paragraph({
+      text: "Skills",
+      heading: HeadingLevel.HEADING_2,
+      spacing: { after: 100 },
+    }),
+  ];
+  for (let i = 0; i < skills.length; i += 2) {
+    const rawLabel = skills[i] ?? "";
+    const rawContent = skills[i + 1] ?? "";
+    const label = rawLabel
+      .normalize("NFKD")
+      .replace(/\p{C}+/gu, "")
+      .replace(/[ :]{1,10}$/, "");
+    const content = rawContent
+      .normalize("NFKD")
+      .replace(/\p{C}+/gu, "")
+      .trim();
+    if (label && content) {
+      blocks.push(
+        new Paragraph({
+          spacing: { after: 50 },
+          children: [
+            new TextRun({
+              text: `${label}:`,
+              bold: true,
+              size: 24,
+            }),
+          ],
+        }),
+        new Paragraph({
+          spacing: { after: 150 },
+          indent: { left: 400 },
+          children: [new TextRun({ text: content, size: 24 })],
+        })
+      );
+    }
+  }
+  return blocks;
+}
+
+function buildDocxCerts(parsed: any) {
+  const certs = parsed.certifications.filter((c: any) => {
+    const name = (c.name ?? "").trim().toLowerCase();
+    return name && name !== "certifications" && !name.includes("placeholder");
+  });
+  if (certs.length === 0) return [];
+  return [
+    new Paragraph({
+      text: "Certifications",
+      heading: HeadingLevel.HEADING_2,
+      spacing: { after: 100 },
+    }),
+    ...certs
+      .map((cert: any) => {
+        const n = cert.name?.trim();
+        const y = cert.year?.trim();
+        if (!n) return null;
+        return new Paragraph({
+          spacing: { after: 100 },
+          indent: { left: 400 },
+          children: [
+            new TextRun({
+              text: y ? `${n} (${y})` : n,
+              size: 24,
+            }),
+          ],
+        });
+      })
+      .filter(Boolean),
+  ];
+}
+
+function handlePdfDownload(parsed: any, res: Response) {
+  const pdf = new PDFDocument({ margin: 65 });
+  const filename = `${parsed.name ?? "Resume"}-resume.pdf`;
+  res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+  res.setHeader("Content-Type", "application/pdf");
+  pdf.pipe(res);
+
+  pdf.font("Times-Roman").fontSize(20).text(parsed.name ?? "Untitled Resume", {
+    align: "center",
+    underline: true,
+  });
+
+  pdf.moveDown(0.5).fontSize(12);
+
+  if (parsed.email) {
+    pdf.font("Times-Bold").text("Email:", { continued: true });
+    pdf.font("Times-Roman").text(` ${parsed.email}`);
+  }
+  if (parsed.phone) {
+    pdf.font("Times-Bold").text("Phone:", { continued: true });
+    pdf.font("Times-Roman").text(` ${parsed.phone}`);
+  }
+  if (parsed.linkedin) {
+    pdf.font("Times-Bold").text("LinkedIn:", { continued: true });
+    pdf.font("Times-Roman").text(` ${parsed.linkedin}`);
+  }
+  if (parsed.portfolio) {
+    pdf.font("Times-Bold").text("Portfolio:", { continued: true });
+    pdf.font("Times-Roman").text(` ${parsed.portfolio}`);
+  }
+
+  pdf.moveDown().fontSize(14).text("Summary", { underline: true });
+  pdf.moveDown(0.5).fontSize(12).text(parsed.summary, { lineGap: 1 });
+
+  pdf.moveDown().fontSize(14).text("Experience", { underline: true });
+  pdf.moveDown(0.5);
+  parsed.experience.forEach((job: any) => {
+    const left = `${job.company} — ${job.role}`;
+    const right = formatWorkDates(job.start_date, job.end_date);
+    const pageW =
+      pdf.page.width - pdf.page.margins.left - pdf.page.margins.right;
+    pdf.font("Times-Bold").fontSize(12);
+    const lW = pdf.widthOfString(left);
+    const rW = pdf.widthOfString(right);
+    const gap = pageW - lW - rW;
+    pdf
+      .font("Times-Bold")
+      .text(left, { continued: true })
+      .text(" ".repeat(Math.max(gap / 3, 2)), { continued: true })
+      .text(right);
+    pdf.moveDown(0.5);
+
+    pdf.font("Times-Roman").fontSize(12);
+    job.responsibilities.forEach((r: string) => {
+      pdf.text(`• ${r}`, { lineGap: 2 });
+    });
+    pdf.moveDown();
+  });
+
+  pdf.fontSize(14).text("Education", { underline: true });
+  pdf.moveDown(0.5);
+  parsed.education.forEach((edu: any) => {
+    pdf
+      .fontSize(12)
+      .text(`${edu.degree} at ${edu.institution} (${edu.graduation_year})`, {
+        indent: 10,
+      });
+  });
+
+  pdf.moveDown().fontSize(14).text("Skills", { underline: true });
+  pdf.moveDown(0.5);
+
+  for (let i = 0; i < parsed.skills.length; i += 2) {
+    const rawLabel = parsed.skills[i] ?? "";
+    const rawContent = parsed.skills[i + 1] ?? "";
+
+    const label = rawLabel
+      .normalize("NFKD")
+      .replace(/\p{C}+/gu, "")
+      .replace(/[ :]{1,10}$/, "");
+
+    const content = rawContent
+      .normalize("NFKD")
+      .replace(/\p{C}+/gu, "")
+      .trim();
+
+    if (!label || !content) continue;
+
+    pdf.font("Times-Bold").fontSize(12).text(`${label}:`, {
+      indent: 10,
+    });
+    pdf.moveDown(0.3);
+    pdf.font("Times-Roman").fontSize(12).text(content, {
+      indent: 20,
+      lineGap: 1,
+    });
+    pdf.moveDown(0.25);
+  }
+
+  const certs = parsed.certifications.filter((c: any) => {
+    const n = (c.name ?? "").trim().toLowerCase();
+    return n && n !== "certifications" && !n.includes("placeholder");
+  });
+
+  if (certs.length > 0) {
+    pdf.moveDown().fontSize(14).text("Certifications", { underline: true });
+    pdf.moveDown(0.5);
+    certs.forEach((cert: any) => {
+      const name = cert.name?.trim();
+      if (!name) return;
+      const year = cert.year?.trim();
+      pdf
+        .fontSize(12)
+        .text(year ? `${name} (${year})` : name, { indent: 10 });
+    });
+  }
+
+  pdf.end();
+}
+
+// --- Main Handler ---
+
 export const downloadResume: RequestHandler = async (req, res) => {
   try {
     const { id: resumeId } = req.params;
     const { format = "pdf" } = req.query;
     const userId = (req as AuthenticatedRequest).user?.id;
 
-    if (!resumeId || !uuidValidate(resumeId)) {
+    if (!isValidResumeId(resumeId)) {
       res.status(400).json({ error: "Invalid resume ID." });
       return;
     }
@@ -318,7 +673,6 @@ export const downloadResume: RequestHandler = async (req, res) => {
        WHERE id = $1 AND user_id = $2`,
       [resumeId, userId]
     );
-
     if (result.rowCount === 0) {
       res.status(404).json({ error: "Resume not found." });
       return;
@@ -339,383 +693,11 @@ export const downloadResume: RequestHandler = async (req, res) => {
       certifications: resume.certifications,
     });
 
-    const formatWorkDates = (start: string, end?: string): string => {
-      if (!start || start.trim() === "") return "";
-      const trimmedStart = start.trim();
-      const trimmedEnd = end?.trim() ?? "";
-      if (trimmedStart && trimmedEnd) return `${trimmedStart} to ${trimmedEnd}`;
-      if (trimmedStart && !trimmedEnd) return trimmedStart;
-      return "";
-    };
-
-    /* --------------------------------------------------------
-       DOCX DOWNLOAD
-    -------------------------------------------------------- */
     if (format === "docx") {
-      const doc = new Document({
-        sections: [
-          {
-            properties: {
-              page: {
-                margin: {
-                  top: 1000,
-                  right: 1440,
-                  bottom: 1000,
-                  left: 1440,
-                },
-              },
-            },
-            children: [
-              new Paragraph({
-                alignment: AlignmentType.CENTER,
-                spacing: { after: 175 },
-                children: [
-                  new TextRun({
-                    text: parsed.name,
-                    bold: true,
-                    font: "Times New Roman",
-                    size: 36,
-                  }),
-                ],
-              }),
-
-              ...[
-                parsed.email &&
-                new Paragraph({
-                  spacing: { after: 40 },
-                  children: [
-                    new TextRun({ text: "Email: ", bold: true, size: 24 }),
-                    new TextRun({ text: parsed.email, size: 24 }),
-                  ],
-                }),
-                parsed.phone &&
-                new Paragraph({
-                  spacing: { after: 40 },
-                  children: [
-                    new TextRun({ text: "Phone: ", bold: true, size: 24 }),
-                    new TextRun({ text: parsed.phone, size: 24 }),
-                  ],
-                }),
-                parsed.linkedin &&
-                new Paragraph({
-                  spacing: { after: 40 },
-                  children: [
-                    new TextRun({ text: "LinkedIn: ", bold: true, size: 24 }),
-                    new TextRun({ text: parsed.linkedin, size: 24 }),
-                  ],
-                }),
-                parsed.portfolio &&
-                new Paragraph({
-                  spacing: { after: 200 },
-                  children: [
-                    new TextRun({ text: "Portfolio: ", bold: true, size: 24 }),
-                    new TextRun({ text: parsed.portfolio, size: 24 }),
-                  ],
-                }),
-              ].filter(Boolean),
-
-              new Paragraph({
-                text: "Summary",
-                heading: HeadingLevel.HEADING_2,
-                spacing: { after: 100 },
-              }),
-              new Paragraph({
-                spacing: { after: 200 },
-                children: [new TextRun({ text: parsed.summary, size: 24 })],
-              }),
-
-              new Paragraph({
-                text: "Experience",
-                heading: HeadingLevel.HEADING_2,
-                spacing: { after: 200 },
-              }),
-              ...parsed.experience.flatMap((job: any) => {
-                const companyAndRole = `${job.company} — ${job.role}`;
-                const dates = formatWorkDates(job.start_date, job.end_date);
-
-                const experienceHeader = new Paragraph({
-                  spacing: { after: 100 },
-                  tabStops: [{ type: AlignmentType.RIGHT, position: 9000 }],
-                  children: [
-                    new TextRun({ text: companyAndRole, bold: true, size: 24 }),
-                    new TextRun({ text: "\t" }),
-                    new TextRun({ text: dates, bold: true, size: 24 }),
-                  ],
-                });
-
-
-                const bulletPoints = job.responsibilities.map(
-                  (r: string) =>
-                    new Paragraph({
-                      spacing: { after: 100 },
-                      bullet: { level: 0 },
-                      children: [new TextRun({ text: r, size: 24 })],
-                    })
-                );
-
-                return [experienceHeader, ...bulletPoints];
-              }),
-
-              ...(() => {
-                const realEdu = parsed.education.filter(
-                  (e: any) =>
-                    e.degree?.trim() &&
-                    e.institution?.trim() &&
-                    e.graduation_year?.trim()
-                );
-                if (realEdu.length === 0) return [];
-                return [
-                  new Paragraph({
-                    text: "Education",
-                    heading: HeadingLevel.HEADING_2,
-                    spacing: { after: 100 },
-                  }),
-                  ...realEdu.map(
-                    (edu: any) =>
-                      new Paragraph({
-                        spacing: { after: 100 },
-                        indent: { left: 400 },
-                        children: [
-                          new TextRun({
-                            text: `${edu.degree} at ${edu.institution} (${edu.graduation_year})`,
-                            size: 24,
-                          }),
-                        ],
-                      })
-                  ),
-                ];
-              })(),
-
-              ...(() => {
-                const skills = parsed.skills
-                  .map((s: string) => s.trim())
-                  .filter(Boolean);
-
-                if (skills.length < 2) return [];
-
-                const blocks: Paragraph[] = [
-                  new Paragraph({
-                    text: "Skills",
-                    heading: HeadingLevel.HEADING_2,
-                    spacing: { after: 100 },
-                  }),
-                ];
-
-                for (let i = 0; i < skills.length; i += 2) {
-                  const rawLabel = skills[i] ?? "";
-                  const rawContent = skills[i + 1] ?? "";
-
-                  const label = rawLabel
-                    .normalize("NFKD")
-                    .replace(/\p{C}+/gu, "")
-                    .replace(/[ :]{1,10}$/, "");
-
-                  const content = rawContent
-                    .normalize("NFKD")
-                    .replace(/\p{C}+/gu, "")
-                    .trim();
-
-                  if (label && content) {
-                    blocks.push(
-                      new Paragraph({
-                        spacing: { after: 50 },
-                        children: [
-                          new TextRun({
-                            text: `${label}:`,
-                            bold: true,
-                            size: 24,
-                          }),
-                        ],
-                      }),
-                      new Paragraph({
-                        spacing: { after: 150 },
-                        indent: { left: 400 },
-                        children: [new TextRun({ text: content, size: 24 })],
-                      })
-                    );
-                  }
-                }
-                return blocks;
-              })(),
-
-              ...(() => {
-                const certs = parsed.certifications.filter((c: any) => {
-                  const name = (c.name ?? "").trim().toLowerCase();
-                  return (
-                    name &&
-                    name !== "certifications" &&
-                    !name.includes("placeholder")
-                  );
-                });
-                if (certs.length === 0) return [];
-                return [
-                  new Paragraph({
-                    text: "Certifications",
-                    heading: HeadingLevel.HEADING_2,
-                    spacing: { after: 100 },
-                  }),
-                  ...certs
-                    .map((cert: any) => {
-                      const n = cert.name?.trim();
-                      const y = cert.year?.trim();
-                      if (!n) return null;
-                      return new Paragraph({
-                        spacing: { after: 100 },
-                        indent: { left: 400 },
-                        children: [
-                          new TextRun({
-                            text: y ? `${n} (${y})` : n,
-                            size: 24,
-                          }),
-                        ],
-                      });
-                    })
-                    .filter(Boolean),
-                ];
-              })(),
-            ],
-          },
-        ],
-      });
-
-      const buffer = await Packer.toBuffer(doc);
-      res.setHeader(
-        "Content-Disposition",
-        `attachment; filename="${parsed.name}-resume.docx"`
-      );
-      res.setHeader(
-        "Content-Type",
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-      );
-      res.send(buffer);
-      return;
+      await handleDocxDownload(parsed, res);
+    } else {
+      handlePdfDownload(parsed, res);
     }
-
-    /* --------------------------------------------------------
-       PDF DOWNLOAD
-    -------------------------------------------------------- */
-    const pdf = new PDFDocument({ margin: 65 });
-    const filename = `${parsed.name ?? "Resume"}-resume.pdf`;
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename="${filename}"`
-    );
-    res.setHeader("Content-Type", "application/pdf");
-    pdf.pipe(res);
-
-    pdf.font("Times-Roman").fontSize(20).text(parsed.name ?? "Untitled Resume", {
-      align: "center",
-      underline: true,
-    });
-
-    pdf.moveDown(0.5).fontSize(12);
-
-    if (parsed.email) {
-      pdf.font("Times-Bold").text("Email:", { continued: true });
-      pdf.font("Times-Roman").text(` ${parsed.email}`);
-    }
-    if (parsed.phone) {
-      pdf.font("Times-Bold").text("Phone:", { continued: true });
-      pdf.font("Times-Roman").text(` ${parsed.phone}`);
-    }
-    if (parsed.linkedin) {
-      pdf.font("Times-Bold").text("LinkedIn:", { continued: true });
-      pdf.font("Times-Roman").text(` ${parsed.linkedin}`);
-    }
-    if (parsed.portfolio) {
-      pdf.font("Times-Bold").text("Portfolio:", { continued: true });
-      pdf.font("Times-Roman").text(` ${parsed.portfolio}`);
-    }
-
-    pdf.moveDown().fontSize(14).text("Summary", { underline: true });
-    pdf.moveDown(0.5).fontSize(12).text(parsed.summary, { lineGap: 1 });
-
-    pdf.moveDown().fontSize(14).text("Experience", { underline: true });
-    pdf.moveDown(0.5);
-    parsed.experience.forEach((job: any) => {
-      const left = `${job.company} — ${job.role}`;
-      const right = formatWorkDates(job.start_date, job.end_date);
-
-      const pageW =
-        pdf.page.width - pdf.page.margins.left - pdf.page.margins.right;
-      pdf.font("Times-Bold").fontSize(12);
-      const lW = pdf.widthOfString(left);
-      const rW = pdf.widthOfString(right);
-      const gap = pageW - lW - rW;
-
-      pdf
-        .font("Times-Bold")
-        .text(left, { continued: true })
-        .text(" ".repeat(Math.max(gap / 3, 2)), { continued: true })
-        .text(right);
-      pdf.moveDown(0.5);
-
-      pdf.font("Times-Roman").fontSize(12);
-      job.responsibilities.forEach((r: string) => {
-        pdf.text(`• ${r}`, { lineGap: 2 });
-      });
-      pdf.moveDown();
-    });
-
-    pdf.fontSize(14).text("Education", { underline: true });
-    pdf.moveDown(0.5);
-    parsed.education.forEach((edu: any) => {
-      pdf
-        .fontSize(12)
-        .text(`${edu.degree} at ${edu.institution} (${edu.graduation_year})`, {
-          indent: 10,
-        });
-    });
-
-    pdf.moveDown().fontSize(14).text("Skills", { underline: true });
-    pdf.moveDown(0.5);
-
-    for (let i = 0; i < parsed.skills.length; i += 2) {
-      const rawLabel = parsed.skills[i] ?? "";
-      const rawContent = parsed.skills[i + 1] ?? "";
-
-      const label = rawLabel
-        .normalize("NFKD")
-        .replace(/\p{C}+/gu, "")
-        .replace(/[ :]{1,10}$/, "");
-
-      const content = rawContent
-        .normalize("NFKD")
-        .replace(/\p{C}+/gu, "")
-        .trim();
-
-      if (!label || !content) continue;
-
-      pdf.font("Times-Bold").fontSize(12).text(`${label}:`, {
-        indent: 10,
-      });
-      pdf.moveDown(0.3);
-      pdf.font("Times-Roman").fontSize(12).text(content, {
-        indent: 20,
-        lineGap: 1,
-      });
-      pdf.moveDown(0.25);
-    }
-
-    const certs = parsed.certifications.filter((c: any) => {
-      const n = (c.name ?? "").trim().toLowerCase();
-      return n && n !== "certifications" && !n.includes("placeholder");
-    });
-
-    if (certs.length > 0) {
-      pdf.moveDown().fontSize(14).text("Certifications", { underline: true });
-      pdf.moveDown(0.5);
-      certs.forEach((cert: any) => {
-        const name = cert.name?.trim();
-        if (!name) return;
-        const year = cert.year?.trim();
-        pdf
-          .fontSize(12)
-          .text(year ? `${name} (${year})` : name, { indent: 10 });
-      });
-    }
-
-    pdf.end();
   } catch (error) {
     console.error("Error downloading resume:", error);
     res.status(500).json({ error: "Failed to download resume." });
