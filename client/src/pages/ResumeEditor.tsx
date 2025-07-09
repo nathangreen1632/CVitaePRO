@@ -45,12 +45,13 @@ const ResumeEditor: React.FC = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || "Failed to enhance resume.");
+        setError(data.error ?? "Failed to enhance resume.");
         return;
       }
 
-      setEnhancedText(data.resume?.summary || "");
+      setEnhancedText(data.resume?.summary ?? "");
     } catch (err) {
+      console.error("Enhance error:", err);
       setError("Server error or network issue.");
     } finally {
       setLoading(false);
@@ -82,12 +83,13 @@ const ResumeEditor: React.FC = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || "Failed to expand resume.");
+        setError(data.error ?? "Failed to expand resume.");
         return;
       }
 
-      setEnhancedText(data.enhancedText || "");
+      setEnhancedText(data.enhancedText ?? "");
     } catch (err) {
+      console.error("Expand error:", err);
       setError("Server error or network issue.");
     } finally {
       setLoading(false);
@@ -120,7 +122,7 @@ const ResumeEditor: React.FC = () => {
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        setError(data?.error || "Failed to download PDF.");
+        setError(data?.error ?? "Failed to download PDF.");
         return;
       }
 
@@ -137,6 +139,7 @@ const ResumeEditor: React.FC = () => {
       a.click();
       URL.revokeObjectURL(url);
     } catch (err) {
+      console.error("Download error:", err);
       setError("Could not download PDF.");
     }
     setIsDownloading(false);
@@ -166,7 +169,7 @@ const ResumeEditor: React.FC = () => {
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        setError(data?.error || "Failed to download DOCX.");
+        setError(data?.error ?? "Failed to download DOCX.");
         return;
       }
 
@@ -178,6 +181,7 @@ const ResumeEditor: React.FC = () => {
       a.click();
       URL.revokeObjectURL(url);
     } catch (err) {
+      console.error("Download error:", err);
       setError("Could not download DOCX.");
     }
     setIsDownloading(false);
