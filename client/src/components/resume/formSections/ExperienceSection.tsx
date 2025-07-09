@@ -88,19 +88,23 @@ const ExperienceSection: React.FC<Props> = ({ resumeData, setResumeData }) => {
     });
   };
 
-  const removeResponsibility = (id: string, text: string) => {
+  const removeResponsibility = (id: string, text: string): void => {
     setResumeData((prev: any) => {
-      const updated = prev.experience.map((exp: Experience) =>
-        exp.id === id
-          ? {
-            ...exp,
-            responsibilities: exp.responsibilities.filter((item) => item !== text),
-          }
-          : exp
-      );
-      return {...prev, experience: updated};
+      const updated = prev.experience.map(stripResponsibility(id, text));
+      return { ...prev, experience: updated };
     });
   };
+
+  function stripResponsibility(id: string, text: string) {
+    return (exp: Experience) => {
+      if (exp.id !== id) return exp;
+      return {
+        ...exp,
+        responsibilities: exp.responsibilities.filter(item => item !== text)
+      };
+    };
+  }
+
 
   const updateCurrentResponsibility = (id: string, text: string) => {
     setResumeData((prev: any) => {
