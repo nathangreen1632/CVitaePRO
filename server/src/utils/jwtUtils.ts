@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "../config/env.js";
-import logger from "../register/logger";
+import logger from "../register/logger.js";
 
 interface JwtPayloadStructure {
   userId: string;
