@@ -22,7 +22,8 @@ export const authenticateUser: RequestHandler = (req: AuthenticatedRequest, res:
   const token = authHeader.split(" ")[1];
   const decoded = verifyToken(token);
 
-  if (!decoded || !decoded.userId) {
+  if (!decoded?.userId) {
+    console.error("Invalid token:", decoded);
     res.status(403).json({ error: "Invalid token" });
     return;
   }
@@ -34,3 +35,4 @@ export const authenticateUser: RequestHandler = (req: AuthenticatedRequest, res:
 
   next();
 };
+
