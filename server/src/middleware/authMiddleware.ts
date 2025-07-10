@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction, RequestHandler } from "express";
 import { verifyToken } from "../utils/jwtUtils.js";
+import logger from "../register/logger";
 
 export interface AuthenticatedRequest extends Request {
   user?: {
@@ -22,7 +23,8 @@ export const authenticateUser: RequestHandler = (req: AuthenticatedRequest, res:
   const token = authHeader.split(" ")[1];
   const decoded = verifyToken(token);
 
-  if (!decoded || !decoded.userId) {
+  if (!decoded?.userId) {
+    logger.error("Invalid token:", decoded);
     res.status(403).json({ error: "Invalid token" });
     return;
   }
@@ -34,3 +36,4 @@ export const authenticateUser: RequestHandler = (req: AuthenticatedRequest, res:
 
   next();
 };
+

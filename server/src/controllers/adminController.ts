@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { sequelize } from "../config/database.js";
 import initModels from "../models/index.js";
+import logger from "../register/logger";
 
 const { UserAgreement, User } = initModels(sequelize);
 
@@ -8,6 +9,7 @@ export const getAdminDashboard = async (_req: Request, res: Response): Promise<v
   try {
     res.json({ message: "Welcome Admin! You have full access." });
   } catch (error) {
+    logger.error("Error in getAdminDashboard:", error);
     res.status(500).json({ error: "Something went wrong." });
   }
 };
