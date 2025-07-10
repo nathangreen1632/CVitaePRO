@@ -30,6 +30,7 @@ export const verifyToken = (token: string): JwtPayloadStructure | null => {
   try {
     return jwt.verify(token, JWT_SECRET) as JwtPayloadStructure;
   } catch (error) {
+    console.error("JWT Verification Error:", error);
     return null;
   }
 };
