@@ -30,7 +30,7 @@ const AdminLogsPage: React.FC = () => {
         if (res.ok) {
           setLogs(data.logs);
         } else {
-          setError(data.error || "Failed to fetch logs");
+          setError(data.error ?? "Failed to fetch logs");
         }
       } catch (err) {
         console.error("Fetch error:", err);

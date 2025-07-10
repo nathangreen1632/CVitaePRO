@@ -74,12 +74,13 @@ const GenerateCoverLetter: React.FC = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || "Something went wrong.");
+        setError(data.error ?? "Something went wrong.");
         return;
       }
 
       setCoverLetter(data.coverLetter);
     } catch (err) {
+      console.error("Error generating cover letter:", err);
       setError("Network error or server unavailable.");
     } finally {
       setLoading(false);
@@ -139,6 +140,7 @@ const GenerateCoverLetter: React.FC = () => {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     } catch (networkErr) {
+      console.error("Error downloading cover letter:", networkErr);
       setError("Network error. Please check your connection and try again.");
     } finally {
       setDownloadLoading(false);
@@ -163,7 +165,7 @@ const GenerateCoverLetter: React.FC = () => {
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        setError(data?.error || "Failed to download .docx file.");
+        setError(data?.error ?? "Failed to download .docx file.");
         return;
       }
 
@@ -183,6 +185,7 @@ const GenerateCoverLetter: React.FC = () => {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     } catch (err) {
+      console.error("Error downloading .docx cover letter:", err);
       setError("Network error. Please check your connection and try again.");
     } finally {
       setDownloadLoading(false);

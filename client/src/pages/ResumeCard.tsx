@@ -11,7 +11,7 @@ const ResumeCard: React.FC<ResumeCardProps> = ({id, name, resumeSnippet, summary
   try {
     if (resumeSnippet) {
       const parsed = parseResumeMarkdown(resumeSnippet, summary);
-      parsedSummary = parsed.summary || summary;
+      parsedSummary = parsed.summary ?? summary;
     }
   } catch (e) {
     console.warn("⚠️ Failed to parse resume markdown:", e);
