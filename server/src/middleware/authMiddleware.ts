@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction, RequestHandler } from "express";
 import { verifyToken } from "../utils/jwtUtils.js";
-import logger from "../register/logger";
+import logger from "../register/logger.js";
 
 export interface AuthenticatedRequest extends Request {
   user?: {
