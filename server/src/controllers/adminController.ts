@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { sequelize } from "../config/database.js";
 import initModels from "../models/index.js";
-import logger from "../register/logger";
+import logger from "../register/logger.js";
 
 const { UserAgreement, User } = initModels(sequelize);
 
