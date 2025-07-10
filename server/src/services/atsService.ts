@@ -219,7 +219,41 @@ function countMatches(resumeTokens: string[], jobKeywords: string[]): number {
   return matchCount;
 }
 
-export function matchKeywords(resumeText: string, jobDescription: string): {
+function matchCountFromList(
+  resumeTokens: string[],
+  terms: string[],
+  exactWeight: number,
+  fuzzyWeight: number
+): number {
+  let count = 0;
+  for (const term of terms) {
+    const stemmedTerm = stemmer.stem(term.toLowerCase());
+    if (hasExactToken(resumeTokens, stemmedTerm)) {
+      count += exactWeight;
+      continue;
+    }
+    if (hasFuzzyToken(resumeTokens, term)) {
+      count += fuzzyWeight;
+    }
+  }
+  return count;
+}
+
+function hasExactToken(tokens: string[], stemmed: string): boolean {
+  return tokens.includes(stemmed);
+}
+
+function hasFuzzyToken(tokens: string[], raw: string): boolean {
+  for (const token of tokens) {
+    if (fuzzyMatch(token, raw)) return true;
+  }
+  return false;
+}
+
+export function matchKeywords(
+  resumeText: string,
+  jobDescription: string
+): {
   keywordMatch: number;
   softSkillsMatch: number;
   industryTermsMatch: number;
@@ -229,47 +263,29 @@ export function matchKeywords(resumeText: string, jobDescription: string): {
 
   const keywordCount = countMatches(resumeTokens, jobKeywords);
 
-  let softSkillsCount = 0;
+  const softSkillsCount = matchCountFromList(
+    resumeTokens,
+    softSkills,
+    4.0,
+    3.5
+  );
 
-  for (const skill of softSkills) {
-    const stemmedSkill = stemmer.stem(skill.toLowerCase());
-
-    for (const token of resumeTokens) {
-      if (token === stemmedSkill) {
-        softSkillsCount += 4.0;
-        break;
-      }
-
-      if (fuzzyMatch(token, skill)) {
-        softSkillsCount += 3.5;
-        break;
-      }
-    }
-  }
-
-
-  let industryTermsCount = 0;
-
-  for (const term of industryTerms) {
-    const stemmedTerm = stemmer.stem(term.toLowerCase());
-
-    for (const token of resumeTokens) {
-      if (token === stemmedTerm) {
-        industryTermsCount += 4.0;
-        break;
-      }
-
-      if (fuzzyMatch(token, term)) {
-        industryTermsCount += 3.5;
-        break;
-      }
-    }
-  }
-
+  const industryTermsCount = matchCountFromList(
+    resumeTokens,
+    industryTerms,
+    4.0,
+    3.5
+  );
 
   const keywordMatch = (keywordCount / jobKeywords.length) * 100;
-  const softSkillsMatch = Math.min((softSkillsCount / softSkills.length) * 100, 20); // Cap at 25%
-  const industryTermsMatch = Math.min((industryTermsCount / industryTerms.length) * 100, 25); // Cap at 25%
+  const softSkillsMatch = Math.min(
+    (softSkillsCount / softSkills.length) * 100,
+    20
+  );
+  const industryTermsMatch = Math.min(
+    (industryTermsCount / industryTerms.length) * 100,
+    25
+  );
 
   return { keywordMatch, softSkillsMatch, industryTermsMatch };
 }
